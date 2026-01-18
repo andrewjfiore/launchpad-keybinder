@@ -10,13 +10,16 @@ import os
 block_cipher = None
 datas = []
 
+# Get the directory containing this spec file
+spec_root = os.path.dirname(os.path.abspath(SPECPATH))
+
 # Add templates directory
-template_dir = os.path.join(os.getcwd(), 'templates')
+template_dir = os.path.join(spec_root, 'templates')
 if os.path.exists(template_dir):
     datas.append((template_dir, 'templates'))
 
 # Add presets directory if it exists
-presets_dir = os.path.join(os.getcwd(), 'presets')
+presets_dir = os.path.join(spec_root, 'presets')
 if os.path.exists(presets_dir):
     datas.append((presets_dir, 'presets'))
 
@@ -48,6 +51,7 @@ hiddenimports = [
     'flask.templating',
     'flask_cors',
     'pygetwindow',
+    'platform',
     'queue',
     'threading',
     'json',
