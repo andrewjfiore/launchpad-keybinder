@@ -1,0 +1,295 @@
+{
+  "name": "Negative Lab Pro",
+  "description": "Optimized for Negative Lab Pro in Lightroom - film scanning and conversion workflow",
+  "base_layer": "Base",
+  "layers": {
+    "Base": {
+      "81": {
+        "note": 81,
+        "key_combo": "ctrl+n",
+        "color": "cyan",
+        "label": "New Conv",
+        "enabled": true,
+        "action": "key"
+      },
+      "82": {
+        "note": 82,
+        "key_combo": "ctrl+shift+n",
+        "color": "cyan",
+        "label": "Batch",
+        "enabled": true,
+        "action": "key"
+      },
+      "83": {
+        "note": 83,
+        "key_combo": "ctrl+z",
+        "color": "orange",
+        "label": "Undo",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": false
+      },
+      "84": {
+        "note": 84,
+        "key_combo": "ctrl+shift+z",
+        "color": "orange",
+        "label": "Redo",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": false
+      },
+      "85": {
+        "note": 85,
+        "key_combo": "ctrl+c",
+        "color": "purple",
+        "label": "Copy",
+        "enabled": true,
+        "action": "key"
+      },
+      "86": {
+        "note": 86,
+        "key_combo": "ctrl+v",
+        "color": "purple",
+        "label": "Paste",
+        "enabled": true,
+        "action": "key"
+      },
+      "87": {
+        "note": 87,
+        "key_combo": "ctrl+shift+v",
+        "color": "purple",
+        "label": "Paste Prev",
+        "enabled": true,
+        "action": "key"
+      },
+      "88": {
+        "note": 88,
+        "key_combo": "p",
+        "color": "yellow",
+        "label": "Preview",
+        "enabled": true,
+        "action": "key"
+      },
+      "71": {
+        "note": 71,
+        "key_combo": "v",
+        "color": "green",
+        "label": "Vignette",
+        "enabled": true,
+        "action": "key"
+      },
+      "72": {
+        "note": 72,
+        "key_combo": "shift+plus",
+        "color": "lime",
+        "label": "Exp +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "73": {
+        "note": 73,
+        "key_combo": "shift+minus",
+        "color": "lime",
+        "label": "Exp -",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "74": {
+        "note": 74,
+        "key_combo": "plus",
+        "color": "sky",
+        "label": "Contrast+",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "75": {
+        "note": 75,
+        "key_combo": "minus",
+        "color": "sky",
+        "label": "Contrast-",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "76": {
+        "note": 76,
+        "key_combo": "right",
+        "color": "red",
+        "label": "Warmer",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.08
+      },
+      "77": {
+        "note": 77,
+        "key_combo": "left",
+        "color": "blue",
+        "label": "Cooler",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.08
+      },
+      "78": {
+        "note": 78,
+        "key_combo": "r",
+        "color": "white",
+        "label": "Reset",
+        "enabled": true,
+        "action": "key"
+      },
+      "61": {
+        "note": 61,
+        "key_combo": "up",
+        "color": "magenta",
+        "label": "Tint +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.08
+      },
+      "62": {
+        "note": 62,
+        "key_combo": "down",
+        "color": "magenta",
+        "label": "Tint -",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.08
+      },
+      "63": {
+        "note": 63,
+        "key_combo": "shift+right",
+        "color": "amber",
+        "label": "Sat +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "64": {
+        "note": 64,
+        "key_combo": "shift+left",
+        "color": "amber",
+        "label": "Sat -",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "65": {
+        "note": 65,
+        "key_combo": "shift+up",
+        "color": "green",
+        "label": "Highlight+",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "66": {
+        "note": 66,
+        "key_combo": "shift+down",
+        "color": "green",
+        "label": "Shadow +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "67": {
+        "note": 67,
+        "key_combo": "f",
+        "color": "yellow",
+        "label": "Flag",
+        "enabled": true,
+        "action": "key"
+      },
+      "68": {
+        "note": 68,
+        "key_combo": "5",
+        "color": "red",
+        "label": "5 Stars",
+        "enabled": true,
+        "action": "key"
+      },
+      "51": {
+        "note": 51,
+        "key_combo": "left",
+        "color": "cyan",
+        "label": "Prev",
+        "enabled": true,
+        "action": "key"
+      },
+      "52": {
+        "note": 52,
+        "key_combo": "right",
+        "color": "cyan",
+        "label": "Next",
+        "enabled": true,
+        "action": "key"
+      },
+      "53": {
+        "note": 53,
+        "key_combo": "space",
+        "color": "white",
+        "label": "Zoom",
+        "enabled": true,
+        "action": "key"
+      },
+      "54": {
+        "note": 54,
+        "key_combo": "enter",
+        "color": "green",
+        "label": "Apply",
+        "enabled": true,
+        "action": "key"
+      },
+      "89": {
+        "note": 89,
+        "key_combo": "escape",
+        "color": "red",
+        "label": "Cancel",
+        "enabled": true,
+        "action": "key"
+      },
+      "79": {
+        "note": 79,
+        "key_combo": "ctrl+s",
+        "color": "green",
+        "label": "Save",
+        "enabled": true,
+        "action": "key"
+      },
+      "69": {
+        "note": 69,
+        "key_combo": "e",
+        "color": "orange",
+        "label": "Export",
+        "enabled": true,
+        "action": "key"
+      }
+    }
+  }
+}
