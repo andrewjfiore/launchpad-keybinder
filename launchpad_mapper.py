@@ -4,6 +4,9 @@ Launchpad Mini MIDI to Keyboard Mapper
 Improved version with Windows support, hex colors, and key repeat
 """
 
+import json
+import platform
+import queue
 import threading
 import time
 from dataclasses import dataclass, asdict
@@ -13,6 +16,8 @@ from typing import Optional, Dict, List, Callable
 
 import mido
 from mido import Message
+from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
 
 # Use 'keyboard' library for better Windows support (sends to active window)
 import keyboard
