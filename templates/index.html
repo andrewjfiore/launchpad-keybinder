@@ -278,8 +278,8 @@
         }
         
         .pad.scene {
-            border-radius: 4px;
-            width: 45px;
+            border-radius: 50%;
+            width: 50px;
         }
         
         .pad.control {
@@ -290,7 +290,65 @@
         .pad.spacer {
             visibility: hidden;
         }
-        
+
+        .pad.dragging {
+            opacity: 0.5;
+            transform: scale(1.1);
+        }
+
+        .pad.drag-over {
+            border-color: #00d4ff !important;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+
+        .pad-actions {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: none;
+            gap: 2px;
+            z-index: 10;
+        }
+
+        .pad:hover .pad-actions {
+            display: flex;
+        }
+
+        .pad-action-btn {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .pad-action-btn.delete {
+            background: rgba(255, 59, 48, 0.9);
+            color: white;
+        }
+
+        .pad-action-btn.delete:hover {
+            background: rgb(255, 59, 48);
+            transform: scale(1.1);
+        }
+
+        .pad-action-btn.duplicate {
+            background: rgba(0, 212, 255, 0.9);
+            color: white;
+        }
+
+        .pad-action-btn.duplicate:hover {
+            background: rgb(0, 212, 255);
+            transform: scale(1.1);
+        }
+
         @keyframes padPress {
             0% { transform: scale(1); }
             50% { transform: scale(0.92); }
@@ -813,7 +871,7 @@
         function initGrid() {
             const grid = document.getElementById('launchpadGrid');
             grid.innerHTML = '';
-            
+
             GRID_NOTES.forEach((row, rowIndex) => {
                 row.forEach((note, colIndex) => {
                     const pad = document.createElement('div');
@@ -824,13 +882,199 @@
                         if (rowIndex === 0) pad.classList.add('control');
                         if (colIndex === 8) pad.classList.add('scene');
                         pad.dataset.note = note;
+                        pad.draggable = true;
+
+                        // Add action buttons container
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'pad-actions';
+
+                        // Delete button
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'pad-action-btn delete';
+                        deleteBtn.innerHTML = '×';
+                        deleteBtn.title = 'Delete mapping';
+                        deleteBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            deletePadMapping(note);
+                        };
+
+                        // Duplicate button
+                        const duplicateBtn = document.createElement('button');
+                        duplicateBtn.className = 'pad-action-btn duplicate';
+                        duplicateBtn.innerHTML = '⧉';
+                        duplicateBtn.title = 'Duplicate mapping';
+                        duplicateBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            duplicatePadMapping(note);
+                        };
+
+                        actionsDiv.appendChild(deleteBtn);
+                        actionsDiv.appendChild(duplicateBtn);
+                        pad.appendChild(actionsDiv);
+
+                        // Click handler
                         pad.onclick = () => selectPad(note);
+
+                        // Drag and drop handlers
+                        pad.addEventListener('dragstart', handleDragStart);
+                        pad.addEventListener('dragover', handleDragOver);
+                        pad.addEventListener('dragleave', handleDragLeave);
+                        pad.addEventListener('drop', handleDrop);
+                        pad.addEventListener('dragend', handleDragEnd);
                     }
                     grid.appendChild(pad);
                 });
             });
         }
-        
+
+        // Drag and drop variables
+        let draggedNote = null;
+
+        function handleDragStart(e) {
+            draggedNote = parseInt(e.target.dataset.note);
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', draggedNote);
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            e.target.closest('.pad')?.classList.add('drag-over');
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            e.target.closest('.pad')?.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            e.preventDefault();
+
+            const targetPad = e.target.closest('.pad');
+            targetPad?.classList.remove('drag-over');
+
+            const targetNote = parseInt(targetPad?.dataset.note);
+            if (draggedNote !== null && targetNote && draggedNote !== targetNote) {
+                swapMappings(draggedNote, targetNote);
+            }
+
+            return false;
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.pad').forEach(pad => {
+                pad.classList.remove('drag-over');
+            });
+            draggedNote = null;
+        }
+
+        async function swapMappings(note1, note2) {
+            const mapping1 = mappings[note1];
+            const mapping2 = mappings[note2];
+
+            if (mapping1) {
+                mapping1.note = note2;
+                mappings[note2] = mapping1;
+            } else {
+                delete mappings[note2];
+            }
+
+            if (mapping2) {
+                mapping2.note = note1;
+                mappings[note1] = mapping2;
+            } else {
+                delete mappings[note1];
+            }
+
+            updatePadDisplay();
+
+            try {
+                await fetch('/api/mapping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mappings: Object.values(mappings), layer: currentLayer })
+                });
+                log(`Swapped mappings between ${note1} and ${note2}`);
+            } catch (err) {
+                log('Failed to save swapped mappings', 'error');
+            }
+        }
+
+        function deletePadMapping(note) {
+            if (!mappings[note]) {
+                log('No mapping to delete', 'warn');
+                return;
+            }
+
+            if (!confirm(`Delete mapping for pad ${note}?`)) {
+                return;
+            }
+
+            delete mappings[note];
+            updatePadDisplay();
+
+            fetch('/api/mapping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mappings: Object.values(mappings), layer: currentLayer })
+            }).then(() => {
+                log(`Deleted mapping for pad ${note}`);
+            }).catch(() => {
+                log('Failed to save after delete', 'error');
+            });
+        }
+
+        function duplicatePadMapping(note) {
+            const sourceMapping = mappings[note];
+            if (!sourceMapping) {
+                log('No mapping to duplicate', 'warn');
+                return;
+            }
+
+            // Find first empty pad
+            let targetNote = null;
+            for (let row of GRID_NOTES) {
+                for (let n of row) {
+                    if (n !== null && !mappings[n]) {
+                        targetNote = n;
+                        break;
+                    }
+                }
+                if (targetNote) break;
+            }
+
+            if (!targetNote) {
+                log('No empty pad available for duplication', 'warn');
+                return;
+            }
+
+            // Create duplicate
+            mappings[targetNote] = {
+                ...sourceMapping,
+                note: targetNote
+            };
+
+            updatePadDisplay();
+            selectPad(targetNote);
+
+            fetch('/api/mapping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mappings: Object.values(mappings), layer: currentLayer })
+            }).then(() => {
+                log(`Duplicated pad ${note} to ${targetNote}`);
+            }).catch(() => {
+                log('Failed to save duplicated mapping', 'error');
+            });
+        }
+
         // Initialize color picker
         function initColorPicker() {
             const picker = document.getElementById('colorPicker');

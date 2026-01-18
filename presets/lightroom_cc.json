@@ -1,400 +1,682 @@
 {
-  "name": "Adobe Lightroom CC",
-  "description": "Optimized for Adobe Lightroom CC - photo editing and organization workflow",
+  "name": "Adobe Lightroom Desktop - Complete",
+  "description": "Complete Adobe Lightroom Desktop keyboard shortcuts - all default shortcuts mapped to Launchpad",
   "base_layer": "Base",
   "layers": {
     "Base": {
-      "81": {
-        "note": 81,
-        "key_combo": "g",
-        "color": "cyan",
-        "label": "Grid",
-        "enabled": true,
-        "action": "key"
-      },
-      "82": {
-        "note": 82,
-        "key_combo": "e",
-        "color": "orange",
-        "label": "Loupe",
-        "enabled": true,
-        "action": "key"
-      },
-      "83": {
-        "note": 83,
+      "91": {
+        "note": 91,
         "key_combo": "c",
-        "color": "purple",
-        "label": "Compare",
-        "enabled": true,
-        "action": "key"
-      },
-      "84": {
-        "note": 84,
-        "key_combo": "n",
-        "color": "green",
-        "label": "Survey",
-        "enabled": true,
-        "action": "key"
-      },
-      "85": {
-        "note": 85,
-        "key_combo": "d",
-        "color": "sky",
-        "label": "Develop",
-        "enabled": true,
-        "action": "key"
-      },
-      "86": {
-        "note": 86,
-        "key_combo": "ctrl+shift+e",
-        "color": "magenta",
-        "label": "Export",
-        "enabled": true,
-        "action": "key"
-      },
-      "87": {
-        "note": 87,
-        "key_combo": "ctrl+z",
-        "color": "orange",
-        "label": "Undo",
-        "enabled": true,
-        "action": "key"
-      },
-      "88": {
-        "note": 88,
-        "key_combo": "ctrl+shift+z",
-        "color": "orange",
-        "label": "Redo",
-        "enabled": true,
-        "action": "key"
-      },
-      "71": {
-        "note": 71,
-        "key_combo": "right",
-        "color": "white",
-        "label": "Next",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.5,
-        "repeat_interval": 0.2
-      },
-      "72": {
-        "note": 72,
-        "key_combo": "left",
-        "color": "white",
-        "label": "Prev",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.5,
-        "repeat_interval": 0.2
-      },
-      "73": {
-        "note": 73,
-        "key_combo": "plus",
-        "color": "lime",
-        "label": "Exp +",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "74": {
-        "note": 74,
-        "key_combo": "minus",
-        "color": "lime",
-        "label": "Exp -",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "75": {
-        "note": 75,
-        "key_combo": "shift+plus",
-        "color": "sky",
-        "label": "Contrast+",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "76": {
-        "note": 76,
-        "key_combo": "shift+minus",
-        "color": "sky",
-        "label": "Contrast-",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "77": {
-        "note": 77,
-        "key_combo": "ctrl+c",
-        "color": "purple",
-        "label": "Copy",
-        "enabled": true,
-        "action": "key"
-      },
-      "78": {
-        "note": 78,
-        "key_combo": "ctrl+v",
-        "color": "purple",
-        "label": "Paste",
-        "enabled": true,
-        "action": "key"
-      },
-      "61": {
-        "note": 61,
-        "key_combo": "pageup",
-        "color": "red",
-        "label": "Temp +",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "62": {
-        "note": 62,
-        "key_combo": "pagedown",
-        "color": "blue",
-        "label": "Temp -",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "63": {
-        "note": 63,
-        "key_combo": "up",
-        "color": "magenta",
-        "label": "Tint +",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "64": {
-        "note": 64,
-        "key_combo": "down",
-        "color": "magenta",
-        "label": "Tint -",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "65": {
-        "note": 65,
-        "key_combo": "home",
-        "color": "green",
-        "label": "Hilight+",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "66": {
-        "note": 66,
-        "key_combo": "end",
-        "color": "green",
-        "label": "Shadow +",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "67": {
-        "note": 67,
-        "key_combo": "shift+up",
-        "color": "amber",
-        "label": "Sat +",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "68": {
-        "note": 68,
-        "key_combo": "shift+down",
-        "color": "amber",
-        "label": "Sat -",
-        "enabled": true,
-        "action": "key",
-        "repeat_enabled": true,
-        "repeat_delay": 0.3,
-        "repeat_interval": 0.05
-      },
-      "51": {
-        "note": 51,
-        "key_combo": "1",
-        "color": "red",
-        "label": "1 Star",
-        "enabled": true,
-        "action": "key"
-      },
-      "52": {
-        "note": 52,
-        "key_combo": "2",
-        "color": "orange",
-        "label": "2 Star",
-        "enabled": true,
-        "action": "key"
-      },
-      "53": {
-        "note": 53,
-        "key_combo": "3",
-        "color": "yellow",
-        "label": "3 Star",
-        "enabled": true,
-        "action": "key"
-      },
-      "54": {
-        "note": 54,
-        "key_combo": "4",
-        "color": "lime",
-        "label": "4 Star",
-        "enabled": true,
-        "action": "key"
-      },
-      "55": {
-        "note": 55,
-        "key_combo": "5",
-        "color": "green",
-        "label": "5 Star",
-        "enabled": true,
-        "action": "key"
-      },
-      "56": {
-        "note": 56,
-        "key_combo": "0",
-        "color": "white",
-        "label": "Clear",
-        "enabled": true,
-        "action": "key"
-      },
-      "57": {
-        "note": 57,
-        "key_combo": "p",
-        "color": "cyan",
-        "label": "Flag",
-        "enabled": true,
-        "action": "key"
-      },
-      "58": {
-        "note": 58,
-        "key_combo": "u",
-        "color": "red",
-        "label": "Reject",
-        "enabled": true,
-        "action": "key"
-      },
-      "41": {
-        "note": 41,
-        "key_combo": "6",
-        "color": "red",
-        "label": "Red",
-        "enabled": true,
-        "action": "key"
-      },
-      "42": {
-        "note": 42,
-        "key_combo": "7",
-        "color": "yellow",
-        "label": "Yellow",
-        "enabled": true,
-        "action": "key"
-      },
-      "43": {
-        "note": 43,
-        "key_combo": "8",
-        "color": "green",
-        "label": "Green",
-        "enabled": true,
-        "action": "key"
-      },
-      "44": {
-        "note": 44,
-        "key_combo": "9",
-        "color": "blue",
-        "label": "Blue",
-        "enabled": true,
-        "action": "key"
-      },
-      "45": {
-        "note": 45,
-        "key_combo": "ctrl+shift+c",
         "color": "purple",
         "label": "Crop",
         "enabled": true,
         "action": "key"
       },
-      "46": {
-        "note": 46,
-        "key_combo": "q",
-        "color": "orange",
-        "label": "Spot Rmv",
-        "enabled": true,
-        "action": "key"
-      },
-      "47": {
-        "note": 47,
-        "key_combo": "k",
+      "92": {
+        "note": 92,
+        "key_combo": "d",
         "color": "sky",
-        "label": "Brush",
+        "label": "Detail",
         "enabled": true,
         "action": "key"
       },
-      "48": {
-        "note": 48,
-        "key_combo": "ctrl+shift+backslash",
-        "color": "white",
-        "label": "Reset",
+      "93": {
+        "note": 93,
+        "key_combo": "e",
+        "color": "orange",
+        "label": "Edit",
         "enabled": true,
         "action": "key"
       },
-      "89": {
-        "note": 89,
-        "key_combo": "z",
-        "color": "white",
-        "label": "Zoom 100%",
-        "enabled": true,
-        "action": "key"
-      },
-      "79": {
-        "note": 79,
+      "94": {
+        "note": 94,
         "key_combo": "f",
         "color": "cyan",
         "label": "Fullscr",
         "enabled": true,
         "action": "key"
       },
-      "69": {
-        "note": 69,
-        "key_combo": "l",
-        "color": "red",
-        "label": "Lights",
+      "95": {
+        "note": 95,
+        "key_combo": "g",
+        "color": "green",
+        "label": "Grid",
         "enabled": true,
         "action": "key"
       },
-      "59": {
-        "note": 59,
+      "96": {
+        "note": 96,
+        "key_combo": "i",
+        "color": "white",
+        "label": "Info",
+        "enabled": true,
+        "action": "key"
+      },
+      "97": {
+        "note": 97,
+        "key_combo": "k",
+        "color": "magenta",
+        "label": "Keywords",
+        "enabled": true,
+        "action": "key"
+      },
+      "98": {
+        "note": 98,
+        "key_combo": "p",
+        "color": "lime",
+        "label": "Photos",
+        "enabled": true,
+        "action": "key"
+      },
+      "81": {
+        "note": 81,
+        "key_combo": "ctrl+x",
+        "color": "red",
+        "label": "Cut",
+        "enabled": true,
+        "action": "key"
+      },
+      "82": {
+        "note": 82,
+        "key_combo": "ctrl+c",
+        "color": "purple",
+        "label": "Copy",
+        "enabled": true,
+        "action": "key"
+      },
+      "83": {
+        "note": 83,
+        "key_combo": "ctrl+v",
+        "color": "purple",
+        "label": "Paste",
+        "enabled": true,
+        "action": "key"
+      },
+      "84": {
+        "note": 84,
+        "key_combo": "ctrl+z",
+        "color": "orange",
+        "label": "Undo",
+        "enabled": true,
+        "action": "key"
+      },
+      "85": {
+        "note": 85,
+        "key_combo": "shift+ctrl+z",
+        "color": "orange",
+        "label": "Redo",
+        "enabled": true,
+        "action": "key"
+      },
+      "86": {
+        "note": 86,
+        "key_combo": "shift+a",
+        "color": "sky",
+        "label": "AutoTone",
+        "enabled": true,
+        "action": "key"
+      },
+      "87": {
+        "note": 87,
+        "key_combo": "shift+ctrl+e",
+        "color": "magenta",
+        "label": "Photoshp",
+        "enabled": true,
+        "action": "key"
+      },
+      "88": {
+        "note": 88,
+        "key_combo": "ctrl+e",
+        "color": "green",
+        "label": "Export",
+        "enabled": true,
+        "action": "key"
+      },
+      "71": {
+        "note": 71,
+        "key_combo": "ctrl+[",
+        "color": "cyan",
+        "label": "Rot L",
+        "enabled": true,
+        "action": "key"
+      },
+      "72": {
+        "note": 72,
+        "key_combo": "ctrl+]",
+        "color": "cyan",
+        "label": "Rot R",
+        "enabled": true,
+        "action": "key"
+      },
+      "73": {
+        "note": 73,
+        "key_combo": "ctrl+=",
+        "color": "lime",
+        "label": "Zoom+",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "74": {
+        "note": 74,
+        "key_combo": "ctrl+-",
+        "color": "lime",
+        "label": "Zoom-",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.3,
+        "repeat_interval": 0.1
+      },
+      "75": {
+        "note": 75,
+        "key_combo": "ctrl+a",
+        "color": "yellow",
+        "label": "SelAll",
+        "enabled": true,
+        "action": "key"
+      },
+      "76": {
+        "note": 76,
+        "key_combo": "ctrl+d",
+        "color": "white",
+        "label": "SelNone",
+        "enabled": true,
+        "action": "key"
+      },
+      "77": {
+        "note": 77,
+        "key_combo": "shift+ctrl+v",
+        "color": "purple",
+        "label": "PastSet",
+        "enabled": true,
+        "action": "key"
+      },
+      "78": {
+        "note": 78,
+        "key_combo": "ctrl+f",
+        "color": "sky",
+        "label": "Search",
+        "enabled": true,
+        "action": "key"
+      },
+      "61": {
+        "note": 61,
+        "key_combo": "a",
+        "color": "white",
+        "label": "VisSpot",
+        "enabled": true,
+        "action": "key"
+      },
+      "62": {
+        "note": 62,
+        "key_combo": "o",
+        "color": "orange",
+        "label": "Overlay",
+        "enabled": true,
+        "action": "key"
+      },
+      "63": {
+        "note": 63,
+        "key_combo": "l",
+        "color": "amber",
+        "label": "Lin Grad",
+        "enabled": true,
+        "action": "key"
+      },
+      "64": {
+        "note": 64,
+        "key_combo": "r",
+        "color": "amber",
+        "label": "Rad Grad",
+        "enabled": true,
+        "action": "key"
+      },
+      "65": {
+        "note": 65,
+        "key_combo": "j",
+        "color": "red",
+        "label": "Clipping",
+        "enabled": true,
+        "action": "key"
+      },
+      "66": {
+        "note": 66,
+        "key_combo": "w",
+        "color": "sky",
+        "label": "WB Smpl",
+        "enabled": true,
+        "action": "key"
+      },
+      "67": {
+        "note": 67,
+        "key_combo": "/",
+        "color": "white",
+        "label": "Filmstr",
+        "enabled": true,
+        "action": "key"
+      },
+      "68": {
+        "note": 68,
+        "key_combo": "\\",
+        "color": "cyan",
+        "label": "ShowOrig",
+        "enabled": true,
+        "action": "key"
+      },
+      "51": {
+        "note": 51,
         "key_combo": "space",
         "color": "white",
-        "label": "Preview",
+        "label": "Zoom Tog",
+        "enabled": true,
+        "action": "key"
+      },
+      "52": {
+        "note": 52,
+        "key_combo": "shift+o",
+        "color": "purple",
+        "label": "MaskClr",
+        "enabled": true,
+        "action": "key"
+      },
+      "53": {
+        "note": 53,
+        "key_combo": "shift+e",
+        "color": "green",
+        "label": "ExpDlg",
+        "enabled": true,
+        "action": "key"
+      },
+      "54": {
+        "note": 54,
+        "key_combo": "ctrl+g",
+        "color": "yellow",
+        "label": "GrpStack",
+        "enabled": true,
+        "action": "key"
+      },
+      "55": {
+        "note": 55,
+        "key_combo": "shift+ctrl+g",
+        "color": "orange",
+        "label": "UnGrpStk",
+        "enabled": true,
+        "action": "key"
+      },
+      "56": {
+        "note": 56,
+        "key_combo": "shift+g",
+        "color": "sky",
+        "label": "GuidUprt",
+        "enabled": true,
+        "action": "key"
+      },
+      "57": {
+        "note": 57,
+        "key_combo": "shift+m",
+        "color": "magenta",
+        "label": "Version",
+        "enabled": true,
+        "action": "key"
+      },
+      "58": {
+        "note": 58,
+        "key_combo": "shift+v",
+        "color": "cyan",
+        "label": "Versions",
+        "enabled": true,
+        "action": "key"
+      },
+      "41": {
+        "note": 41,
+        "key_combo": "ctrl+1",
+        "color": "lime",
+        "label": "Light",
+        "enabled": true,
+        "action": "key"
+      },
+      "42": {
+        "note": 42,
+        "key_combo": "ctrl+2",
+        "color": "orange",
+        "label": "Color",
+        "enabled": true,
+        "action": "key"
+      },
+      "43": {
+        "note": 43,
+        "key_combo": "ctrl+3",
+        "color": "purple",
+        "label": "Effects",
+        "enabled": true,
+        "action": "key"
+      },
+      "44": {
+        "note": 44,
+        "key_combo": "ctrl+4",
+        "color": "sky",
+        "label": "Details",
+        "enabled": true,
+        "action": "key"
+      },
+      "45": {
+        "note": 45,
+        "key_combo": "ctrl+5",
+        "color": "magenta",
+        "label": "Optics",
+        "enabled": true,
+        "action": "key"
+      },
+      "46": {
+        "note": 46,
+        "key_combo": "ctrl+6",
+        "color": "cyan",
+        "label": "Geometry",
+        "enabled": true,
+        "action": "key"
+      },
+      "47": {
+        "note": 47,
+        "key_combo": "shift+p",
+        "color": "yellow",
+        "label": "Presets",
+        "enabled": true,
+        "action": "key"
+      },
+      "48": {
+        "note": 48,
+        "key_combo": "ctrl+0",
+        "color": "white",
+        "label": "Histogrm",
+        "enabled": true,
+        "action": "key"
+      },
+      "31": {
+        "note": 31,
+        "key_combo": "[",
+        "color": "sky",
+        "label": "Brsh -",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.2,
+        "repeat_interval": 0.05
+      },
+      "32": {
+        "note": 32,
+        "key_combo": "]",
+        "color": "sky",
+        "label": "Brsh +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.2,
+        "repeat_interval": 0.05
+      },
+      "33": {
+        "note": 33,
+        "key_combo": "shift+[",
+        "color": "amber",
+        "label": "Feath -",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.2,
+        "repeat_interval": 0.05
+      },
+      "34": {
+        "note": 34,
+        "key_combo": "shift+]",
+        "color": "amber",
+        "label": "Feath +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.2,
+        "repeat_interval": 0.05
+      },
+      "35": {
+        "note": 35,
+        "key_combo": "b",
+        "color": "purple",
+        "label": "AdjBrush",
+        "enabled": true,
+        "action": "key"
+      },
+      "36": {
+        "note": 36,
+        "key_combo": "h",
+        "color": "green",
+        "label": "Heal",
+        "enabled": true,
+        "action": "key"
+      },
+      "37": {
+        "note": 37,
+        "key_combo": "ctrl+h",
+        "color": "magenta",
+        "label": "Mrg HDR",
+        "enabled": true,
+        "action": "key"
+      },
+      "38": {
+        "note": 38,
+        "key_combo": "ctrl+m",
+        "color": "cyan",
+        "label": "Mrg Pano",
+        "enabled": true,
+        "action": "key"
+      },
+      "21": {
+        "note": 21,
+        "key_combo": "z",
+        "color": "white",
+        "label": "Pick Flg",
+        "enabled": true,
+        "action": "key"
+      },
+      "22": {
+        "note": 22,
+        "key_combo": "u",
+        "color": "orange",
+        "label": "Unpick",
+        "enabled": true,
+        "action": "key"
+      },
+      "23": {
+        "note": 23,
+        "key_combo": "x",
+        "color": "red",
+        "label": "Reject",
+        "enabled": true,
+        "action": "key"
+      },
+      "24": {
+        "note": 24,
+        "key_combo": "0",
+        "color": "white",
+        "label": "0 Star",
+        "enabled": true,
+        "action": "key"
+      },
+      "25": {
+        "note": 25,
+        "key_combo": "1",
+        "color": "red",
+        "label": "1 Star",
+        "enabled": true,
+        "action": "key"
+      },
+      "26": {
+        "note": 26,
+        "key_combo": "2",
+        "color": "orange",
+        "label": "2 Star",
+        "enabled": true,
+        "action": "key"
+      },
+      "27": {
+        "note": 27,
+        "key_combo": "3",
+        "color": "yellow",
+        "label": "3 Star",
+        "enabled": true,
+        "action": "key"
+      },
+      "28": {
+        "note": 28,
+        "key_combo": "4",
+        "color": "lime",
+        "label": "4 Star",
+        "enabled": true,
+        "action": "key"
+      },
+      "11": {
+        "note": 11,
+        "key_combo": "5",
+        "color": "green",
+        "label": "5 Star",
+        "enabled": true,
+        "action": "key"
+      },
+      "12": {
+        "note": 12,
+        "key_combo": "6",
+        "color": "red",
+        "label": "Red Lbl",
+        "enabled": true,
+        "action": "key"
+      },
+      "13": {
+        "note": 13,
+        "key_combo": "7",
+        "color": "yellow",
+        "label": "Yel Lbl",
+        "enabled": true,
+        "action": "key"
+      },
+      "14": {
+        "note": 14,
+        "key_combo": "8",
+        "color": "green",
+        "label": "Grn Lbl",
+        "enabled": true,
+        "action": "key"
+      },
+      "15": {
+        "note": 15,
+        "key_combo": "9",
+        "color": "blue",
+        "label": "Blu Lbl",
+        "enabled": true,
+        "action": "key"
+      },
+      "16": {
+        "note": 16,
+        "key_combo": "delete",
+        "color": "red",
+        "label": "Delete",
+        "enabled": true,
+        "action": "key"
+      },
+      "17": {
+        "note": 17,
+        "key_combo": "shift+ctrl+i",
+        "color": "sky",
+        "label": "AddPhoto",
+        "enabled": true,
+        "action": "key"
+      },
+      "18": {
+        "note": 18,
+        "key_combo": "ctrl+,",
+        "color": "white",
+        "label": "Prefs",
+        "enabled": true,
+        "action": "key"
+      },
+      "89": {
+        "note": 89,
+        "key_combo": "right",
+        "color": "white",
+        "label": "Next",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.15
+      },
+      "79": {
+        "note": 79,
+        "key_combo": "left",
+        "color": "white",
+        "label": "Prev",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.15
+      },
+      "69": {
+        "note": 69,
+        "key_combo": "up",
+        "color": "lime",
+        "label": "Up",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.15
+      },
+      "59": {
+        "note": 59,
+        "key_combo": "down",
+        "color": "lime",
+        "label": "Down",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.15
+      },
+      "49": {
+        "note": 49,
+        "key_combo": "pageup",
+        "color": "sky",
+        "label": "PgUp",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.15
+      },
+      "39": {
+        "note": 39,
+        "key_combo": "pagedown",
+        "color": "sky",
+        "label": "PgDn",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.15
+      },
+      "29": {
+        "note": 29,
+        "key_combo": "home",
+        "color": "cyan",
+        "label": "Home",
+        "enabled": true,
+        "action": "key"
+      },
+      "19": {
+        "note": 19,
+        "key_combo": "end",
+        "color": "cyan",
+        "label": "End",
         "enabled": true,
         "action": "key"
       }
