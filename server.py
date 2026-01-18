@@ -12,7 +12,8 @@ from flask_cors import CORS
 
 from launchpad_mapper import (
     LaunchpadMapper, Profile, PadMapping,
-    LAUNCHPAD_COLORS, COLOR_HEX
+    LAUNCHPAD_COLORS, COLOR_HEX,
+    PulseAnimation, ProgressBarAnimation, RainbowCycleAnimation
 )
 
 try:
@@ -181,7 +182,7 @@ def save_mapping():
     # Update pad color if running
     if mapper.running and layer == mapper.current_layer:
         mapper.set_pad_color(mapping.note, mapping.color if mapping.enabled else 'off')
-    
+
     return jsonify({"success": True, "mapping": mapping.to_dict()})
 
 
@@ -389,9 +390,93 @@ def events():
                     yield f": keepalive\n\n"
         finally:
             event_queues.remove(q)
-    
+
     return Response(generate(), mimetype='text/event-stream',
                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+@app.route('/api/animation/pulse', methods=['POST'])
+def animate_pulse():
+    """Trigger a pulse animation on a pad."""
+    data = request.json or {}
+    note = data.get('note')
+    color = data.get('color', 'green')
+    duration = data.get('duration', 0.5)
+    if note is not None:
+        mapper.pulse(note, color, duration)
+        return jsonify({"success": True})
+    return jsonify({"success": False, "error": "No note provided"}), 400
+
+
+@app.route('/api/animation/progress', methods=['POST'])
+def animate_progress():
+    """Show a progress bar animation."""
+    data = request.json or {}
+    row = data.get('row', 0)  # Row index 0-7
+    percentage = data.get('percentage', 0)
+    color = data.get('color', 'green')
+    if 0 <= row < len(mapper.GRID_NOTES):
+        row_notes = mapper.GRID_NOTES[row]
+        anim = ProgressBarAnimation(mapper, row_notes, percentage, color)
+        mapper.start_animation(anim)
+        return jsonify({"success": True})
+    return jsonify({"success": False, "error": "Invalid row"}), 400
+
+
+@app.route('/api/animation/rainbow', methods=['POST'])
+def animate_rainbow():
+    """Start rainbow cycle animation."""
+    data = request.json or {}
+    speed = data.get('speed', 0.5)
+    anim = RainbowCycleAnimation(mapper, speed)
+    mapper.start_animation(anim)
+    return jsonify({"success": True})
+
+
+@app.route('/api/animation/stop', methods=['POST'])
+def stop_animations():
+    """Stop all active animations."""
+    mapper.stop_all_animations()
+    if mapper.running:
+        mapper.update_pad_colors()
+    return jsonify({"success": True})
+
+
+@app.route('/api/presets')
+def list_presets():
+    """List available preset profiles."""
+    import os
+    preset_dir = os.path.join(os.path.dirname(__file__), 'presets')
+    if not os.path.exists(preset_dir):
+        return jsonify({"presets": []})
+
+    presets = []
+    for filename in os.listdir(preset_dir):
+        if filename.endswith('.json'):
+            preset_name = filename[:-5].replace('_', ' ').title()
+            presets.append({
+                "filename": filename,
+                "name": preset_name
+            })
+    return jsonify({"presets": presets})
+
+
+@app.route('/api/presets/<filename>')
+def get_preset(filename):
+    """Load a specific preset profile."""
+    import os
+    preset_dir = os.path.join(os.path.dirname(__file__), 'presets')
+    filepath = os.path.join(preset_dir, filename)
+
+    if not os.path.exists(filepath) or not filename.endswith('.json'):
+        return jsonify({"error": "Preset not found"}), 404
+
+    try:
+        with open(filepath, 'r') as f:
+            preset_data = json.load(f)
+        return jsonify(preset_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 def main():

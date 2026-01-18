@@ -138,13 +138,21 @@ class PadMapping:
     repeat_enabled: bool = False
     repeat_delay: float = 0.5  # Initial delay before repeat starts (seconds)
     repeat_interval: float = 0.05  # Interval between repeats (seconds)
+    # Macro sequences support
+    macro_steps: Optional[List[Dict[str, any]]] = None  # List of {key_combo, delay_after}
+    # Velocity sensitivity support
+    velocity_mappings: Optional[Dict[str, str]] = None  # {range: key_combo} e.g., "0-42": "ctrl+c"
+    # Long press support
+    long_press_enabled: bool = False
+    long_press_action: str = ""  # Different action for long press
+    long_press_threshold: float = 0.5  # Seconds to trigger long press
     
     def to_dict(self):
         return asdict(self)
     
     @classmethod
     def from_dict(cls, data):
-        # Handle older profiles without repeat settings
+        # Handle older profiles without new settings
         return cls(
             note=data['note'],
             key_combo=data['key_combo'],
@@ -155,7 +163,12 @@ class PadMapping:
             target_layer=data.get('target_layer'),
             repeat_enabled=data.get('repeat_enabled', False),
             repeat_delay=data.get('repeat_delay', 0.5),
-            repeat_interval=data.get('repeat_interval', 0.05)
+            repeat_interval=data.get('repeat_interval', 0.05),
+            macro_steps=data.get('macro_steps'),
+            velocity_mappings=data.get('velocity_mappings'),
+            long_press_enabled=data.get('long_press_enabled', False),
+            long_press_action=data.get('long_press_action', ''),
+            long_press_threshold=data.get('long_press_threshold', 0.5)
         )
     
     def get_launchpad_color(self):
@@ -235,6 +248,104 @@ class Profile:
 
 
 # ============================================================================
+# LED ANIMATION ENGINE
+# ============================================================================
+
+class LEDAnimation:
+    """Base class for LED animations."""
+    def __init__(self, mapper, note: int):
+        self.mapper = mapper
+        self.note = note
+        self.stop_event = threading.Event()
+        self.thread = None
+
+    def start(self):
+        if self.thread and self.thread.is_alive():
+            return
+        self.stop_event.clear()
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.thread.start()
+
+    def stop(self):
+        self.stop_event.set()
+        if self.thread:
+            self.thread.join(timeout=0.5)
+
+    def run(self):
+        raise NotImplementedError
+
+
+class PulseAnimation(LEDAnimation):
+    """Pulse a pad color."""
+    def __init__(self, mapper, note: int, color: str, duration: float = 0.5):
+        super().__init__(mapper, note)
+        self.color = color
+        self.duration = duration
+
+    def run(self):
+        # Pulse effect: bright -> dim -> off
+        if self.color in LAUNCHPAD_COLORS:
+            dim_color = self.color + "_dim" if self.color != "off" else "off"
+        else:
+            dim_color = "off"
+
+        steps = 5
+        step_duration = self.duration / (steps * 2)
+
+        for _ in range(steps):
+            if self.stop_event.is_set():
+                return
+            self.mapper.set_pad_color(self.note, self.color)
+            time.sleep(step_duration)
+            if self.stop_event.is_set():
+                return
+            self.mapper.set_pad_color(self.note, dim_color)
+            time.sleep(step_duration)
+
+
+class ProgressBarAnimation(LEDAnimation):
+    """Show progress bar across a row of pads."""
+    def __init__(self, mapper, row_notes: List[int], percentage: float, color: str = "green"):
+        super().__init__(mapper, row_notes[0] if row_notes else 0)
+        self.row_notes = row_notes
+        self.percentage = max(0, min(100, percentage))
+        self.color = color
+
+    def run(self):
+        num_pads = len(self.row_notes)
+        lit_count = int((self.percentage / 100) * num_pads)
+
+        for i, note in enumerate(self.row_notes):
+            if self.stop_event.is_set():
+                return
+            if i < lit_count:
+                self.mapper.set_pad_color(note, self.color)
+            else:
+                self.mapper.set_pad_color(note, "off")
+            time.sleep(0.05)
+
+
+class RainbowCycleAnimation(LEDAnimation):
+    """Rainbow cycle across all pads."""
+    def __init__(self, mapper, speed: float = 0.5):
+        super().__init__(mapper, 0)
+        self.speed = speed
+        self.colors = ["red", "orange", "yellow", "lime", "green", "cyan", "blue", "purple", "magenta"]
+
+    def run(self):
+        all_notes = list(chain.from_iterable(LaunchpadMapper.GRID_NOTES))
+        color_index = 0
+
+        while not self.stop_event.is_set():
+            for i, note in enumerate(all_notes):
+                color = self.colors[(i + color_index) % len(self.colors)]
+                self.mapper.set_pad_color(note, color)
+
+            color_index = (color_index + 1) % len(self.colors)
+            time.sleep(self.speed)
+
+
+# ============================================================================
 # LAUNCHPAD MAPPER
 # ============================================================================
 
@@ -264,6 +375,13 @@ class LaunchpadMapper:
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
         self.repeat_stop_events: Dict[int, threading.Event] = {}
+
+        # Long press handling
+        self.press_times: Dict[int, float] = {}  # note -> press timestamp
+        self.long_press_triggered: Dict[int, bool] = {}  # note -> whether long press fired
+
+        # Active animations
+        self.active_animations: List[LEDAnimation] = []
         
     def get_available_ports(self) -> Dict[str, List[str]]:
         return {
@@ -306,7 +424,7 @@ class LaunchpadMapper:
             print(f"Error connecting to MIDI: {e}")
             return False
     
-    def disconnect(self):
+    def disconnect(self):         
         self.stop()
         if self.input_port:
             self.input_port.close()
@@ -374,6 +492,57 @@ class LaunchpadMapper:
             keyboard.send(combo)
         except Exception as e:
             print(f"Error sending key combo '{combo}': {e}")
+
+    def execute_macro(self, mapping: PadMapping):
+        """Execute a macro sequence."""
+        if not mapping.macro_steps:
+            return
+
+        def macro_worker():
+            for step in mapping.macro_steps:
+                key_combo = step.get('key_combo', '')
+                delay_after = step.get('delay_after', 0.0)
+                if key_combo:
+                    self.execute_key_combo(key_combo)
+                    print(f"Macro step: {key_combo}")
+                if delay_after > 0:
+                    time.sleep(delay_after)
+
+        thread = threading.Thread(target=macro_worker, daemon=True)
+        thread.start()
+
+    def get_velocity_action(self, mapping: PadMapping, velocity: int) -> Optional[str]:
+        """Get the action for a specific velocity value."""
+        if not mapping.velocity_mappings:
+            return mapping.key_combo
+
+        # Parse velocity ranges like "0-42", "43-84", "85-127"
+        for range_str, action in mapping.velocity_mappings.items():
+            try:
+                if '-' in range_str:
+                    low, high = map(int, range_str.split('-'))
+                    if low <= velocity <= high:
+                        return action
+            except ValueError:
+                continue
+
+        return mapping.key_combo  # Fallback to default
+
+    def start_animation(self, animation: LEDAnimation):
+        """Start an LED animation."""
+        self.active_animations.append(animation)
+        animation.start()
+
+    def stop_all_animations(self):
+        """Stop all active animations."""
+        for anim in self.active_animations:
+            anim.stop()
+        self.active_animations.clear()
+
+    def pulse(self, note: int, color: str, duration: float = 0.5):
+        """Pulse a pad with visual feedback."""
+        anim = PulseAnimation(self, note, color, duration)
+        self.start_animation(anim)
     
     def key_repeat_worker(self, note: int, mapping: PadMapping, stop_event: threading.Event):
         """Worker thread for key repeat."""
@@ -425,7 +594,7 @@ class LaunchpadMapper:
             
             for callback in self.callbacks:
                 callback({"type": "pad_press", "note": note, "velocity": msg.velocity})
-            
+
             if mapping and mapping.enabled:
                 if mapping.action == "layer_up":
                     self.pop_layer()
@@ -441,16 +610,34 @@ class LaunchpadMapper:
                 # Start repeat if enabled
                 if mapping.repeat_enabled and mapping.action == "key":
                     self.start_key_repeat(note, mapping)
-                    
+
         elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
             note = msg.note
-            
+            mapping = self.profile.get_mapping(note, self.current_layer)
+
+            # Check if this is a short press (for long press feature)
+            if note in self.press_times and mapping and mapping.enabled:
+                press_duration = time.time() - self.press_times[note]
+                # Short press - only execute if long press wasn't triggered
+                if mapping.long_press_enabled and not self.long_press_triggered.get(note, False):
+                    if press_duration < mapping.long_press_threshold:
+                        # Execute the regular action for short press
+                        if mapping.macro_steps:
+                            self.execute_macro(mapping)
+                        else:
+                            self.execute_key_combo(mapping.key_combo)
+                        print(f"Pad {note} -> SHORT PRESS: {mapping.key_combo}")
+
+            # Cleanup
+            self.press_times.pop(note, None)
+            self.long_press_triggered.pop(note, None)
+
             # Stop any active repeat
             self.stop_key_repeat(note)
-            
+
             for callback in self.callbacks:
                 callback({"type": "pad_release", "note": note})
-                
+
         elif msg.type == 'control_change':
             for callback in self.callbacks:
                 callback({"type": "control", "control": msg.control, "value": msg.value})
@@ -477,6 +664,7 @@ class LaunchpadMapper:
     def stop(self):
         self.running = False
         self.stop_all_repeats()
+        self.stop_all_animations()
         if self.midi_thread:
             self.midi_thread.join(timeout=1)
         self.clear_all_pads()
