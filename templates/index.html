@@ -598,6 +598,25 @@
                 </div>
 
                 <div class="card" style="margin-top: 20px;">
+                    <h2>📦 Preset Profiles</h2>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 13px;">Load pre-configured profiles for popular applications</p>
+                    <div class="form-group">
+                        <label>Available Presets</label>
+                        <select id="presetSelect">
+                            <option value="">Select a preset...</option>
+                        </select>
+                    </div>
+                    <div class="controls">
+                        <button class="btn-success" onclick="loadPreset()">
+                            <span>📥</span> Load Preset
+                        </button>
+                        <button class="btn-secondary" onclick="loadPresetList()">
+                            <span>↻</span> Refresh Presets
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
                     <h2>💾 Profile Management</h2>
                     <div class="profile-grid">
                         <div class="form-group">
@@ -1472,6 +1491,60 @@
             }
         });
         
+        async function loadPresetList() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                const select = document.getElementById('presetSelect');
+                select.innerHTML = '<option value="">Select a preset...</option>';
+                (data.presets || []).forEach(preset => {
+                    const option = document.createElement('option');
+                    option.value = preset.filename;
+                    option.textContent = preset.name;
+                    select.appendChild(option);
+                });
+                log(`Found ${data.presets.length} preset(s)`);
+            } catch (e) {
+                log('Failed to load presets', 'error');
+            }
+        }
+
+        async function loadPreset() {
+            const filename = document.getElementById('presetSelect').value;
+            if (!filename) {
+                log('Select a preset first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/presets/${filename}`);
+                const presetData = await response.json();
+
+                if (presetData.error) {
+                    log(presetData.error, 'error');
+                    return;
+                }
+
+                // Import the preset as current profile
+                const importResponse = await fetch('/api/profile/import', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(presetData)
+                });
+
+                if (importResponse.ok) {
+                    await loadMappings();
+                    await loadLayers();
+                    await loadProfiles();
+                    log(`Loaded preset: ${presetData.name}`, 'success');
+                } else {
+                    log('Failed to load preset', 'error');
+                }
+            } catch (e) {
+                log('Failed to load preset', 'error');
+            }
+        }
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             initGrid();
@@ -1481,6 +1554,7 @@
             loadLayers();
             loadProfiles();
             loadAutoSwitch();
+            loadPresetList();
             updateStatus();
             log('Launchpad Mapper initialized');
         });
