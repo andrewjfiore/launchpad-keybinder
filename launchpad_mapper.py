@@ -5,11 +5,13 @@ Improved version with Windows support, hex colors, and key repeat
 """
 
 import json
-import threading
-import time
 import queue
 import platform
+import threading
+import time
 from dataclasses import dataclass, asdict
+from functools import lru_cache
+from itertools import chain
 from typing import Optional, Dict, List, Callable
 
 import mido
@@ -17,10 +19,8 @@ from mido import Message
 
 # Use 'keyboard' library for better Windows support (sends to active window)
 import keyboard
-
 from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
-
 
 # ============================================================================
 # CONFIGURATION
@@ -94,6 +94,7 @@ COLOR_HEX = {
 }
 
 # Map color names to closest Launchpad velocity by RGB distance
+@lru_cache(maxsize=128)
 def hex_to_rgb(hex_color):
     """Convert hex color to RGB tuple."""
     hex_color = hex_color.lstrip('#')
@@ -103,6 +104,7 @@ def rgb_distance(c1, c2):
     """Calculate color distance."""
     return sum((a - b) ** 2 for a, b in zip(c1, c2)) ** 0.5
 
+@lru_cache(maxsize=128)
 def find_closest_launchpad_color(hex_color):
     """Find the closest Launchpad color to a given hex color."""
     target_rgb = hex_to_rgb(hex_color)
@@ -112,8 +114,7 @@ def find_closest_launchpad_color(hex_color):
     for name, hex_val in COLOR_HEX.items():
         if name == "off":
             continue
-        color_rgb = hex_to_rgb(hex_val)
-        dist = rgb_distance(target_rgb, color_rgb)
+        dist = rgb_distance(target_rgb, hex_to_rgb(hex_val))
         if dist < best_distance:
             best_distance = dist
             best_match = name
@@ -132,6 +133,8 @@ class PadMapping:
     color: str  # Can be palette name or hex
     label: str
     enabled: bool = True
+    action: str = "key"
+    target_layer: Optional[str] = None
     repeat_enabled: bool = False
     repeat_delay: float = 0.5  # Initial delay before repeat starts (seconds)
     repeat_interval: float = 0.05  # Interval between repeats (seconds)
@@ -148,6 +151,8 @@ class PadMapping:
             color=data['color'],
             label=data.get('label', ''),
             enabled=data.get('enabled', True),
+            action=data.get('action', 'key'),
+            target_layer=data.get('target_layer'),
             repeat_enabled=data.get('repeat_enabled', False),
             repeat_delay=data.get('repeat_delay', 0.5),
             repeat_interval=data.get('repeat_interval', 0.05)
@@ -168,34 +173,64 @@ class PadMapping:
 
 
 class Profile:
-    def __init__(self, name: str = "Default"):
+    def __init__(self, name: str = "Default", base_layer: str = "Base"):
         self.name = name
-        self.mappings: Dict[int, PadMapping] = {}
         self.description = ""
+        self.base_layer = base_layer
+        self.layers: Dict[str, Dict[int, PadMapping]] = {base_layer: {}}
         
-    def add_mapping(self, mapping: PadMapping):
-        self.mappings[mapping.note] = mapping
+    def add_mapping(self, mapping: PadMapping, layer: Optional[str] = None):
+        layer_name = layer or self.base_layer
+        self.layers.setdefault(layer_name, {})[mapping.note] = mapping
         
-    def remove_mapping(self, note: int):
-        if note in self.mappings:
-            del self.mappings[note]
+    def remove_mapping(self, note: int, layer: Optional[str] = None):
+        layer_name = layer or self.base_layer
+        if note in self.layers.get(layer_name, {}):
+            del self.layers[layer_name][note]
             
-    def get_mapping(self, note: int) -> Optional[PadMapping]:
-        return self.mappings.get(note)
+    def get_mapping(self, note: int, layer: Optional[str] = None) -> Optional[PadMapping]:
+        layer_name = layer or self.base_layer
+        return self.layers.get(layer_name, {}).get(note)
+
+    def get_layer_mappings(self, layer: Optional[str] = None) -> Dict[int, PadMapping]:
+        layer_name = layer or self.base_layer
+        return self.layers.get(layer_name, {})
+
+    def ensure_layer(self, layer: str):
+        self.layers.setdefault(layer, {})
     
     def to_dict(self):
         return {
             "name": self.name,
             "description": self.description,
-            "mappings": {str(k): v.to_dict() for k, v in self.mappings.items()}
+            "base_layer": self.base_layer,
+            "layers": {
+                layer: {str(k): v.to_dict() for k, v in mappings.items()}
+                for layer, mappings in self.layers.items()
+            }
         }
     
     @classmethod
     def from_dict(cls, data):
-        profile = cls(data.get("name", "Imported"))
+        profile = cls(data.get("name", "Imported"), data.get("base_layer", "Base"))
         profile.description = data.get("description", "")
-        for note_str, mapping_data in data.get("mappings", {}).items():
-            profile.add_mapping(PadMapping.from_dict(mapping_data))
+        layers = data.get("layers")
+        if layers:
+            for layer_name, mappings in layers.items():
+                for note_str, mapping_data in mappings.items():
+                    mapping_note = mapping_data.get("note")
+                    if mapping_note is None:
+                        mapping_data = dict(mapping_data)
+                        mapping_data["note"] = int(note_str)
+                    profile.add_mapping(PadMapping.from_dict(mapping_data), layer=layer_name)
+        else:
+            for note_str, mapping_data in data.get("mappings", {}).items():
+                mapping_note = mapping_data.get("note")
+                if mapping_note is None:
+                    mapping_data = dict(mapping_data)
+                    mapping_data["note"] = int(note_str)
+                profile.add_mapping(PadMapping.from_dict(mapping_data))
+        profile.ensure_layer(profile.base_layer)
         return profile
 
 
@@ -224,6 +259,7 @@ class LaunchpadMapper:
         self.running = False
         self.midi_thread = None
         self.callbacks: List[Callable] = []
+        self.layer_stack = [self.profile.base_layer]
         
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
@@ -250,6 +286,8 @@ class LaunchpadMapper:
     
     def connect(self, input_port: str = None, output_port: str = None) -> bool:
         try:
+            if self.input_port or self.output_port:
+                self.disconnect()
             if not input_port or not output_port:
                 detected = self.find_launchpad_ports()
                 input_port = input_port or detected["input"]
@@ -289,19 +327,44 @@ class LaunchpadMapper:
     
     def clear_all_pads(self):
         if self.output_port:
-            for row in self.GRID_NOTES:
-                for note in row:
-                    self.set_pad_color(note, "off")
-            for note in self.CONTROL_NOTES:
+            for note in chain.from_iterable(self.GRID_NOTES):
                 self.set_pad_color(note, "off")
-            for note in self.SCENE_NOTES:
+            for note in chain(self.CONTROL_NOTES, self.SCENE_NOTES):
                 self.set_pad_color(note, "off")
     
     def update_pad_colors(self):
         self.clear_all_pads()
-        for note, mapping in self.profile.mappings.items():
+        for note, mapping in self.profile.get_layer_mappings(self.current_layer).items():
             if mapping.enabled:
                 self.set_pad_color(note, mapping.color)
+
+    @property
+    def current_layer(self) -> str:
+        return self.layer_stack[-1]
+
+    def push_layer(self, layer: str):
+        self.profile.ensure_layer(layer)
+        self.layer_stack.append(layer)
+        if self.running:
+            self.update_pad_colors()
+
+    def pop_layer(self):
+        if len(self.layer_stack) > 1:
+            self.layer_stack.pop()
+            if self.running:
+                self.update_pad_colors()
+
+    def set_layer(self, layer: str):
+        self.profile.ensure_layer(layer)
+        self.layer_stack = [layer]
+        if self.running:
+            self.update_pad_colors()
+
+    def set_profile(self, profile: Profile):
+        self.profile = profile
+        self.layer_stack = [profile.base_layer]
+        if self.running:
+            self.update_pad_colors()
     
     def execute_key_combo(self, combo: str):
         """Execute a keyboard shortcut using the keyboard library (works on Windows)."""
@@ -358,18 +421,25 @@ class LaunchpadMapper:
     def handle_midi_message(self, msg):
         if msg.type == 'note_on' and msg.velocity > 0:
             note = msg.note
-            mapping = self.profile.get_mapping(note)
+            mapping = self.profile.get_mapping(note, self.current_layer)
             
             for callback in self.callbacks:
                 callback({"type": "pad_press", "note": note, "velocity": msg.velocity})
             
             if mapping and mapping.enabled:
-                # Execute the key combo immediately
-                self.execute_key_combo(mapping.key_combo)
-                print(f"Pad {note} -> {mapping.key_combo}")
+                if mapping.action == "layer_up":
+                    self.pop_layer()
+                    print(f"Pad {note} -> layer up")
+                elif mapping.action == "layer" and mapping.target_layer:
+                    self.push_layer(mapping.target_layer)
+                    print(f"Pad {note} -> layer {mapping.target_layer}")
+                else:
+                    # Execute the key combo immediately
+                    self.execute_key_combo(mapping.key_combo)
+                    print(f"Pad {note} -> {mapping.key_combo}")
                 
                 # Start repeat if enabled
-                if mapping.repeat_enabled:
+                if mapping.repeat_enabled and mapping.action == "key":
                     self.start_key_repeat(note, mapping)
                     
         elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
@@ -392,6 +462,8 @@ class LaunchpadMapper:
             time.sleep(0.001)
     
     def start(self):
+        if self.running:
+            return True
         if not self.input_port:
             print("No input port connected")
             return False

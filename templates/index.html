@@ -249,6 +249,15 @@
             position: relative;
             overflow: hidden;
         }
+
+        .pad.dragging {
+            opacity: 0.5;
+        }
+
+        .pad.drop-target {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
         
         .pad::before {
             content: '';
@@ -512,6 +521,9 @@
                 <span>Profile: <strong id="currentProfile">Default</strong></span>
             </div>
             <div class="status-item">
+                <span>Layer: <strong id="currentLayer">Base</strong></span>
+            </div>
+            <div class="status-item">
                 <span>Mappings: <strong id="mappingCount">0</strong></span>
             </div>
         </div>
@@ -570,6 +582,31 @@
                 </div>
                 
                 <div class="card" style="margin-top: 20px;">
+                    <h2>🧭 Layer Controls</h2>
+                    <div class="profile-grid">
+                        <div class="form-group">
+                            <label>Active Layer</label>
+                            <select id="layerSelect"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>New Layer Name</label>
+                            <input type="text" id="newLayerName" placeholder="e.g., Editing">
+                        </div>
+                    </div>
+                    <div class="controls" style="margin-top: 15px;">
+                        <button class="btn-primary" onclick="setLayer()">
+                            <span>↕</span> Switch Layer
+                        </button>
+                        <button class="btn-success" onclick="pushLayer()">
+                            <span>⤵</span> Go Down
+                        </button>
+                        <button class="btn-warning" onclick="popLayer()">
+                            <span>⤴</span> Go Up
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
                     <h2>💾 Profile Management</h2>
                     <div class="profile-grid">
                         <div class="form-group">
@@ -593,6 +630,52 @@
                         </button>
                         <input type="file" id="importFile" accept=".json" onchange="importProfile(event)">
                     </div>
+
+                    <div class="divider"></div>
+
+                    <div class="profile-grid">
+                        <div class="form-group">
+                            <label>Switch Profile</label>
+                            <select id="profileSelect"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Auto Switch</label>
+                            <label class="checkbox-group">
+                                <input type="checkbox" id="autoSwitchEnabled">
+                                <span>Enable by active window title</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="controls" style="margin-top: 15px;">
+                        <button class="btn-primary" onclick="switchProfile()">
+                            <span>🔀</span> Switch Profile
+                        </button>
+                        <button class="btn-secondary" onclick="loadProfiles()">
+                            <span>↻</span> Refresh Profiles
+                        </button>
+                        <button class="btn-secondary" onclick="saveAutoSwitchRules()">
+                            <span>💾</span> Save Auto Rules
+                        </button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="profile-grid">
+                        <div class="form-group">
+                            <label>Window Title Contains</label>
+                            <input type="text" id="autoMatch" placeholder="e.g., OBS, Premiere">
+                        </div>
+                        <div class="form-group">
+                            <label>Profile</label>
+                            <select id="autoProfileSelect"></select>
+                        </div>
+                    </div>
+                    <div class="controls" style="margin-top: 15px;">
+                        <button class="btn-success" onclick="addAutoRule()">
+                            <span>➕</span> Add Rule
+                        </button>
+                    </div>
+                    <div class="log" id="autoRulesLog" style="margin-top: 10px; height: 110px;"></div>
                 </div>
             </div>
             
@@ -612,6 +695,20 @@
                         <div class="form-group">
                             <label>Key Combination</label>
                             <input type="text" id="keyCombo" placeholder="e.g., ctrl+c, space, shift+alt+f1">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Action Type</label>
+                            <select id="actionType" onchange="updateActionFields()">
+                                <option value="key">Key Combination</option>
+                                <option value="layer">Go to Layer</option>
+                                <option value="layer_up">Go Up One Layer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="targetLayerGroup" style="display: none;">
+                            <label>Target Layer</label>
+                            <input type="text" id="targetLayer" placeholder="e.g., Editing">
                         </div>
                         
                         <div class="form-group">
@@ -697,6 +794,11 @@
         let eventSource = null;
         let isConnected = false;
         let isRunning = false;
+        let currentLayer = 'Base';
+        let availableLayers = [];
+        let autoRules = [];
+        let autoSwitchAvailable = false;
+        let clipboardMapping = null;
         
         // Initialize the grid
         function initGrid() {
@@ -714,6 +816,12 @@
                         if (colIndex === 8) pad.classList.add('scene');
                         pad.dataset.note = note;
                         pad.onclick = () => selectPad(note);
+                        pad.draggable = true;
+                        pad.addEventListener('dragstart', (event) => onDragStart(event, note));
+                        pad.addEventListener('dragend', onDragEnd);
+                        pad.addEventListener('dragover', onDragOver);
+                        pad.addEventListener('dragleave', onDragLeave);
+                        pad.addEventListener('drop', (event) => onDrop(event, note));
                     }
                     grid.appendChild(pad);
                 });
@@ -763,12 +871,17 @@
                 document.getElementById('keyCombo').value = mapping.key_combo || '';
                 document.getElementById('padEnabled').checked = mapping.enabled !== false;
                 selectColor(mapping.color || 'green');
+                document.getElementById('actionType').value = mapping.action || 'key';
+                document.getElementById('targetLayer').value = mapping.target_layer || '';
             } else {
                 document.getElementById('padLabel').value = '';
                 document.getElementById('keyCombo').value = '';
                 document.getElementById('padEnabled').checked = true;
                 selectColor('green');
+                document.getElementById('actionType').value = 'key';
+                document.getElementById('targetLayer').value = '';
             }
+            updateActionFields();
         }
         
         function updatePadDisplay() {
@@ -776,9 +889,13 @@
                 const note = parseInt(el.dataset.note);
                 if (!isNaN(note) && mappings[note]) {
                     const mapping = mappings[note];
-                    el.style.backgroundColor = COLOR_HEX[mapping.color] || '#333';
-                    el.textContent = mapping.label || '';
-                    el.style.color = isLightColor(COLOR_HEX[mapping.color]) ? '#000' : '#fff';
+                    const label = mapping.label || (mapping.action === 'layer' ? `↧ ${mapping.target_layer || ''}` : '');
+                    const hexColor = mapping.color && mapping.color.startsWith('#')
+                        ? mapping.color
+                        : (COLOR_HEX[mapping.color] || '#333');
+                    el.style.backgroundColor = hexColor;
+                    el.textContent = label;
+                    el.style.color = isLightColor(hexColor) ? '#000' : '#fff';
                 } else if (!isNaN(note)) {
                     el.style.backgroundColor = '#333';
                     el.textContent = '';
@@ -808,8 +925,14 @@
             }
             
             const keyCombo = document.getElementById('keyCombo').value.trim();
-            if (!keyCombo) {
+            const actionType = document.getElementById('actionType').value;
+            const targetLayer = document.getElementById('targetLayer').value.trim();
+            if (actionType === 'key' && !keyCombo) {
                 log('Please enter a key combination', 'error');
+                return;
+            }
+            if (actionType === 'layer' && !targetLayer) {
+                log('Please enter a target layer', 'error');
                 return;
             }
             
@@ -818,15 +941,14 @@
                 label: document.getElementById('padLabel').value,
                 key_combo: keyCombo,
                 color: selectedColor,
-                enabled: document.getElementById('padEnabled').checked
+                enabled: document.getElementById('padEnabled').checked,
+                action: actionType,
+                target_layer: targetLayer,
+                layer: currentLayer
             };
             
             try {
-                const response = await fetch('/api/mapping', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(mapping)
-                });
+                const response = await persistMapping(mapping);
                 
                 if (response.ok) {
                     mappings[selectedPad] = mapping;
@@ -845,9 +967,7 @@
             }
             
             try {
-                const response = await fetch(`/api/mapping/${selectedPad}`, {
-                    method: 'DELETE'
-                });
+                const response = await removeMapping(selectedPad);
                 
                 if (response.ok) {
                     delete mappings[selectedPad];
@@ -979,12 +1099,15 @@
                 const response = await fetch('/api/profile');
                 const data = await response.json();
                 mappings = {};
-                Object.values(data.mappings || {}).forEach(m => {
+                const layerMappings = (data.layers && data.active_layer) ? data.layers[data.active_layer] : data.mappings;
+                Object.values(layerMappings || {}).forEach(m => {
                     mappings[m.note] = m;
                 });
                 document.getElementById('profileName').value = data.name || 'Default';
                 document.getElementById('profileDescription').value = data.description || '';
                 document.getElementById('currentProfile').textContent = data.name || 'Default';
+                currentLayer = data.active_layer || data.base_layer || 'Base';
+                document.getElementById('currentLayer').textContent = currentLayer;
                 updatePadDisplay();
             } catch (e) {
                 log('Failed to load profile', 'error');
@@ -1028,6 +1151,7 @@
                 
                 if (response.ok) {
                     await loadMappings();
+                    await loadProfiles();
                     log(`Imported profile: ${data.name || 'Unknown'}`, 'success');
                 }
             } catch (e) {
@@ -1049,6 +1173,301 @@
                 }
             } catch (e) {
                 log('Failed to clear mappings', 'error');
+            }
+        }
+
+        async function persistMapping(mapping) {
+            return fetch('/api/mapping', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(mapping)
+            });
+        }
+
+        async function removeMapping(note) {
+            return fetch(`/api/mapping/${note}?layer=${encodeURIComponent(currentLayer)}`, {
+                method: 'DELETE'
+            });
+        }
+
+        function cloneMapping(mapping, note) {
+            return {
+                ...mapping,
+                note,
+                layer: currentLayer
+            };
+        }
+
+        function onDragStart(event, note) {
+            const mapping = mappings[note];
+            if (!mapping) {
+                event.preventDefault();
+                return;
+            }
+            event.dataTransfer.effectAllowed = 'copyMove';
+            event.dataTransfer.setData('text/plain', String(note));
+            event.currentTarget.classList.add('dragging');
+        }
+
+        function onDragEnd(event) {
+            event.currentTarget.classList.remove('dragging');
+        }
+
+        function onDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drop-target');
+            event.dataTransfer.dropEffect = event.shiftKey ? 'move' : 'copy';
+        }
+
+        function onDragLeave(event) {
+            event.currentTarget.classList.remove('drop-target');
+        }
+
+        async function onDrop(event, targetNote) {
+            event.preventDefault();
+            const sourceNote = Number(event.dataTransfer.getData('text/plain'));
+            event.currentTarget.classList.remove('drop-target');
+            document.querySelectorAll('.pad.dragging').forEach(el => el.classList.remove('dragging'));
+            if (!sourceNote || sourceNote === targetNote) {
+                return;
+            }
+            const sourceMapping = mappings[sourceNote];
+            if (!sourceMapping) {
+                return;
+            }
+            const nextMapping = cloneMapping(sourceMapping, targetNote);
+            const response = await persistMapping(nextMapping);
+            if (response.ok) {
+                mappings[targetNote] = nextMapping;
+                if (event.shiftKey) {
+                    const removeResponse = await removeMapping(sourceNote);
+                    if (removeResponse.ok) {
+                        delete mappings[sourceNote];
+                    }
+                }
+                updatePadDisplay();
+                log(`Mapped pad ${targetNote} from pad ${sourceNote}`, 'success');
+            } else {
+                log('Failed to apply mapping on drop', 'error');
+            }
+        }
+
+        function updateActionFields() {
+            const actionType = document.getElementById('actionType').value;
+            const targetGroup = document.getElementById('targetLayerGroup');
+            const keyCombo = document.getElementById('keyCombo');
+            if (actionType === 'layer') {
+                targetGroup.style.display = 'block';
+                keyCombo.placeholder = 'Optional';
+            } else {
+                targetGroup.style.display = 'none';
+                keyCombo.placeholder = 'e.g., ctrl+c, space, shift+alt+f1';
+            }
+        }
+
+        async function loadLayers() {
+            try {
+                const response = await fetch('/api/layers');
+                const data = await response.json();
+                availableLayers = data.layers || [];
+                currentLayer = data.current_layer || currentLayer;
+                document.getElementById('currentLayer').textContent = currentLayer;
+                const select = document.getElementById('layerSelect');
+                select.innerHTML = '';
+                availableLayers.forEach(layer => {
+                    const option = document.createElement('option');
+                    option.value = layer;
+                    option.textContent = layer;
+                    if (layer === currentLayer) option.selected = true;
+                    select.appendChild(option);
+                });
+            } catch (e) {
+                log('Failed to load layers', 'error');
+            }
+        }
+
+        async function pushLayer() {
+            const newLayer = document.getElementById('newLayerName').value.trim();
+            const selected = document.getElementById('layerSelect').value;
+            const layer = newLayer || selected;
+            if (!layer) {
+                log('Provide a layer name', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/layer/push', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({layer})
+                });
+                if (response.ok) {
+                    await loadLayers();
+                    await loadMappings();
+                    log(`Entered layer: ${layer}`, 'success');
+                }
+            } catch (e) {
+                log('Failed to enter layer', 'error');
+            }
+        }
+
+        async function popLayer() {
+            try {
+                const response = await fetch('/api/layer/pop', {method: 'POST'});
+                if (response.ok) {
+                    await loadLayers();
+                    await loadMappings();
+                    log('Returned to previous layer', 'success');
+                }
+            } catch (e) {
+                log('Failed to go up a layer', 'error');
+            }
+        }
+
+        async function setLayer() {
+            const selected = document.getElementById('layerSelect').value;
+            if (!selected) {
+                log('Select a layer', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/layer/set', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({layer: selected})
+                });
+                if (response.ok) {
+                    await loadLayers();
+                    await loadMappings();
+                    log(`Switched to layer: ${selected}`, 'success');
+                }
+            } catch (e) {
+                log('Failed to switch layer', 'error');
+            }
+        }
+
+        async function loadProfiles() {
+            try {
+                const response = await fetch('/api/profiles');
+                const data = await response.json();
+                const profileSelect = document.getElementById('profileSelect');
+                const autoSelect = document.getElementById('autoProfileSelect');
+                profileSelect.innerHTML = '';
+                autoSelect.innerHTML = '';
+                (data.profiles || []).forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    if (name === data.active_profile) option.selected = true;
+                    profileSelect.appendChild(option);
+                    const autoOption = option.cloneNode(true);
+                    autoSelect.appendChild(autoOption);
+                });
+            } catch (e) {
+                log('Failed to load profiles', 'error');
+            }
+        }
+
+        async function switchProfile() {
+            const name = document.getElementById('profileSelect').value;
+            if (!name) {
+                log('Select a profile', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/profile/switch', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name})
+                });
+                if (response.ok) {
+                    await loadMappings();
+                    await loadLayers();
+                    log(`Switched to profile: ${name}`, 'success');
+                } else {
+                    const data = await response.json();
+                    log(data.error || 'Failed to switch profile', 'error');
+                }
+            } catch (e) {
+                log('Failed to switch profile', 'error');
+            }
+        }
+
+        async function loadAutoSwitch() {
+            try {
+                const response = await fetch('/api/profile/auto');
+                const data = await response.json();
+                autoRules = data.rules || [];
+                autoSwitchAvailable = data.available;
+                const checkbox = document.getElementById('autoSwitchEnabled');
+                checkbox.disabled = !autoSwitchAvailable;
+                checkbox.checked = data.enabled && autoSwitchAvailable;
+                renderAutoRules();
+            } catch (e) {
+                log('Failed to load auto-switch settings', 'error');
+            }
+        }
+
+        function renderAutoRules() {
+            const logEl = document.getElementById('autoRulesLog');
+            logEl.innerHTML = '';
+            if (!autoRules.length) {
+                logEl.textContent = 'No auto-switch rules added.';
+                return;
+            }
+            autoRules.forEach((rule, index) => {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                const msg = document.createElement('span');
+                msg.className = 'log-message';
+                msg.textContent = `${rule.match} → ${rule.profile}`;
+                const remove = document.createElement('button');
+                remove.className = 'btn-danger';
+                remove.textContent = 'Remove';
+                remove.style.marginLeft = 'auto';
+                remove.onclick = () => removeAutoRule(index);
+                entry.appendChild(msg);
+                entry.appendChild(remove);
+                logEl.appendChild(entry);
+            });
+        }
+
+        function addAutoRule() {
+            const match = document.getElementById('autoMatch').value.trim();
+            const profile = document.getElementById('autoProfileSelect').value;
+            if (!match || !profile) {
+                log('Provide a match text and profile', 'error');
+                return;
+            }
+            autoRules.push({match, profile});
+            document.getElementById('autoMatch').value = '';
+            renderAutoRules();
+        }
+
+        function removeAutoRule(index) {
+            autoRules.splice(index, 1);
+            renderAutoRules();
+        }
+
+        async function saveAutoSwitchRules() {
+            if (!autoSwitchAvailable) {
+                log('Auto-switch not available on this platform', 'error');
+                return;
+            }
+            const enabled = document.getElementById('autoSwitchEnabled').checked;
+            try {
+                const response = await fetch('/api/profile/auto', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({enabled, rules: autoRules})
+                });
+                if (response.ok) {
+                    log('Auto-switch rules saved', 'success');
+                } else {
+                    const data = await response.json();
+                    log(data.error || 'Failed to save auto-switch rules', 'error');
+                }
+            } catch (e) {
+                log('Failed to save auto-switch rules', 'error');
             }
         }
         
@@ -1137,6 +1556,36 @@
                     saveMapping();
                 }
             }
+            if (e.ctrlKey && e.key === 'c') {
+                if (selectedPad !== null && mappings[selectedPad]) {
+                    clipboardMapping = mappings[selectedPad];
+                    log(`Copied mapping from pad ${selectedPad}`, 'success');
+                }
+            }
+            if (e.ctrlKey && e.key === 'x') {
+                if (selectedPad !== null && mappings[selectedPad]) {
+                    clipboardMapping = mappings[selectedPad];
+                    removeMapping(selectedPad).then((response) => {
+                        if (response.ok) {
+                            delete mappings[selectedPad];
+                            updatePadDisplay();
+                            log(`Cut mapping from pad ${selectedPad}`, 'success');
+                        }
+                    });
+                }
+            }
+            if (e.ctrlKey && e.key === 'v') {
+                if (selectedPad !== null && clipboardMapping) {
+                    const nextMapping = cloneMapping(clipboardMapping, selectedPad);
+                    persistMapping(nextMapping).then((response) => {
+                        if (response.ok) {
+                            mappings[selectedPad] = nextMapping;
+                            updatePadDisplay();
+                            log(`Pasted mapping to pad ${selectedPad}`, 'success');
+                        }
+                    });
+                }
+            }
         });
         
         // Initialize on load
@@ -1145,6 +1594,9 @@
             initColorPicker();
             refreshPorts();
             loadMappings();
+            loadLayers();
+            loadProfiles();
+            loadAutoSwitch();
             updateStatus();
             log('Launchpad Mapper initialized');
         });
