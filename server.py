@@ -4,8 +4,9 @@ Web server for Launchpad Mapper configuration interface.
 """
 
 import json
-import time
 import queue
+import threading
+import time
 from flask import Flask, render_template, jsonify, request, Response
 from flask_cors import CORS
 
@@ -14,12 +15,22 @@ from launchpad_mapper import (
     LAUNCHPAD_COLORS, COLOR_HEX
 )
 
+try:
+    import pygetwindow
+except ImportError:
+    pygetwindow = None
+
 
 app = Flask(__name__)
 CORS(app)
 
 # Global mapper instance
 mapper = LaunchpadMapper()
+profiles = {mapper.profile.name: mapper.profile}
+profile_lock = threading.Lock()
+auto_switch_lock = threading.Lock()
+auto_switch_rules = []
+auto_switch_enabled = False
 
 # Event queue for server-sent events
 event_queues = []
@@ -49,6 +60,50 @@ def index():
         colors=json.dumps(LAUNCHPAD_COLORS),
         color_hex=json.dumps(COLOR_HEX)
     )
+
+
+def get_active_window_title():
+    if not pygetwindow:
+        return None
+    try:
+        window = pygetwindow.getActiveWindow()
+        if window:
+            return window.title or ""
+    except Exception:
+        return None
+    return None
+
+
+def switch_profile(name: str) -> bool:
+    with profile_lock:
+        profile = profiles.get(name)
+        if not profile:
+            return False
+        mapper.set_profile(profile)
+        return True
+
+
+def auto_switch_worker():
+    last_profile = None
+    while True:
+        time.sleep(1)
+        with auto_switch_lock:
+            enabled = auto_switch_enabled
+            rules = list(auto_switch_rules)
+        if not enabled or not rules:
+            continue
+        title = get_active_window_title()
+        if not title:
+            continue
+        title_lower = title.lower()
+        target_profile = None
+        for rule in rules:
+            if rule["match"].lower() in title_lower:
+                target_profile = rule["profile"]
+                break
+        if target_profile and target_profile != last_profile:
+            if switch_profile(target_profile):
+                last_profile = target_profile
 
 
 @app.route('/api/ports')
@@ -99,25 +154,32 @@ def status():
         "connected": mapper.input_port is not None,
         "running": mapper.running,
         "profile_name": mapper.profile.name,
-        "mapping_count": len(mapper.profile.mappings)
+        "mapping_count": len(mapper.profile.get_layer_mappings(mapper.current_layer))
     })
 
 
 @app.route('/api/mapping', methods=['POST'])
 def save_mapping():
     """Save or update a pad mapping."""
-    data = request.json
+    data = request.json or {}
+    required = {"note", "key_combo", "color"}
+    if not required.issubset(data) and data.get("action") != "layer_up":
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+    layer = data.get("layer") or mapper.current_layer
+    action = data.get("action", "key")
     mapping = PadMapping(
         note=data['note'],
-        key_combo=data['key_combo'],
-        color=data['color'],
+        key_combo=data.get('key_combo', ''),
+        color=data.get('color', 'green'),
         label=data.get('label', ''),
-        enabled=data.get('enabled', True)
+        enabled=data.get('enabled', True),
+        action=action,
+        target_layer=data.get('target_layer')
     )
-    mapper.profile.add_mapping(mapping)
+    mapper.profile.add_mapping(mapping, layer=layer)
     
     # Update pad color if running
-    if mapper.running:
+    if mapper.running and layer == mapper.current_layer:
         mapper.set_pad_color(mapping.note, mapping.color if mapping.enabled else 'off')
     
     return jsonify({"success": True, "mapping": mapping.to_dict()})
@@ -126,7 +188,8 @@ def save_mapping():
 @app.route('/api/mapping/<int:note>', methods=['GET'])
 def get_mapping(note):
     """Get a specific mapping."""
-    mapping = mapper.profile.get_mapping(note)
+    layer = request.args.get("layer") or mapper.current_layer
+    mapping = mapper.profile.get_mapping(note, layer)
     if mapping:
         return jsonify(mapping.to_dict())
     return jsonify(None)
@@ -135,8 +198,9 @@ def get_mapping(note):
 @app.route('/api/mapping/<int:note>', methods=['DELETE'])
 def delete_mapping(note):
     """Delete a pad mapping."""
-    mapper.profile.remove_mapping(note)
-    if mapper.running:
+    layer = request.args.get("layer") or mapper.current_layer
+    mapper.profile.remove_mapping(note, layer)
+    if mapper.running and layer == mapper.current_layer:
         mapper.set_pad_color(note, 'off')
     return jsonify({"success": True})
 
@@ -144,15 +208,21 @@ def delete_mapping(note):
 @app.route('/api/profile')
 def get_profile():
     """Get current profile."""
-    return jsonify(mapper.profile.to_dict())
+    data = mapper.profile.to_dict()
+    data["active_layer"] = mapper.current_layer
+    return jsonify(data)
 
 
 @app.route('/api/profile', methods=['PUT'])
 def update_profile():
     """Update profile metadata."""
-    data = request.json
+    data = request.json or {}
     if 'name' in data:
-        mapper.profile.name = data['name']
+        with profile_lock:
+            old_name = mapper.profile.name
+            mapper.profile.name = data['name']
+            profiles.pop(old_name, None)
+            profiles[mapper.profile.name] = mapper.profile
     if 'description' in data:
         mapper.profile.description = data['description']
     return jsonify({"success": True})
@@ -163,24 +233,38 @@ def export_profile():
     """Export current profile as JSON."""
     name = request.args.get('name')
     if name:
-        mapper.profile.name = name
+        with profile_lock:
+            old_name = mapper.profile.name
+            mapper.profile.name = name
+            profiles.pop(old_name, None)
+            profiles[mapper.profile.name] = mapper.profile
     return jsonify(mapper.profile.to_dict())
 
 
 @app.route('/api/profile/import', methods=['POST'])
 def import_profile():
     """Import a profile from JSON."""
-    data = request.json
-    mapper.profile = Profile.from_dict(data)
-    if mapper.running:
-        mapper.update_pad_colors()
+    data = request.json or {}
+    if not data:
+        return jsonify({"success": False, "error": "No profile data provided"}), 400
+    profile = Profile.from_dict(data)
+    with profile_lock:
+        profiles[profile.name] = profile
+    mapper.set_profile(profile)
     return jsonify({"success": True, "profile": mapper.profile.to_dict()})
 
 
 @app.route('/api/clear', methods=['POST'])
 def clear_mappings():
     """Clear all mappings."""
-    mapper.profile = Profile(mapper.profile.name)
+    current_name = mapper.profile.name
+    current_description = mapper.profile.description
+    current_base_layer = mapper.profile.base_layer
+    profile = Profile(current_name, current_base_layer)
+    profile.description = current_description
+    mapper.set_profile(profile)
+    with profile_lock:
+        profiles[current_name] = profile
     if mapper.running:
         mapper.clear_all_pads()
     return jsonify({"success": True})
@@ -189,7 +273,7 @@ def clear_mappings():
 @app.route('/api/test-key', methods=['POST'])
 def test_key():
     """Test a key combination."""
-    data = request.json
+    data = request.json or {}
     combo = data.get('combo', '')
     if combo:
         mapper.execute_key_combo(combo)
@@ -200,13 +284,93 @@ def test_key():
 @app.route('/api/set-color', methods=['POST'])
 def set_color():
     """Set a pad color directly."""
-    data = request.json
+    data = request.json or {}
     note = data.get('note')
     color = data.get('color', 'off')
     if note is not None:
         mapper.set_pad_color(note, color)
         return jsonify({"success": True})
     return jsonify({"success": False, "error": "No note provided"})
+
+
+@app.route('/api/layers')
+def get_layers():
+    return jsonify({
+        "layers": sorted(mapper.profile.layers.keys()),
+        "current_layer": mapper.current_layer
+    })
+
+
+@app.route('/api/layer/push', methods=['POST'])
+def push_layer():
+    data = request.json or {}
+    layer = data.get("layer")
+    if not layer:
+        return jsonify({"success": False, "error": "No layer provided"}), 400
+    mapper.push_layer(layer)
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/layer/pop', methods=['POST'])
+def pop_layer():
+    mapper.pop_layer()
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/layer/set', methods=['POST'])
+def set_layer():
+    data = request.json or {}
+    layer = data.get("layer")
+    if not layer:
+        return jsonify({"success": False, "error": "No layer provided"}), 400
+    mapper.set_layer(layer)
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/profiles')
+def list_profiles():
+    with profile_lock:
+        names = sorted(profiles.keys())
+    return jsonify({
+        "profiles": names,
+        "active_profile": mapper.profile.name
+    })
+
+
+@app.route('/api/profile/switch', methods=['POST'])
+def switch_profile_endpoint():
+    data = request.json or {}
+    name = data.get("name")
+    if not name:
+        return jsonify({"success": False, "error": "No profile name provided"}), 400
+    if not switch_profile(name):
+        return jsonify({"success": False, "error": "Profile not found"}), 404
+    return jsonify({"success": True, "profile": mapper.profile.to_dict()})
+
+
+@app.route('/api/profile/auto', methods=['GET', 'POST'])
+def profile_auto_switch():
+    global auto_switch_enabled
+    if request.method == 'GET':
+        with auto_switch_lock:
+            return jsonify({
+                "enabled": auto_switch_enabled,
+                "rules": auto_switch_rules,
+                "available": pygetwindow is not None
+            })
+    data = request.json or {}
+    rules = data.get("rules", [])
+    enabled = data.get("enabled", False)
+    if enabled and pygetwindow is None:
+        return jsonify({"success": False, "error": "Auto switch unavailable"}), 400
+    with auto_switch_lock:
+        auto_switch_rules[:] = [
+            {"match": rule.get("match", ""), "profile": rule.get("profile", "")}
+            for rule in rules
+            if rule.get("match") and rule.get("profile")
+        ]
+        auto_switch_enabled = bool(enabled)
+    return jsonify({"success": True, "enabled": auto_switch_enabled, "rules": auto_switch_rules})
 
 
 @app.route('/api/events')
@@ -237,6 +401,9 @@ def main():
     print("\nStarting web interface at http://localhost:5000")
     print("Press Ctrl+C to quit\n")
     
+    thread = threading.Thread(target=auto_switch_worker, daemon=True)
+    thread.start()
+
     try:
         app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
     except KeyboardInterrupt:
