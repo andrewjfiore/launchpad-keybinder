@@ -419,7 +419,7 @@ class LaunchpadMapper:
             print(f"Error connecting to MIDI: {e}")
             return False
     
-    def disconnect(self):
+    def disconnect(self):         
         self.stop()
         if self.input_port:
             self.input_port.close()
