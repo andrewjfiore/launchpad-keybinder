@@ -1,0 +1,437 @@
+{
+  "name": "OBS Studio",
+  "description": "Optimized for OBS Studio - streaming and recording controls with scene switching",
+  "base_layer": "Base",
+  "layers": {
+    "Base": {
+      "81": {
+        "note": 81,
+        "key_combo": "ctrl+shift+1",
+        "color": "red",
+        "label": "Scene 1",
+        "enabled": true,
+        "action": "key"
+      },
+      "82": {
+        "note": 82,
+        "key_combo": "ctrl+shift+2",
+        "color": "orange",
+        "label": "Scene 2",
+        "enabled": true,
+        "action": "key"
+      },
+      "83": {
+        "note": 83,
+        "key_combo": "ctrl+shift+3",
+        "color": "yellow",
+        "label": "Scene 3",
+        "enabled": true,
+        "action": "key"
+      },
+      "84": {
+        "note": 84,
+        "key_combo": "ctrl+shift+4",
+        "color": "lime",
+        "label": "Scene 4",
+        "enabled": true,
+        "action": "key"
+      },
+      "85": {
+        "note": 85,
+        "key_combo": "ctrl+shift+5",
+        "color": "green",
+        "label": "Scene 5",
+        "enabled": true,
+        "action": "key"
+      },
+      "86": {
+        "note": 86,
+        "key_combo": "ctrl+shift+6",
+        "color": "cyan",
+        "label": "Scene 6",
+        "enabled": true,
+        "action": "key"
+      },
+      "87": {
+        "note": 87,
+        "key_combo": "ctrl+shift+7",
+        "color": "blue",
+        "label": "Scene 7",
+        "enabled": true,
+        "action": "key"
+      },
+      "88": {
+        "note": 88,
+        "key_combo": "ctrl+shift+8",
+        "color": "purple",
+        "label": "Scene 8",
+        "enabled": true,
+        "action": "key"
+      },
+      "71": {
+        "note": 71,
+        "key_combo": "f1",
+        "color": "green",
+        "label": "Start Str",
+        "enabled": true,
+        "action": "key"
+      },
+      "72": {
+        "note": 72,
+        "key_combo": "f2",
+        "color": "red",
+        "label": "Stop Str",
+        "enabled": true,
+        "action": "key"
+      },
+      "73": {
+        "note": 73,
+        "key_combo": "f3",
+        "color": "green",
+        "label": "Start Rec",
+        "enabled": true,
+        "action": "key"
+      },
+      "74": {
+        "note": 74,
+        "key_combo": "f4",
+        "color": "red",
+        "label": "Stop Rec",
+        "enabled": true,
+        "action": "key"
+      },
+      "75": {
+        "note": 75,
+        "key_combo": "f5",
+        "color": "orange",
+        "label": "Pause Rec",
+        "enabled": true,
+        "action": "key"
+      },
+      "76": {
+        "note": 76,
+        "key_combo": "f6",
+        "color": "purple",
+        "label": "Replay",
+        "enabled": true,
+        "action": "key"
+      },
+      "77": {
+        "note": 77,
+        "key_combo": "f7",
+        "color": "sky",
+        "label": "St Mode",
+        "enabled": true,
+        "action": "key"
+      },
+      "78": {
+        "note": 78,
+        "key_combo": "f8",
+        "color": "white",
+        "label": "Transition",
+        "enabled": true,
+        "action": "key"
+      },
+      "61": {
+        "note": 61,
+        "key_combo": "f9",
+        "color": "red",
+        "label": "Mic Mute",
+        "enabled": true,
+        "action": "key"
+      },
+      "62": {
+        "note": 62,
+        "key_combo": "f10",
+        "color": "red",
+        "label": "Desk Mute",
+        "enabled": true,
+        "action": "key"
+      },
+      "63": {
+        "note": 63,
+        "key_combo": "ctrl+up",
+        "color": "lime",
+        "label": "Mic +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.1
+      },
+      "64": {
+        "note": 64,
+        "key_combo": "ctrl+down",
+        "color": "lime",
+        "label": "Mic -",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.1
+      },
+      "65": {
+        "note": 65,
+        "key_combo": "ctrl+shift+up",
+        "color": "sky",
+        "label": "Desk +",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.1
+      },
+      "66": {
+        "note": 66,
+        "key_combo": "ctrl+shift+down",
+        "color": "sky",
+        "label": "Desk -",
+        "enabled": true,
+        "action": "key",
+        "repeat_enabled": true,
+        "repeat_delay": 0.4,
+        "repeat_interval": 0.1
+      },
+      "67": {
+        "note": 67,
+        "key_combo": "ctrl+alt+1",
+        "color": "yellow",
+        "label": "Source 1",
+        "enabled": true,
+        "action": "key"
+      },
+      "68": {
+        "note": 68,
+        "key_combo": "ctrl+alt+2",
+        "color": "yellow",
+        "label": "Source 2",
+        "enabled": true,
+        "action": "key"
+      },
+      "51": {
+        "note": 51,
+        "key_combo": "ctrl+alt+3",
+        "color": "yellow",
+        "label": "Source 3",
+        "enabled": true,
+        "action": "key"
+      },
+      "52": {
+        "note": 52,
+        "key_combo": "ctrl+alt+4",
+        "color": "yellow",
+        "label": "Source 4",
+        "enabled": true,
+        "action": "key"
+      },
+      "53": {
+        "note": 53,
+        "key_combo": "ctrl+alt+5",
+        "color": "yellow",
+        "label": "Source 5",
+        "enabled": true,
+        "action": "key"
+      },
+      "54": {
+        "note": 54,
+        "key_combo": "ctrl+alt+6",
+        "color": "yellow",
+        "label": "Source 6",
+        "enabled": true,
+        "action": "key"
+      },
+      "55": {
+        "note": 55,
+        "key_combo": "ctrl+alt+7",
+        "color": "yellow",
+        "label": "Source 7",
+        "enabled": true,
+        "action": "key"
+      },
+      "56": {
+        "note": 56,
+        "key_combo": "ctrl+alt+8",
+        "color": "yellow",
+        "label": "Source 8",
+        "enabled": true,
+        "action": "key"
+      },
+      "57": {
+        "note": 57,
+        "key_combo": "f11",
+        "color": "white",
+        "label": "Fullscr",
+        "enabled": true,
+        "action": "key"
+      },
+      "58": {
+        "note": 58,
+        "key_combo": "f12",
+        "color": "cyan",
+        "label": "Screenshot",
+        "enabled": true,
+        "action": "key"
+      },
+      "41": {
+        "note": 41,
+        "key_combo": "alt+1",
+        "color": "magenta",
+        "label": "Filter 1",
+        "enabled": true,
+        "action": "key"
+      },
+      "42": {
+        "note": 42,
+        "key_combo": "alt+2",
+        "color": "magenta",
+        "label": "Filter 2",
+        "enabled": true,
+        "action": "key"
+      },
+      "43": {
+        "note": 43,
+        "key_combo": "alt+3",
+        "color": "magenta",
+        "label": "Filter 3",
+        "enabled": true,
+        "action": "key"
+      },
+      "44": {
+        "note": 44,
+        "key_combo": "alt+4",
+        "color": "magenta",
+        "label": "Filter 4",
+        "enabled": true,
+        "action": "key"
+      },
+      "45": {
+        "note": 45,
+        "key_combo": "ctrl+e",
+        "color": "orange",
+        "label": "Edit Tr",
+        "enabled": true,
+        "action": "key"
+      },
+      "46": {
+        "note": 46,
+        "key_combo": "ctrl+t",
+        "color": "cyan",
+        "label": "Properties",
+        "enabled": true,
+        "action": "key"
+      },
+      "47": {
+        "note": 47,
+        "key_combo": "ctrl+r",
+        "color": "purple",
+        "label": "Rename",
+        "enabled": true,
+        "action": "key"
+      },
+      "48": {
+        "note": 48,
+        "key_combo": "delete",
+        "color": "red",
+        "label": "Delete",
+        "enabled": true,
+        "action": "key"
+      },
+      "31": {
+        "note": 31,
+        "key_combo": "ctrl+s",
+        "color": "green",
+        "label": "Save",
+        "enabled": true,
+        "action": "key"
+      },
+      "32": {
+        "note": 32,
+        "key_combo": "ctrl+p",
+        "color": "sky",
+        "label": "Settings",
+        "enabled": true,
+        "action": "key"
+      },
+      "33": {
+        "note": 33,
+        "key_combo": "ctrl+m",
+        "color": "orange",
+        "label": "Minimize",
+        "enabled": true,
+        "action": "key"
+      },
+      "34": {
+        "note": 34,
+        "key_combo": "pageup",
+        "color": "white",
+        "label": "Prev Scn",
+        "enabled": true,
+        "action": "key"
+      },
+      "35": {
+        "note": 35,
+        "key_combo": "pagedown",
+        "color": "white",
+        "label": "Next Scn",
+        "enabled": true,
+        "action": "key"
+      },
+      "36": {
+        "note": 36,
+        "key_combo": "shift+f1",
+        "color": "amber",
+        "label": "Clip 1",
+        "enabled": true,
+        "action": "key"
+      },
+      "37": {
+        "note": 37,
+        "key_combo": "shift+f2",
+        "color": "amber",
+        "label": "Clip 2",
+        "enabled": true,
+        "action": "key"
+      },
+      "38": {
+        "note": 38,
+        "key_combo": "shift+f3",
+        "color": "amber",
+        "label": "Clip 3",
+        "enabled": true,
+        "action": "key"
+      },
+      "89": {
+        "note": 89,
+        "key_combo": "ctrl+f",
+        "color": "white",
+        "label": "Filters",
+        "enabled": true,
+        "action": "key"
+      },
+      "79": {
+        "note": 79,
+        "key_combo": "ctrl+d",
+        "color": "sky",
+        "label": "Docks",
+        "enabled": true,
+        "action": "key"
+      },
+      "69": {
+        "note": 69,
+        "key_combo": "ctrl+i",
+        "color": "purple",
+        "label": "Stats",
+        "enabled": true,
+        "action": "key"
+      },
+      "59": {
+        "note": 59,
+        "key_combo": "ctrl+l",
+        "color": "cyan",
+        "label": "Logs",
+        "enabled": true,
+        "action": "key"
+      }
+    }
+  }
+}

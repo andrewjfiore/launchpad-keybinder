@@ -249,15 +249,6 @@
             position: relative;
             overflow: hidden;
         }
-
-        .pad.dragging {
-            opacity: 0.5;
-        }
-
-        .pad.drop-target {
-            border-color: #00ff88;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
-        }
         
         .pad::before {
             content: '';
@@ -607,6 +598,25 @@
                 </div>
 
                 <div class="card" style="margin-top: 20px;">
+                    <h2>📦 Preset Profiles</h2>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 13px;">Load pre-configured profiles for popular applications</p>
+                    <div class="form-group">
+                        <label>Available Presets</label>
+                        <select id="presetSelect">
+                            <option value="">Select a preset...</option>
+                        </select>
+                    </div>
+                    <div class="controls">
+                        <button class="btn-success" onclick="loadPreset()">
+                            <span>📥</span> Load Preset
+                        </button>
+                        <button class="btn-secondary" onclick="loadPresetList()">
+                            <span>↻</span> Refresh Presets
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
                     <h2>💾 Profile Management</h2>
                     <div class="profile-grid">
                         <div class="form-group">
@@ -798,7 +808,6 @@
         let availableLayers = [];
         let autoRules = [];
         let autoSwitchAvailable = false;
-        let clipboardMapping = null;
         
         // Initialize the grid
         function initGrid() {
@@ -816,12 +825,6 @@
                         if (colIndex === 8) pad.classList.add('scene');
                         pad.dataset.note = note;
                         pad.onclick = () => selectPad(note);
-                        pad.draggable = true;
-                        pad.addEventListener('dragstart', (event) => onDragStart(event, note));
-                        pad.addEventListener('dragend', onDragEnd);
-                        pad.addEventListener('dragover', onDragOver);
-                        pad.addEventListener('dragleave', onDragLeave);
-                        pad.addEventListener('drop', (event) => onDrop(event, note));
                     }
                     grid.appendChild(pad);
                 });
@@ -948,7 +951,11 @@
             };
             
             try {
-                const response = await persistMapping(mapping);
+                const response = await fetch('/api/mapping', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(mapping)
+                });
                 
                 if (response.ok) {
                     mappings[selectedPad] = mapping;
@@ -967,7 +974,9 @@
             }
             
             try {
-                const response = await removeMapping(selectedPad);
+                const response = await fetch(`/api/mapping/${selectedPad}?layer=${encodeURIComponent(currentLayer)}`, {
+                    method: 'DELETE'
+                });
                 
                 if (response.ok) {
                     delete mappings[selectedPad];
@@ -1173,82 +1182,6 @@
                 }
             } catch (e) {
                 log('Failed to clear mappings', 'error');
-            }
-        }
-
-        async function persistMapping(mapping) {
-            return fetch('/api/mapping', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(mapping)
-            });
-        }
-
-        async function removeMapping(note) {
-            return fetch(`/api/mapping/${note}?layer=${encodeURIComponent(currentLayer)}`, {
-                method: 'DELETE'
-            });
-        }
-
-        function cloneMapping(mapping, note) {
-            return {
-                ...mapping,
-                note,
-                layer: currentLayer
-            };
-        }
-
-        function onDragStart(event, note) {
-            const mapping = mappings[note];
-            if (!mapping) {
-                event.preventDefault();
-                return;
-            }
-            event.dataTransfer.effectAllowed = 'copyMove';
-            event.dataTransfer.setData('text/plain', String(note));
-            event.currentTarget.classList.add('dragging');
-        }
-
-        function onDragEnd(event) {
-            event.currentTarget.classList.remove('dragging');
-        }
-
-        function onDragOver(event) {
-            event.preventDefault();
-            event.currentTarget.classList.add('drop-target');
-            event.dataTransfer.dropEffect = event.shiftKey ? 'move' : 'copy';
-        }
-
-        function onDragLeave(event) {
-            event.currentTarget.classList.remove('drop-target');
-        }
-
-        async function onDrop(event, targetNote) {
-            event.preventDefault();
-            const sourceNote = Number(event.dataTransfer.getData('text/plain'));
-            event.currentTarget.classList.remove('drop-target');
-            document.querySelectorAll('.pad.dragging').forEach(el => el.classList.remove('dragging'));
-            if (!sourceNote || sourceNote === targetNote) {
-                return;
-            }
-            const sourceMapping = mappings[sourceNote];
-            if (!sourceMapping) {
-                return;
-            }
-            const nextMapping = cloneMapping(sourceMapping, targetNote);
-            const response = await persistMapping(nextMapping);
-            if (response.ok) {
-                mappings[targetNote] = nextMapping;
-                if (event.shiftKey) {
-                    const removeResponse = await removeMapping(sourceNote);
-                    if (removeResponse.ok) {
-                        delete mappings[sourceNote];
-                    }
-                }
-                updatePadDisplay();
-                log(`Mapped pad ${targetNote} from pad ${sourceNote}`, 'success');
-            } else {
-                log('Failed to apply mapping on drop', 'error');
             }
         }
 
@@ -1556,38 +1489,62 @@
                     saveMapping();
                 }
             }
-            if (e.ctrlKey && e.key === 'c') {
-                if (selectedPad !== null && mappings[selectedPad]) {
-                    clipboardMapping = mappings[selectedPad];
-                    log(`Copied mapping from pad ${selectedPad}`, 'success');
-                }
-            }
-            if (e.ctrlKey && e.key === 'x') {
-                if (selectedPad !== null && mappings[selectedPad]) {
-                    clipboardMapping = mappings[selectedPad];
-                    removeMapping(selectedPad).then((response) => {
-                        if (response.ok) {
-                            delete mappings[selectedPad];
-                            updatePadDisplay();
-                            log(`Cut mapping from pad ${selectedPad}`, 'success');
-                        }
-                    });
-                }
-            }
-            if (e.ctrlKey && e.key === 'v') {
-                if (selectedPad !== null && clipboardMapping) {
-                    const nextMapping = cloneMapping(clipboardMapping, selectedPad);
-                    persistMapping(nextMapping).then((response) => {
-                        if (response.ok) {
-                            mappings[selectedPad] = nextMapping;
-                            updatePadDisplay();
-                            log(`Pasted mapping to pad ${selectedPad}`, 'success');
-                        }
-                    });
-                }
-            }
         });
         
+        async function loadPresetList() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                const select = document.getElementById('presetSelect');
+                select.innerHTML = '<option value="">Select a preset...</option>';
+                (data.presets || []).forEach(preset => {
+                    const option = document.createElement('option');
+                    option.value = preset.filename;
+                    option.textContent = preset.name;
+                    select.appendChild(option);
+                });
+                log(`Found ${data.presets.length} preset(s)`);
+            } catch (e) {
+                log('Failed to load presets', 'error');
+            }
+        }
+
+        async function loadPreset() {
+            const filename = document.getElementById('presetSelect').value;
+            if (!filename) {
+                log('Select a preset first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/presets/${filename}`);
+                const presetData = await response.json();
+
+                if (presetData.error) {
+                    log(presetData.error, 'error');
+                    return;
+                }
+
+                // Import the preset as current profile
+                const importResponse = await fetch('/api/profile/import', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(presetData)
+                });
+
+                if (importResponse.ok) {
+                    await loadMappings();
+                    await loadLayers();
+                    await loadProfiles();
+                    log(`Loaded preset: ${presetData.name}`, 'success');
+                } else {
+                    log('Failed to load preset', 'error');
+                }
+            } catch (e) {
+                log('Failed to load preset', 'error');
+            }
+        }
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             initGrid();
@@ -1597,6 +1554,7 @@
             loadLayers();
             loadProfiles();
             loadAutoSwitch();
+            loadPresetList();
             updateStatus();
             log('Launchpad Mapper initialized');
         });
