@@ -21,6 +21,19 @@ Map your Novation Launchpad Mini to keyboard shortcuts with customizable LED col
 - Python 3.8 or higher
 - Novation Launchpad Mini (MK3 recommended, but should work with other models)
 
+## Packaging (Windows EXE with PyInstaller)
+
+If you want a double-clickable Windows EXE, you can build one with PyInstaller:
+
+```bash
+pip install pyinstaller
+pyinstaller pyinstaller.spec
+```
+
+The EXE will be available under `dist/launchpad-mapper/launchpad-mapper.exe`.
+
+You can also run `build_exe.bat` on Windows to perform the same steps automatically.
+
 ### macOS
 
 ```bash
