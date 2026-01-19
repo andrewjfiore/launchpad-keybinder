@@ -723,7 +723,7 @@
         "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "ctrl+shift+r",
+        "key_combo": "ctrl+f9",
         "label": "Reset Clr",
         "long_press_action": "",
         "long_press_enabled": false,
@@ -737,28 +737,15 @@
         "velocity_mappings": null
       },
       "23": {
-        "action": "macro",
+        "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f4",
         "label": "Red Lum-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+r"
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 23,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -767,28 +754,15 @@
         "velocity_mappings": null
       },
       "24": {
-        "action": "macro",
+        "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f3",
         "label": "Red Lum+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+r"
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 24,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -797,28 +771,15 @@
         "velocity_mappings": null
       },
       "25": {
-        "action": "macro",
+        "action": "key",
         "color": "orange",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f10",
         "label": "Org Lum-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+o"
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 25,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -827,28 +788,15 @@
         "velocity_mappings": null
       },
       "26": {
-        "action": "macro",
+        "action": "key",
         "color": "orange",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f9",
         "label": "Org Lum+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+o"
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 26,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -857,28 +805,15 @@
         "velocity_mappings": null
       },
       "27": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+f4",
         "label": "Yel Lum-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+y"
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 27,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -887,28 +822,15 @@
         "velocity_mappings": null
       },
       "28": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+f3",
         "label": "Yel Lum+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+y"
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 28,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -917,24 +839,15 @@
         "velocity_mappings": null
       },
       "33": {
-        "action": "macro",
+        "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f2",
         "label": "Red Sat-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+r"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 33,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -943,24 +856,15 @@
         "velocity_mappings": null
       },
       "34": {
-        "action": "macro",
+        "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f1",
         "label": "Red Sat+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+r"
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 34,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -969,24 +873,15 @@
         "velocity_mappings": null
       },
       "35": {
-        "action": "macro",
+        "action": "key",
         "color": "orange",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f8",
         "label": "Org Sat-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+o"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 35,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -995,24 +890,15 @@
         "velocity_mappings": null
       },
       "36": {
-        "action": "macro",
+        "action": "key",
         "color": "orange",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f7",
         "label": "Org Sat+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+o"
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 36,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1021,24 +907,15 @@
         "velocity_mappings": null
       },
       "37": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+f2",
         "label": "Yel Sat-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+y"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 37,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1047,24 +924,15 @@
         "velocity_mappings": null
       },
       "38": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+f1",
         "label": "Yel Sat+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+y"
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 38,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1073,28 +941,15 @@
         "velocity_mappings": null
       },
       "43": {
-        "action": "macro",
+        "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f12",
         "label": "Red Hue-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+r"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 43,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1103,28 +958,15 @@
         "velocity_mappings": null
       },
       "44": {
-        "action": "macro",
+        "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f11",
         "label": "Red Hue+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+r"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 44,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1133,28 +975,15 @@
         "velocity_mappings": null
       },
       "45": {
-        "action": "macro",
+        "action": "key",
         "color": "orange",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f6",
         "label": "Org Hue-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+o"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 45,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1163,28 +992,15 @@
         "velocity_mappings": null
       },
       "46": {
-        "action": "macro",
+        "action": "key",
         "color": "orange",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f5",
         "label": "Org Hue+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+o"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 46,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1193,28 +1009,15 @@
         "velocity_mappings": null
       },
       "47": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f12",
         "label": "Yel Hue-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+y"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 47,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1223,28 +1026,15 @@
         "velocity_mappings": null
       },
       "48": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+shift+f11",
         "label": "Yel Hue+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": "shift+ctrl+alt+y"
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 48,
         "repeat_delay": 0.3,
         "repeat_enabled": false,
@@ -1270,72 +1060,15 @@
         "velocity_mappings": null
       },
       "51": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f2",
         "label": "Satur -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 51,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -1344,72 +1077,15 @@
         "velocity_mappings": null
       },
       "52": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f1",
         "label": "Satur +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 52,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -1435,68 +1111,15 @@
         "velocity_mappings": null
       },
       "61": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f12",
         "label": "Vibrance-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 61,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -1505,68 +1128,15 @@
         "velocity_mappings": null
       },
       "62": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f11",
         "label": "Vibrance+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 62,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -1592,64 +1162,15 @@
         "velocity_mappings": null
       },
       "71": {
-        "action": "macro",
+        "action": "key",
         "color": "green",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f4",
         "label": "Tint Grn",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 71,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -1658,64 +1179,15 @@
         "velocity_mappings": null
       },
       "72": {
-        "action": "macro",
+        "action": "key",
         "color": "magenta",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f3",
         "label": "Tint Mag",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 72,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -1741,60 +1213,15 @@
         "velocity_mappings": null
       },
       "81": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f2",
         "label": "Temp Cool",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 81,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -1803,60 +1230,15 @@
         "velocity_mappings": null
       },
       "82": {
-        "action": "macro",
+        "action": "key",
         "color": "orange",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f1",
         "label": "Temp Warm",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 82,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2144,7 +1526,7 @@
         "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "ctrl+shift+r",
+        "key_combo": "ctrl+f12",
         "label": "Reset FX",
         "long_press_action": "",
         "long_press_enabled": false,
@@ -2158,120 +1540,15 @@
         "velocity_mappings": null
       },
       "27": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f10",
         "label": "Rough -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 27,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2280,120 +1557,15 @@
         "velocity_mappings": null
       },
       "28": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f9",
         "label": "Rough +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 28,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2402,116 +1574,15 @@
         "velocity_mappings": null
       },
       "37": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f8",
         "label": "Size -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 37,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2520,116 +1591,15 @@
         "velocity_mappings": null
       },
       "38": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f7",
         "label": "Size +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 38,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2638,112 +1608,15 @@
         "velocity_mappings": null
       },
       "47": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f6",
         "label": "Grain -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 47,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2752,112 +1625,15 @@
         "velocity_mappings": null
       },
       "48": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f5",
         "label": "Grain +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 48,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2883,92 +1659,15 @@
         "velocity_mappings": null
       },
       "57": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f4",
         "label": "Vignette-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 57,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -2977,92 +1676,15 @@
         "velocity_mappings": null
       },
       "58": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "alt+shift+f3",
         "label": "Vignette+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 58,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3088,88 +1710,15 @@
         "velocity_mappings": null
       },
       "67": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f10",
         "label": "Dehaze -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 67,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3178,88 +1727,15 @@
         "velocity_mappings": null
       },
       "68": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f9",
         "label": "Dehaze +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 68,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3285,84 +1761,15 @@
         "velocity_mappings": null
       },
       "77": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f8",
         "label": "Clarity -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 77,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3371,84 +1778,15 @@
         "velocity_mappings": null
       },
       "78": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f7",
         "label": "Clarity +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 78,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3474,80 +1812,15 @@
         "velocity_mappings": null
       },
       "87": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f6",
         "label": "Texture -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 87,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3556,80 +1829,15 @@
         "velocity_mappings": null
       },
       "88": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+shift+f5",
         "label": "Texture +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 88,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3660,7 +1868,7 @@
         "action": "key",
         "color": "red",
         "enabled": true,
-        "key_combo": "ctrl+shift+r",
+        "key_combo": "ctrl+f10",
         "label": "Reset Lt",
         "long_press_action": "",
         "long_press_enabled": false,
@@ -3691,80 +1899,15 @@
         "velocity_mappings": null
       },
       "37": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f12",
         "label": "Blacks -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 37,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3773,80 +1916,15 @@
         "velocity_mappings": null
       },
       "38": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f11",
         "label": "Blacks +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 38,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3855,76 +1933,15 @@
         "velocity_mappings": null
       },
       "47": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f10",
         "label": "Whites -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 47,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -3933,76 +1950,15 @@
         "velocity_mappings": null
       },
       "48": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f9",
         "label": "Whites +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 48,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4028,72 +1984,15 @@
         "velocity_mappings": null
       },
       "57": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f8",
         "label": "Shadows -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 57,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4102,72 +2001,15 @@
         "velocity_mappings": null
       },
       "58": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f7",
         "label": "Shadows +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 58,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4193,68 +2035,15 @@
         "velocity_mappings": null
       },
       "67": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f6",
         "label": "Highlts -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 67,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4263,68 +2052,15 @@
         "velocity_mappings": null
       },
       "68": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f5",
         "label": "Highlts +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 68,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4350,64 +2086,15 @@
         "velocity_mappings": null
       },
       "77": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f4",
         "label": "Contrast-",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 77,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4416,64 +2103,15 @@
         "velocity_mappings": null
       },
       "78": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f3",
         "label": "Contrast+",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "."
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 78,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4499,60 +2137,15 @@
         "velocity_mappings": null
       },
       "87": {
-        "action": "macro",
+        "action": "key",
         "color": "blue",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f2",
         "label": "Exp -",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "-"
-          }
-        ],
+        "macro_steps": null,
         "note": 87,
         "repeat_delay": 0.3,
         "repeat_enabled": true,
@@ -4561,60 +2154,15 @@
         "velocity_mappings": null
       },
       "88": {
-        "action": "macro",
+        "action": "key",
         "color": "yellow",
         "enabled": true,
-        "key_combo": "",
+        "key_combo": "ctrl+alt+f1",
         "label": "Exp +",
         "long_press_action": "",
         "long_press_enabled": false,
         "long_press_threshold": 0.5,
-        "macro_steps": [
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": ","
-          },
-          {
-            "delay": 0.05,
-            "key": "+"
-          }
-        ],
+        "macro_steps": null,
         "note": 88,
         "repeat_delay": 0.3,
         "repeat_enabled": true,

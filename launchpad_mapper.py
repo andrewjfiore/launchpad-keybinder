@@ -447,76 +447,77 @@ class LaunchpadMapper:
             "output": pick_port(ports["outputs"]),
         }
     
-    def connect(self, input_port: str = None, output_port: str = None) -> Dict[str, Any]:
-        """Connect to MIDI ports. Returns dict with 'success', 'message', and optionally 'error'."""
+    def connect(
+        self,
+        input_port: str = None,
+        output_port: str = None,
+        retries: int = 3,
+        retry_delay: float = 0.5,
+    ) -> Dict[str, Any]:
+        """Connect to MIDI ports with retries."""
+        errors = []
         try:
-            if self.input_port or self.output_port:
-                self.disconnect()
+            for attempt in range(1, retries + 1):
+                if self.input_port or self.output_port:
+                    self.disconnect()
 
-            # Auto-detect ports if not specified
-            if not input_port or not output_port:
-                detected = self.find_launchpad_ports()
-                input_port = input_port or detected["input"]
-                output_port = output_port or detected["output"]
+                detected_input = input_port
+                detected_output = output_port
+                if not detected_input or not detected_output:
+                    detected = self.find_launchpad_ports()
+                    detected_input = detected_input or detected["input"]
+                    detected_output = detected_output or detected["output"]
 
-            # Check if we have ports to connect to
-            if not input_port and not output_port:
-                return {
-                    "success": False,
-                    "message": "No MIDI ports available",
-                    "error": "No Launchpad detected. Please connect your device and click Refresh."
-                }
+                if not detected_input and not detected_output:
+                    errors.append("No Launchpad detected. Please connect your device and click Refresh.")
+                    time.sleep(retry_delay)
+                    continue
 
-            messages = []
-
-            if input_port:
+                messages = []
                 try:
-                    self.input_port = mido.open_input(input_port)
-                    messages.append(f"Input: {input_port}")
-                    print(f"Connected to input: {input_port}")
+                    if detected_input:
+                        self.input_port = mido.open_input(detected_input)
+                        messages.append(f"Input: {detected_input}")
+                        print(f"Connected to input: {detected_input}")
+                    if detected_output:
+                        self.output_port = mido.open_output(detected_output)
+                        messages.append(f"Output: {detected_output}")
+                        print(f"Connected to output: {detected_output}")
                 except Exception as e:
-                    return {
-                        "success": False,
-                        "message": f"Failed to open input port",
-                        "error": f"Could not open input '{input_port}': {e}"
-                    }
-
-            if output_port:
-                try:
-                    self.output_port = mido.open_output(output_port)
-                    messages.append(f"Output: {output_port}")
-                    print(f"Connected to output: {output_port}")
-                except Exception as e:
-                    # Clean up input if output fails
                     if self.input_port:
                         self.input_port.close()
                         self.input_port = None
+                    if self.output_port:
+                        self.output_port.close()
+                        self.output_port = None
+                    errors.append(str(e))
+                    time.sleep(retry_delay)
+                    continue
+
+                if self.input_port is not None:
+                    self.enter_programmer_mode()
                     return {
-                        "success": False,
-                        "message": f"Failed to open output port",
-                        "error": f"Could not open output '{output_port}': {e}"
+                        "success": True,
+                        "message": "Connected: " + ", ".join(messages),
+                        "attempt": attempt,
                     }
 
-            if self.input_port is not None:
-                # Enter Programmer mode to enable custom LED control
-                self.enter_programmer_mode()
-                return {
-                    "success": True,
-                    "message": "Connected: " + ", ".join(messages)
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": "No input port connected",
-                    "error": "Input port is required for MIDI input"
-                }
+                errors.append("Input port is required for MIDI input.")
+                time.sleep(retry_delay)
 
+            return {
+                "success": False,
+                "message": "Failed to connect after retries",
+                "error": errors[-1] if errors else "Unknown MIDI error",
+                "errors": errors,
+            }
         except Exception as e:
             print(f"Error connecting to MIDI: {e}")
             return {
                 "success": False,
                 "message": "Connection failed",
-                "error": str(e)
+                "error": str(e),
+                "errors": errors + [str(e)],
             }
     
     def disconnect(self):
