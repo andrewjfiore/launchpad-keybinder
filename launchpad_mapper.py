@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, asdict
 from functools import lru_cache
 from itertools import chain
-from typing import Optional, Dict, List, Callable
+from typing import Optional, Dict, List, Callable, Any
 
 import mido
 from mido import Message
@@ -139,7 +139,7 @@ class PadMapping:
     repeat_delay: float = 0.5  # Initial delay before repeat starts (seconds)
     repeat_interval: float = 0.05  # Interval between repeats (seconds)
     # Macro sequences support
-    macro_steps: Optional[List[Dict[str, any]]] = None  # List of {key_combo, delay_after}
+    macro_steps: Optional[List[Dict[str, Any]]] = None  # List of {key_combo, delay_after}
     # Velocity sensitivity support
     velocity_mappings: Optional[Dict[str, str]] = None  # {range: key_combo} e.g., "0-42": "ctrl+c"
     # Long press support
@@ -383,7 +383,7 @@ class LaunchpadMapper:
         # Active animations
         self.active_animations: List[LEDAnimation] = []
         
-    def get_available_ports(self) -> Dict[str, any]:
+    def get_available_ports(self) -> Dict[str, Any]:
         """Get available MIDI ports with error handling"""
         inputs = []
         outputs = []
@@ -447,7 +447,7 @@ class LaunchpadMapper:
             "output": pick_port(ports["outputs"]),
         }
     
-    def connect(self, input_port: str = None, output_port: str = None) -> Dict[str, any]:
+    def connect(self, input_port: str = None, output_port: str = None) -> Dict[str, Any]:
         """Connect to MIDI ports. Returns dict with 'success', 'message', and optionally 'error'."""
         try:
             if self.input_port or self.output_port:
