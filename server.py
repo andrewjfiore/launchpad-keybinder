@@ -123,11 +123,28 @@ def get_ports():
 def connect():
     """Connect to MIDI ports."""
     data = request.json or {}
-    result = mapper.connect(data.get('input_port'), data.get('output_port'))
+    retries = data.get('retries', 3)
+    retry_delay = data.get('retry_delay', 0.5)
+    try:
+        retries = max(1, int(retries))
+    except (TypeError, ValueError):
+        retries = 3
+    try:
+        retry_delay = max(0.1, float(retry_delay))
+    except (TypeError, ValueError):
+        retry_delay = 0.5
+    result = mapper.connect(
+        data.get('input_port'),
+        data.get('output_port'),
+        retries=retries,
+        retry_delay=retry_delay,
+    )
     return jsonify({
         "connected": result.get("success", False),
         "message": result.get("message", "Unknown error"),
-        "error": result.get("error")
+        "error": result.get("error"),
+        "errors": result.get("errors"),
+        "attempt": result.get("attempt"),
     })
 
 

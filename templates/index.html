@@ -1509,7 +1509,7 @@
                 const response = await fetch('/api/connect', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({input_port: inputPort, output_port: outputPort})
+                    body: JSON.stringify({input_port: inputPort, output_port: outputPort, retries: 3, retry_delay: 0.5})
                 });
 
                 const data = await response.json();
@@ -1522,6 +1522,7 @@
                     // Show detailed error if available
                     const errorMsg = data.error || data.message || 'Connection failed';
                     log(errorMsg, 'error');
+                    alert(errorMsg);
                 }
                 return data.connected;
             } catch (e) {
