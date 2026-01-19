@@ -32,6 +32,7 @@ profile_lock = threading.Lock()
 auto_switch_lock = threading.Lock()
 auto_switch_rules = []
 auto_switch_enabled = False
+mapper.set_auto_reconnect(True, 2.0)
 
 # Event queue for server-sent events
 event_queues = []
@@ -141,12 +142,34 @@ def connect():
         retries=retries,
         retry_delay=retry_delay,
     )
+    mapper.set_auto_reconnect(True, 2.0)
     return jsonify({
         "connected": result.get("success", False),
         "message": result.get("message", "Unknown error"),
         "error": result.get("error"),
         "errors": result.get("errors"),
         "attempt": result.get("attempt"),
+    })
+
+
+@app.route('/api/auto-reconnect', methods=['GET', 'POST'])
+def auto_reconnect():
+    if request.method == 'GET':
+        return jsonify({
+            "enabled": mapper.auto_reconnect_enabled,
+            "interval": mapper.auto_reconnect_interval,
+        })
+    data = request.json or {}
+    enabled = bool(data.get('enabled', True))
+    interval = data.get('interval', 2.0)
+    try:
+        interval = max(0.5, float(interval))
+    except (TypeError, ValueError):
+        interval = 2.0
+    mapper.set_auto_reconnect(enabled, interval)
+    return jsonify({
+        "enabled": mapper.auto_reconnect_enabled,
+        "interval": mapper.auto_reconnect_interval,
     })
 
 

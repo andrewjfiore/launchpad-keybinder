@@ -374,6 +374,13 @@ class LaunchpadMapper:
         self.midi_thread = None
         self.callbacks: List[Callable] = []
         self.layer_stack = [self.profile.base_layer]
+        self.last_input_port = None
+        self.last_output_port = None
+        self.connection_lock = threading.Lock()
+        self.auto_reconnect_enabled = False
+        self.auto_reconnect_interval = 2.0
+        self.auto_reconnect_stop = threading.Event()
+        self.auto_reconnect_thread = None
 
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
@@ -460,53 +467,56 @@ class LaunchpadMapper:
         """Connect to MIDI ports with retries."""
         errors = []
         try:
-            for attempt in range(1, retries + 1):
-                if self.input_port or self.output_port:
-                    self.disconnect()
+            with self.connection_lock:
+                for attempt in range(1, retries + 1):
+                    if self.input_port or self.output_port:
+                        self.disconnect()
 
-                detected_input = input_port
-                detected_output = output_port
-                if not detected_input or not detected_output:
-                    detected = self.find_launchpad_ports()
-                    detected_input = detected_input or detected["input"]
-                    detected_output = detected_output or detected["output"]
+                    detected_input = input_port
+                    detected_output = output_port
+                    if not detected_input or not detected_output:
+                        detected = self.find_launchpad_ports()
+                        detected_input = detected_input or detected["input"]
+                        detected_output = detected_output or detected["output"]
+                    self.last_input_port = detected_input or self.last_input_port
+                    self.last_output_port = detected_output or self.last_output_port
 
-                if not detected_input and not detected_output:
-                    errors.append("No Launchpad detected. Please connect your device and click Refresh.")
+                    if not detected_input and not detected_output:
+                        errors.append("No Launchpad detected. Please connect your device and click Refresh.")
+                        time.sleep(retry_delay)
+                        continue
+
+                    messages = []
+                    try:
+                        if detected_input:
+                            self.input_port = mido.open_input(detected_input)
+                            messages.append(f"Input: {detected_input}")
+                            print(f"Connected to input: {detected_input}")
+                        if detected_output:
+                            self.output_port = mido.open_output(detected_output)
+                            messages.append(f"Output: {detected_output}")
+                            print(f"Connected to output: {detected_output}")
+                    except Exception as e:
+                        if self.input_port:
+                            self.input_port.close()
+                            self.input_port = None
+                        if self.output_port:
+                            self.output_port.close()
+                            self.output_port = None
+                        errors.append(str(e))
+                        time.sleep(retry_delay)
+                        continue
+
+                    if self.input_port is not None:
+                        self.enter_programmer_mode()
+                        return {
+                            "success": True,
+                            "message": "Connected: " + ", ".join(messages),
+                            "attempt": attempt,
+                        }
+
+                    errors.append("Input port is required for MIDI input.")
                     time.sleep(retry_delay)
-                    continue
-
-                messages = []
-                try:
-                    if detected_input:
-                        self.input_port = mido.open_input(detected_input)
-                        messages.append(f"Input: {detected_input}")
-                        print(f"Connected to input: {detected_input}")
-                    if detected_output:
-                        self.output_port = mido.open_output(detected_output)
-                        messages.append(f"Output: {detected_output}")
-                        print(f"Connected to output: {detected_output}")
-                except Exception as e:
-                    if self.input_port:
-                        self.input_port.close()
-                        self.input_port = None
-                    if self.output_port:
-                        self.output_port.close()
-                        self.output_port = None
-                    errors.append(str(e))
-                    time.sleep(retry_delay)
-                    continue
-
-                if self.input_port is not None:
-                    self.enter_programmer_mode()
-                    return {
-                        "success": True,
-                        "message": "Connected: " + ", ".join(messages),
-                        "attempt": attempt,
-                    }
-
-                errors.append("Input port is required for MIDI input.")
-                time.sleep(retry_delay)
 
             return {
                 "success": False,
@@ -524,13 +534,33 @@ class LaunchpadMapper:
             }
     
     def disconnect(self):
-        self.stop()
-        if self.input_port:
-            self.input_port.close()
-            self.input_port = None
-        if self.output_port:
-            self.output_port.close()
-            self.output_port = None
+        with self.connection_lock:
+            self.stop()
+            if self.input_port:
+                self.input_port.close()
+                self.input_port = None
+            if self.output_port:
+                self.output_port.close()
+                self.output_port = None
+
+    def set_auto_reconnect(self, enabled: bool, interval: float = 2.0):
+        self.auto_reconnect_enabled = bool(enabled)
+        self.auto_reconnect_interval = max(0.5, interval)
+        if self.auto_reconnect_enabled and (self.auto_reconnect_thread is None or not self.auto_reconnect_thread.is_alive()):
+            self.auto_reconnect_stop.clear()
+            self.auto_reconnect_thread = threading.Thread(target=self._auto_reconnect_worker, daemon=True)
+            self.auto_reconnect_thread.start()
+        if not self.auto_reconnect_enabled:
+            self.auto_reconnect_stop.set()
+
+    def _auto_reconnect_worker(self):
+        while not self.auto_reconnect_stop.is_set():
+            time.sleep(self.auto_reconnect_interval)
+            if not self.auto_reconnect_enabled:
+                continue
+            if self.input_port and self.output_port:
+                continue
+            self.connect(self.last_input_port, self.last_output_port, retries=1, retry_delay=0.2)
 
     def enter_programmer_mode(self):
         """Send SysEx to enter Programmer mode for custom LED control."""

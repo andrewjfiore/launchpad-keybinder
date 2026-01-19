@@ -1518,6 +1518,11 @@
 
                 if (data.connected) {
                     log(data.message, 'success');
+                    fetch('/api/auto-reconnect', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({enabled: true, interval: 2.0})
+                    }).catch(() => {});
                 } else {
                     // Show detailed error if available
                     const errorMsg = data.error || data.message || 'Connection failed';
