@@ -39,6 +39,19 @@ if !DirExist(IPC_DIR) {
 
 SetTimer(CheckIpcQueue, 50)
 
+configPath := A_ScriptDir "\\lightroom-slider-control.ini"
+MENU_DELAY := IniRead(configPath, "Settings", "MENU_DELAY", MENU_DELAY)
+SUBMENU_DELAY := IniRead(configPath, "Settings", "SUBMENU_DELAY", SUBMENU_DELAY)
+ITEM_DELAY := IniRead(configPath, "Settings", "ITEM_DELAY", ITEM_DELAY)
+PLUGIN_POS := IniRead(configPath, "Settings", "PLUGIN_POS", PLUGIN_POS)
+IPC_DIR := IniRead(configPath, "Settings", "IPC_DIR", A_Temp "\\lrslider_ipc")
+
+if !DirExist(IPC_DIR) {
+    DirCreate(IPC_DIR)
+}
+
+SetTimer(CheckIpcQueue, 50)
+
 ; === ONLY ACTIVE IN LIGHTROOM ===
 #HotIf WinActive("ahk_exe lightroom.exe") or WinActive("ahk_exe Lightroom.exe")
 
