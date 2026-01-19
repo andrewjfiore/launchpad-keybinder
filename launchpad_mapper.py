@@ -1551,6 +1551,7 @@ HTML_TEMPLATE = '''
                             <label>Action Type</label>
                             <select id="actionType" onchange="updateActionFields()">
                                 <option value="key">Key Combination</option>
+                                <option value="macro">Macro Sequence</option>
                                 <option value="layer">Go to Layer</option>
                                 <option value="layer_up">Go Up One Layer</option>
                             </select>
@@ -1559,6 +1560,43 @@ HTML_TEMPLATE = '''
                         <div class="form-group" id="targetLayerGroup" style="display: none;">
                             <label>Target Layer</label>
                             <input type="text" id="targetLayer" placeholder="e.g., Editing">
+                        </div>
+
+                        <!-- Macro Builder -->
+                        <div id="macroBuilderGroup" style="display: none;">
+                            <div class="form-group">
+                                <label>Macro Steps</label>
+                                <div id="macroSteps" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                                    <div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">
+                                        No macro steps yet. Add steps below.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Add Step</label>
+                                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                                    <input type="text" id="macroStepKey" placeholder="Key combo or 'wait'">
+                                    <input type="number" id="macroStepDelay" placeholder="Delay (ms)" value="100" min="0" step="50">
+                                </div>
+                                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                                    <button class="btn-success" onclick="addMacroStep()" style="flex: 1; padding: 6px;">
+                                        <span>➕</span> Add Step
+                                    </button>
+                                    <button class="btn-secondary" onclick="clearMacroSteps()" style="padding: 6px;">
+                                        <span>🗑</span> Clear All
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(0,212,255,0.1); padding: 10px; border-radius: 6px; margin-top: 10px;">
+                                <div style="font-size: 12px; color: #00d4ff; margin-bottom: 6px;"><strong>💡 Macro Tips:</strong></div>
+                                <ul style="font-size: 11px; color: #aaa; margin: 0; padding-left: 20px;">
+                                    <li>Enter "wait" as key combo to add a pure delay</li>
+                                    <li>Delay is time to wait AFTER the action (in milliseconds)</li>
+                                    <li>Example: "ctrl+c" with 500ms delay, then "wait" with 1000ms</li>
+                                </ul>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -1696,6 +1734,9 @@ HTML_TEMPLATE = '''
 
                         // Click handler
                         pad.onclick = () => selectPad(note);
+
+                        // Double-click handler for layer actions
+                        pad.addEventListener('dblclick', () => handlePadDoubleClick(note));
 
                         // Drag and drop handlers
                         pad.addEventListener('dragstart', handleDragStart);
@@ -1857,6 +1898,48 @@ HTML_TEMPLATE = '''
             });
         }
 
+        // Handle double-click on pads to execute layer actions
+        async function handlePadDoubleClick(note) {
+            const mapping = mappings[note];
+            if (!mapping) return;
+
+            // Only handle layer-related actions
+            if (mapping.action === 'layer' && mapping.target_layer) {
+                log(`Double-click: Switching to layer "${mapping.target_layer}"`);
+                try {
+                    const response = await fetch('/api/layer/set', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ layer: mapping.target_layer })
+                    });
+                    if (response.ok) {
+                        currentLayer = mapping.target_layer;
+                        document.getElementById('currentLayer').textContent = currentLayer;
+                        await loadMappings();
+                        log(`Switched to layer: ${currentLayer}`);
+                    }
+                } catch (err) {
+                    log('Failed to switch layer', 'error');
+                }
+            } else if (mapping.action === 'layer_up') {
+                log('Double-click: Going up one layer');
+                try {
+                    const response = await fetch('/api/layer/pop', {
+                        method: 'POST'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentLayer = data.current_layer || 'Base';
+                        document.getElementById('currentLayer').textContent = currentLayer;
+                        await loadMappings();
+                        log(`Layer popped, now on: ${currentLayer}`);
+                    }
+                } catch (err) {
+                    log('Failed to pop layer', 'error');
+                }
+            }
+        }
+
         // Initialize color picker
         function initColorPicker() {
             const picker = document.getElementById('colorPicker');
@@ -1890,9 +1973,9 @@ HTML_TEMPLATE = '''
             document.querySelectorAll('.pad').forEach(el => {
                 el.classList.toggle('selected', el.dataset.note == note);
             });
-            
+
             document.getElementById('selectedPadNote').textContent = `Note: ${note}`;
-            
+
             // Load existing mapping
             const mapping = mappings[note];
             if (mapping) {
@@ -1902,6 +1985,17 @@ HTML_TEMPLATE = '''
                 selectColor(mapping.color || 'green');
                 document.getElementById('actionType').value = mapping.action || 'key';
                 document.getElementById('targetLayer').value = mapping.target_layer || '';
+
+                // Load macro steps if this is a macro action
+                if (mapping.action === 'macro' && mapping.macro_steps) {
+                    currentMacroSteps = mapping.macro_steps.map(step => ({
+                        key_combo: step.key_combo || '',
+                        delay_after: step.delay_after || 0
+                    }));
+                } else {
+                    currentMacroSteps = [];
+                }
+                updateMacroStepsDisplay();
             } else {
                 document.getElementById('padLabel').value = '';
                 document.getElementById('keyCombo').value = '';
@@ -1909,6 +2003,8 @@ HTML_TEMPLATE = '''
                 selectColor('green');
                 document.getElementById('actionType').value = 'key';
                 document.getElementById('targetLayer').value = '';
+                currentMacroSteps = [];
+                updateMacroStepsDisplay();
             }
             updateActionFields();
         }
@@ -1952,10 +2048,11 @@ HTML_TEMPLATE = '''
                 log('Please select a pad first', 'error');
                 return;
             }
-            
+
             const keyCombo = document.getElementById('keyCombo').value.trim();
             const actionType = document.getElementById('actionType').value;
             const targetLayer = document.getElementById('targetLayer').value.trim();
+
             if (actionType === 'key' && !keyCombo) {
                 log('Please enter a key combination', 'error');
                 return;
@@ -1964,7 +2061,11 @@ HTML_TEMPLATE = '''
                 log('Please enter a target layer', 'error');
                 return;
             }
-            
+            if (actionType === 'macro' && currentMacroSteps.length === 0) {
+                log('Please add at least one macro step', 'error');
+                return;
+            }
+
             const mapping = {
                 note: selectedPad,
                 label: document.getElementById('padLabel').value,
@@ -1975,6 +2076,11 @@ HTML_TEMPLATE = '''
                 target_layer: targetLayer,
                 layer: currentLayer
             };
+
+            // Add macro steps if action is macro
+            if (actionType === 'macro') {
+                mapping.macro_steps = currentMacroSteps;
+            }
             
             try {
                 const response = await fetch('/api/mapping', {
@@ -2234,17 +2340,94 @@ HTML_TEMPLATE = '''
             }
         }
 
+        // Macro steps storage
+        let currentMacroSteps = [];
+
         function updateActionFields() {
             const actionType = document.getElementById('actionType').value;
             const targetGroup = document.getElementById('targetLayerGroup');
+            const macroGroup = document.getElementById('macroBuilderGroup');
             const keyCombo = document.getElementById('keyCombo');
+
             if (actionType === 'layer') {
                 targetGroup.style.display = 'block';
+                macroGroup.style.display = 'none';
                 keyCombo.placeholder = 'Optional';
+            } else if (actionType === 'macro') {
+                targetGroup.style.display = 'none';
+                macroGroup.style.display = 'block';
+                keyCombo.placeholder = 'Not used for macros';
+                keyCombo.value = '';
             } else {
                 targetGroup.style.display = 'none';
+                macroGroup.style.display = 'none';
                 keyCombo.placeholder = 'e.g., ctrl+c, space, shift+alt+f1';
             }
+        }
+
+        function addMacroStep() {
+            const keyCombo = document.getElementById('macroStepKey').value.trim();
+            const delay = parseInt(document.getElementById('macroStepDelay').value) || 0;
+
+            if (!keyCombo) {
+                log('Please enter a key combo or "wait"', 'warn');
+                return;
+            }
+
+            currentMacroSteps.push({
+                key_combo: keyCombo,
+                delay_after: delay / 1000 // Convert ms to seconds
+            });
+
+            updateMacroStepsDisplay();
+
+            // Clear inputs
+            document.getElementById('macroStepKey').value = '';
+            document.getElementById('macroStepDelay').value = '100';
+            log(`Added macro step: ${keyCombo} (${delay}ms delay)`);
+        }
+
+        function removeMacroStep(index) {
+            currentMacroSteps.splice(index, 1);
+            updateMacroStepsDisplay();
+            log('Removed macro step');
+        }
+
+        function clearMacroSteps() {
+            if (currentMacroSteps.length === 0) return;
+            if (confirm('Clear all macro steps?')) {
+                currentMacroSteps = [];
+                updateMacroStepsDisplay();
+                log('Cleared all macro steps');
+            }
+        }
+
+        function updateMacroStepsDisplay() {
+            const container = document.getElementById('macroSteps');
+
+            if (currentMacroSteps.length === 0) {
+                container.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">No macro steps yet. Add steps below.</div>';
+                return;
+            }
+
+            container.innerHTML = currentMacroSteps.map((step, index) => {
+                const isWait = step.key_combo.toLowerCase() === 'wait';
+                const icon = isWait ? '⏱️' : '⌨️';
+                const label = isWait ? 'Wait' : step.key_combo;
+                const delayMs = Math.round(step.delay_after * 1000);
+
+                return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; margin-bottom: 4px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                            <span style="font-size: 14px;">${icon}</span>
+                            <span style="color: #00d4ff; font-family: monospace;">${index + 1}.</span>
+                            <code style="color: ${isWait ? '#ffaa00' : '#00ff88'};">${label}</code>
+                            ${delayMs > 0 ? `<span style="color: #666;">→ ${delayMs}ms</span>` : ''}
+                        </div>
+                        <button onclick="removeMacroStep(${index})" style="background: rgba(255,59,48,0.8); color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 11px;">×</button>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function loadLayers() {
