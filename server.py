@@ -55,6 +55,12 @@ def event_callback(data):
 mapper.add_callback(event_callback)
 
 
+def request_shutdown():
+    shutdown_fn = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_fn:
+        shutdown_fn()
+
+
 @app.route('/')
 def index():
     return render_template('index.html',
@@ -402,6 +408,15 @@ def events():
 
     return Response(generate(), mimetype='text/event-stream',
                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+@app.route('/api/shutdown', methods=['POST'])
+def shutdown():
+    """Shutdown the server (used for one-click close)."""
+    mapper.stop()
+    mapper.disconnect()
+    request_shutdown()
+    return jsonify({"success": True})
 
 
 @app.route('/api/animation/pulse', methods=['POST'])
