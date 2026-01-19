@@ -2084,6 +2084,32 @@
                 eventSource = null;
             }
         }
+
+        let shutdownRequested = false;
+        async function heartbeat() {
+            try {
+                const response = await fetch('/api/status', {cache: 'no-store'});
+                if (!response.ok) {
+                    throw new Error('status failed');
+                }
+            } catch (e) {
+                if (!shutdownRequested) {
+                    shutdownRequested = true;
+                    log('Server closed. Attempting to close window...', 'warning');
+                    window.close();
+                }
+            }
+        }
+
+        function requestShutdown() {
+            if (shutdownRequested) return;
+            shutdownRequested = true;
+            try {
+                navigator.sendBeacon('/api/shutdown');
+            } catch (e) {
+                fetch('/api/shutdown', {method: 'POST', keepalive: true}).catch(() => {});
+            }
+        }
         
         // Keyboard shortcut to save (Ctrl+S)
         document.addEventListener('keydown', (e) => {
@@ -2225,6 +2251,11 @@
             loadPresetList();
             updateStatus();
             log('Launchpad Mapper initialized');
+            setInterval(heartbeat, 5000);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            requestShutdown();
         });
     </script>
 </body>
