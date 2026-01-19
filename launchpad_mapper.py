@@ -384,9 +384,23 @@ class LaunchpadMapper:
         self.active_animations: List[LEDAnimation] = []
         
     def get_available_ports(self) -> Dict[str, List[str]]:
+        """Get available MIDI ports with error handling"""
+        inputs = []
+        outputs = []
+
+        try:
+            inputs = list(mido.get_input_names())
+        except Exception as e:
+            print(f"Error getting MIDI inputs: {e}")
+
+        try:
+            outputs = list(mido.get_output_names())
+        except Exception as e:
+            print(f"Error getting MIDI outputs: {e}")
+
         return {
-            "inputs": list(mido.get_input_names()),
-            "outputs": list(mido.get_output_names())
+            "inputs": inputs,
+            "outputs": outputs
         }
     
     def find_launchpad_ports(self) -> Dict[str, Optional[str]]:
@@ -2258,13 +2272,13 @@ HTML_TEMPLATE = '''
             try {
                 const response = await fetch('/api/ports');
                 const data = await response.json();
-                
+
                 const inputSelect = document.getElementById('inputPort');
                 const outputSelect = document.getElementById('outputPort');
-                
+
                 inputSelect.innerHTML = '<option value="">Select input port...</option>';
                 outputSelect.innerHTML = '<option value="">Select output port...</option>';
-                
+
                 data.inputs.forEach(port => {
                     const option = document.createElement('option');
                     option.value = port;
@@ -2272,7 +2286,7 @@ HTML_TEMPLATE = '''
                     if (isLaunchpadPort(port)) option.selected = true;
                     inputSelect.appendChild(option);
                 });
-                
+
                 data.outputs.forEach(port => {
                     const option = document.createElement('option');
                     option.value = port;
@@ -2280,10 +2294,14 @@ HTML_TEMPLATE = '''
                     if (isLaunchpadPort(port)) option.selected = true;
                     outputSelect.appendChild(option);
                 });
-                
-                log(`Found ${data.inputs.length} input(s), ${data.outputs.length} output(s)`);
+
+                if (data.inputs.length === 0 && data.outputs.length === 0 && data.error) {
+                    log(data.error, 'error');
+                } else {
+                    log(`Found ${data.inputs.length} input(s), ${data.outputs.length} output(s)`);
+                }
             } catch (e) {
-                log('Failed to refresh ports', 'error');
+                log('Failed to refresh ports: ' + e.message, 'error');
             }
         }
         
@@ -2855,7 +2873,14 @@ def index():
 
 @app.route('/api/ports')
 def get_ports():
-    return jsonify(mapper.get_available_ports())
+    ports = mapper.get_available_ports()
+    # Add helpful message if no ports found
+    has_ports = len(ports["inputs"]) > 0 or len(ports["outputs"]) > 0
+    response = {
+        **ports,
+        "error": None if has_ports else "No MIDI ports detected. Please ensure:\n1. A MIDI device is connected\n2. MIDI drivers are installed\n3. The device is powered on"
+    }
+    return jsonify(response)
 
 
 @app.route('/api/connect', methods=['POST'])
