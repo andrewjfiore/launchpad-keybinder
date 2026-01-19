@@ -5,10 +5,13 @@ Improved version with Windows support, hex colors, and key repeat
 """
 
 import json
+import os
 import platform
 import queue
 import threading
 import time
+import tempfile
+import uuid
 from dataclasses import dataclass, asdict
 from functools import lru_cache
 from itertools import chain
@@ -610,6 +613,15 @@ class LaunchpadMapper:
     def execute_key_combo(self, combo: str):
         """Execute a keyboard shortcut using the keyboard library (works on Windows)."""
         try:
+            if combo.startswith("lrslider:"):
+                command = combo.split(":", 1)[1].strip()
+                if command:
+                    ipc_dir = os.path.join(tempfile.gettempdir(), "lrslider_ipc")
+                    os.makedirs(ipc_dir, exist_ok=True)
+                    filename = f"cmd_{uuid.uuid4().hex}.txt"
+                    with open(os.path.join(ipc_dir, filename), "w", encoding="utf-8") as handle:
+                        handle.write(command)
+                return
             # The keyboard library uses '+' for combinations naturally
             # It sends to the active window
             keyboard.send(combo)

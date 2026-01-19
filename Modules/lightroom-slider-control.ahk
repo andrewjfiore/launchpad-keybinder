@@ -29,6 +29,13 @@ MENU_DELAY := IniRead(configPath, "Settings", "MENU_DELAY", MENU_DELAY)
 SUBMENU_DELAY := IniRead(configPath, "Settings", "SUBMENU_DELAY", SUBMENU_DELAY)
 ITEM_DELAY := IniRead(configPath, "Settings", "ITEM_DELAY", ITEM_DELAY)
 PLUGIN_POS := IniRead(configPath, "Settings", "PLUGIN_POS", PLUGIN_POS)
+IPC_DIR := IniRead(configPath, "Settings", "IPC_DIR", A_Temp "\\lrslider_ipc")
+
+if !DirExist(IPC_DIR) {
+    DirCreate(IPC_DIR)
+}
+
+SetTimer(CheckIpcQueue, 50)
 
 ; === ONLY ACTIVE IN LIGHTROOM ===
 #HotIf WinActive("ahk_exe lightroom.exe") or WinActive("ahk_exe Lightroom.exe")
@@ -93,6 +100,24 @@ TriggerPluginCommand(cmdPos) {
     
     ; Execute
     Send("{Enter}")
+}
+
+CheckIpcQueue() {
+    global IPC_DIR
+    for file in DirGetFiles(IPC_DIR, "*.txt") {
+        try {
+            cmd := Trim(FileRead(file))
+            FileDelete(file)
+            if cmd {
+                cmdPos := Integer(cmd)
+                if cmdPos > 0 {
+                    TriggerPluginCommand(cmdPos)
+                }
+            }
+        } catch as err {
+            try FileDelete(file)
+        }
+    }
 }
 
 ; === HOTKEY DEFINITIONS ===
@@ -208,10 +233,10 @@ ShowHelp(*) {
 LIGHTROOM SLIDER CONTROL HOTKEYS
 ================================
 
-All hotkeys use number-row scancodes (1..=) with modifiers.
-These combinations are not bound to Lightroom by default.
+Commands can be triggered via IPC queue files or optional scancode hotkeys.
+IPC uses files dropped into: %TEMP%\\lrslider_ipc (override via INI).
 
-GROUPS:
+OPTIONAL HOTKEY GROUPS:
   Ctrl+Alt+Shift+Win + 1..= = Commands 01-12 (Basic Tone)
   Ctrl+Alt+Win + 1..=       = Commands 13-24 (WB + Presence)
   Ctrl+Shift+Win + 1..=     = Commands 25-36 (Saturation + Effects + Red Hue)
