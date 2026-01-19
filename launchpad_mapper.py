@@ -2308,7 +2308,11 @@ HTML_TEMPLATE = '''
                 const data = await response.json();
                 isConnected = data.connected;
                 updateStatus();
-                log(data.message, data.connected ? 'success' : 'error');
+                if (data.connected) {
+                    log(data.message, 'success');
+                } else {
+                    log(data.error || data.message, 'error');
+                }
             } catch (e) {
                 log('Failed to connect', 'error');
             }
@@ -2987,8 +2991,12 @@ def get_ports():
 @app.route('/api/connect', methods=['POST'])
 def api_connect():
     data = request.json or {}
-    success = mapper.connect(data.get('input_port'), data.get('output_port'))
-    return jsonify({"connected": success, "message": "Connected successfully" if success else "Failed to connect"})
+    result = mapper.connect(data.get('input_port'), data.get('output_port'))
+    return jsonify({
+        "connected": result.get("success", False),
+        "message": result.get("message", "Connection failed"),
+        "error": result.get("error"),
+    })
 
 
 @app.route('/api/disconnect', methods=['POST'])
