@@ -1,60 +1,66 @@
 @echo off
-REM Launchpad Mapper - Start Script for Windows (one-click)
+REM Launchpad Mapper - Start Script for Windows
 
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
-if "%~1" neq "run" (
-    REM Restart minimized for a cleaner one-click experience
-    start "" /min "%~f0" run
-    exit /b 0
-)
-
-REM Check for Python (prefer python, fall back to py -3)
+echo [1/4] Checking Python environment...
+REM Check for Python
 set "PYTHON_EXE="
 python --version >nul 2>&1 && set "PYTHON_EXE=python"
 if not defined PYTHON_EXE (
     py -3 --version >nul 2>&1 && set "PYTHON_EXE=py -3"
 )
+
 if not defined PYTHON_EXE (
-    echo Python is required but not installed.
+    echo ERROR: Python is required but not installed.
     echo Please install Python from https://python.org
-    timeout /t 5 >nul
+    pause
     exit /b 1
 )
 
-REM Check for virtual environment, create if missing
+REM Check for virtual environment
 if not exist "venv" (
-    echo Creating virtual environment...
+    echo [2/4] Creating virtual environment...
     %PYTHON_EXE% -m venv venv
 )
 
-REM Activate virtual environment
+REM Activate venv
 call venv\Scripts\activate.bat
 
 REM Install dependencies
-echo Checking dependencies...
+echo [3/4] Checking dependencies...
 pip install -q -r requirements.txt
 
-REM Launch AutoHotkey script if available
+REM Launch AutoHotkey script
+echo [4/4] Launching Modules...
 set "AHK_EXE="
 for /f "delims=" %%i in ('where AutoHotkey.exe 2^>nul') do set "AHK_EXE=%%i"
-if not defined AHK_EXE for /f "delims=" %%i in ('where AutoHotkey64.exe 2^>nul') do set "AHK_EXE=%%i"
-if not defined AHK_EXE for /f "delims=" %%i in ('where AutoHotkeyU64.exe 2^>nul') do set "AHK_EXE=%%i"
-if not defined AHK_EXE if exist "%ProgramFiles%\\AutoHotkey\\AutoHotkey.exe" set "AHK_EXE=%ProgramFiles%\\AutoHotkey\\AutoHotkey.exe"
-if not defined AHK_EXE if exist "%ProgramFiles%\\AutoHotkey\\AutoHotkey64.exe" set "AHK_EXE=%ProgramFiles%\\AutoHotkey\\AutoHotkey64.exe"
-if not defined AHK_EXE if exist "%ProgramFiles(x86)%\\AutoHotkey\\AutoHotkey.exe" set "AHK_EXE=%ProgramFiles(x86)%\\AutoHotkey\\AutoHotkey.exe"
+if not defined AHK_EXE if exist "%ProgramFiles%\AutoHotkey\AutoHotkey.exe" set "AHK_EXE=%ProgramFiles%\AutoHotkey\AutoHotkey.exe"
+if not defined AHK_EXE if exist "%ProgramFiles%\AutoHotkey\v2\AutoHotkey.exe" set "AHK_EXE=%ProgramFiles%\AutoHotkey\v2\AutoHotkey.exe"
+
 if defined AHK_EXE (
-    echo Starting AutoHotkey...
+    echo    - Starting AutoHotkey Helper...
     start "" /min "%AHK_EXE%" "%~dp0Modules\lightroom-slider-control.ahk"
 ) else (
-    echo AutoHotkey not found on PATH. Skipping AHK launch.
+    echo    - WARNING: AutoHotkey not found. Lightroom commands will NOT work.
+    echo      Please install AutoHotkey v2.
 )
 
 REM Run the server
 echo.
-echo Starting Launchpad Mapper...
-echo Opening http://localhost:5000 in your browser
+echo ===================================================
+echo   LAUNCHPAD MAPPER STARTED
+echo   1. Open http://localhost:5000
+echo   2. Select MIDI Ports:
+echo      - Input: "Launchpad Mini MK3 MIDI" (NOT DAW)
+echo      - Output: "Launchpad Mini MK3 MIDI"
+echo ===================================================
 echo.
+
+REM Open Browser
 start "" "http://localhost:5000"
+
+REM Run server (kept in this window to see errors)
 python server.py
+pause

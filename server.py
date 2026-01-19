@@ -3,8 +3,11 @@
 Web server for Launchpad Mapper configuration interface.
 """
 
+import glob
 import json
+import os
 import queue
+import tempfile
 import threading
 import time
 from flask import Flask, render_template, jsonify, request, Response
@@ -557,7 +560,16 @@ def main():
     print("="*50)
     print("\nStarting web interface at http://localhost:5000")
     print("Press Ctrl+C to quit\n")
-    
+
+    ipc_dir = os.path.join(tempfile.gettempdir(), "lrslider_ipc")
+    if os.path.exists(ipc_dir):
+        print(f"Cleaning up old command files in {ipc_dir}...")
+        for ipc_file in glob.glob(os.path.join(ipc_dir, "*.txt")):
+            try:
+                os.remove(ipc_file)
+            except OSError:
+                pass
+
     thread = threading.Thread(target=auto_switch_worker, daemon=True)
     thread.start()
 
