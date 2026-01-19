@@ -32,6 +32,7 @@ profile_lock = threading.Lock()
 auto_switch_lock = threading.Lock()
 auto_switch_rules = []
 auto_switch_enabled = False
+mapper.set_auto_reconnect(True, 2.0)
 
 # Event queue for server-sent events
 event_queues = []
@@ -53,6 +54,12 @@ def event_callback(data):
 
 # Register the callback
 mapper.add_callback(event_callback)
+
+
+def request_shutdown():
+    shutdown_fn = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_fn:
+        shutdown_fn()
 
 
 @app.route('/')
@@ -117,11 +124,50 @@ def get_ports():
 def connect():
     """Connect to MIDI ports."""
     data = request.json or {}
-    result = mapper.connect(data.get('input_port'), data.get('output_port'))
+    retries = data.get('retries', 3)
+    retry_delay = data.get('retry_delay', 0.5)
+    try:
+        retries = max(1, int(retries))
+    except (TypeError, ValueError):
+        retries = 3
+    try:
+        retry_delay = max(0.1, float(retry_delay))
+    except (TypeError, ValueError):
+        retry_delay = 0.5
+    result = mapper.connect(
+        data.get('input_port'),
+        data.get('output_port'),
+        retries=retries,
+        retry_delay=retry_delay,
+    )
+    mapper.set_auto_reconnect(True, 2.0)
     return jsonify({
         "connected": result.get("success", False),
         "message": result.get("message", "Unknown error"),
-        "error": result.get("error")
+        "error": result.get("error"),
+        "errors": result.get("errors"),
+        "attempt": result.get("attempt"),
+    })
+
+
+@app.route('/api/auto-reconnect', methods=['GET', 'POST'])
+def auto_reconnect():
+    if request.method == 'GET':
+        return jsonify({
+            "enabled": mapper.auto_reconnect_enabled,
+            "interval": mapper.auto_reconnect_interval,
+        })
+    data = request.json or {}
+    enabled = bool(data.get('enabled', True))
+    interval = data.get('interval', 2.0)
+    try:
+        interval = max(0.5, float(interval))
+    except (TypeError, ValueError):
+        interval = 2.0
+    mapper.set_auto_reconnect(enabled, interval)
+    return jsonify({
+        "enabled": mapper.auto_reconnect_enabled,
+        "interval": mapper.auto_reconnect_interval,
     })
 
 
@@ -402,6 +448,15 @@ def events():
 
     return Response(generate(), mimetype='text/event-stream',
                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+@app.route('/api/shutdown', methods=['POST'])
+def shutdown():
+    """Shutdown the server (used for one-click close)."""
+    mapper.stop()
+    mapper.disconnect()
+    request_shutdown()
+    return jsonify({"success": True})
 
 
 @app.route('/api/animation/pulse', methods=['POST'])
