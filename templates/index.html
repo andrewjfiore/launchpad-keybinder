@@ -1440,16 +1440,25 @@
 
         // Quick start: connect and start in one click
         async function quickStart() {
-            await connect();
+            const connected = await connect();
+            if (!connected) {
+                // connect() already logged the error
+                return;
+            }
             // Wait a moment for connection to establish
             setTimeout(async () => {
                 await startMapper();
-            }, 500);
+            }, 300);
         }
 
         async function connect() {
             const inputPort = document.getElementById('inputPort').value;
             const outputPort = document.getElementById('outputPort').value;
+
+            if (!inputPort && !outputPort) {
+                log('Please select MIDI ports first. Click Refresh if no ports appear.', 'error');
+                return false;
+            }
 
             try {
                 const response = await fetch('/api/connect', {
@@ -1457,13 +1466,22 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({input_port: inputPort, output_port: outputPort})
                 });
-                
+
                 const data = await response.json();
                 isConnected = data.connected;
                 updateStatus();
-                log(data.message, data.connected ? 'success' : 'error');
+
+                if (data.connected) {
+                    log(data.message, 'success');
+                } else {
+                    // Show detailed error if available
+                    const errorMsg = data.error || data.message || 'Connection failed';
+                    log(errorMsg, 'error');
+                }
+                return data.connected;
             } catch (e) {
-                log('Failed to connect', 'error');
+                log('Failed to connect: ' + e.message, 'error');
+                return false;
             }
         }
         
@@ -1568,8 +1586,8 @@
                 Object.values(layerMappings || {}).forEach(m => {
                     mappings[m.note] = m;
                 });
-                document.getElementById('profileName').value = data.name || 'Default';
-                document.getElementById('profileDescription').value = data.description || '';
+                const profileNameEl = document.getElementById('profileName');
+                if (profileNameEl) profileNameEl.value = data.name || 'Default';
                 document.getElementById('currentProfile').textContent = data.name || 'Default';
                 currentLayer = data.active_layer || data.base_layer || 'Base';
                 document.getElementById('currentLayer').textContent = currentLayer;
@@ -1940,17 +1958,18 @@
         function updateStatus() {
             const connectionDot = document.getElementById('connectionDot');
             const runningDot = document.getElementById('runningDot');
-            
+
             connectionDot.classList.toggle('connected', isConnected);
             document.getElementById('connectionStatus').textContent = isConnected ? 'Connected' : 'Disconnected';
-            
+
             runningDot.classList.toggle('running', isRunning);
             document.getElementById('runningStatus').textContent = isRunning ? 'Running' : 'Stopped';
-            
-            // Update button states
-            document.getElementById('startBtn').disabled = !isConnected || isRunning;
-            document.getElementById('stopBtn').disabled = !isRunning;
-            document.getElementById('disconnectBtn').disabled = !isConnected;
+
+            // Update button states (use correct button IDs)
+            const quickStartBtn = document.getElementById('quickStartBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            if (quickStartBtn) quickStartBtn.disabled = isRunning;
+            if (stopBtn) stopBtn.disabled = !isRunning;
         }
         
         function log(message, type = '') {

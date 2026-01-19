@@ -383,25 +383,41 @@ class LaunchpadMapper:
         # Active animations
         self.active_animations: List[LEDAnimation] = []
         
-    def get_available_ports(self) -> Dict[str, List[str]]:
+    def get_available_ports(self) -> Dict[str, any]:
         """Get available MIDI ports with error handling"""
         inputs = []
         outputs = []
+        errors = []
 
         try:
             inputs = list(mido.get_input_names())
         except Exception as e:
-            print(f"Error getting MIDI inputs: {e}")
+            error_msg = f"Error getting MIDI inputs: {e}"
+            print(error_msg)
+            errors.append(error_msg)
 
         try:
             outputs = list(mido.get_output_names())
         except Exception as e:
-            print(f"Error getting MIDI outputs: {e}")
+            error_msg = f"Error getting MIDI outputs: {e}"
+            print(error_msg)
+            errors.append(error_msg)
 
-        return {
+        result = {
             "inputs": inputs,
             "outputs": outputs
         }
+
+        # Add error information if no ports found or errors occurred
+        if not inputs and not outputs:
+            if errors:
+                result["error"] = "MIDI error: " + "; ".join(errors)
+            else:
+                result["error"] = "No MIDI ports detected. Please ensure your Launchpad is connected and drivers are installed."
+        elif errors:
+            result["error"] = "; ".join(errors)
+
+        return result
     
     def find_launchpad_ports(self) -> Dict[str, Optional[str]]:
         ports = self.get_available_ports()
@@ -431,27 +447,75 @@ class LaunchpadMapper:
             "output": pick_port(ports["outputs"]),
         }
     
-    def connect(self, input_port: str = None, output_port: str = None) -> bool:
+    def connect(self, input_port: str = None, output_port: str = None) -> Dict[str, any]:
+        """Connect to MIDI ports. Returns dict with 'success', 'message', and optionally 'error'."""
         try:
             if self.input_port or self.output_port:
                 self.disconnect()
+
+            # Auto-detect ports if not specified
             if not input_port or not output_port:
                 detected = self.find_launchpad_ports()
                 input_port = input_port or detected["input"]
                 output_port = output_port or detected["output"]
-            
+
+            # Check if we have ports to connect to
+            if not input_port and not output_port:
+                return {
+                    "success": False,
+                    "message": "No MIDI ports available",
+                    "error": "No Launchpad detected. Please connect your device and click Refresh."
+                }
+
+            messages = []
+
             if input_port:
-                self.input_port = mido.open_input(input_port)
-                print(f"Connected to input: {input_port}")
-            
+                try:
+                    self.input_port = mido.open_input(input_port)
+                    messages.append(f"Input: {input_port}")
+                    print(f"Connected to input: {input_port}")
+                except Exception as e:
+                    return {
+                        "success": False,
+                        "message": f"Failed to open input port",
+                        "error": f"Could not open input '{input_port}': {e}"
+                    }
+
             if output_port:
-                self.output_port = mido.open_output(output_port)
-                print(f"Connected to output: {output_port}")
-                
-            return self.input_port is not None
+                try:
+                    self.output_port = mido.open_output(output_port)
+                    messages.append(f"Output: {output_port}")
+                    print(f"Connected to output: {output_port}")
+                except Exception as e:
+                    # Clean up input if output fails
+                    if self.input_port:
+                        self.input_port.close()
+                        self.input_port = None
+                    return {
+                        "success": False,
+                        "message": f"Failed to open output port",
+                        "error": f"Could not open output '{output_port}': {e}"
+                    }
+
+            if self.input_port is not None:
+                return {
+                    "success": True,
+                    "message": "Connected: " + ", ".join(messages)
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "No input port connected",
+                    "error": "Input port is required for MIDI input"
+                }
+
         except Exception as e:
             print(f"Error connecting to MIDI: {e}")
-            return False
+            return {
+                "success": False,
+                "message": "Connection failed",
+                "error": str(e)
+            }
     
     def disconnect(self):         
         self.stop()
@@ -704,10 +768,22 @@ class LaunchpadMapper:
                 callback({"type": "control", "control": msg.control, "value": msg.value})
     
     def midi_loop(self):
-        while self.running and self.input_port:
-            for msg in self.input_port.iter_pending():
-                self.handle_midi_message(msg)
-            time.sleep(0.001)
+        while self.running:
+            try:
+                # Check input_port inside try block to handle race condition
+                port = self.input_port
+                if port is None:
+                    break
+                for msg in port.iter_pending():
+                    self.handle_midi_message(msg)
+                time.sleep(0.001)
+            except Exception as e:
+                print(f"MIDI loop error: {e}")
+                # Brief pause before retrying to avoid tight error loop
+                time.sleep(0.1)
+                # If port was closed, exit the loop
+                if self.input_port is None:
+                    break
     
     def start(self):
         if self.running:
