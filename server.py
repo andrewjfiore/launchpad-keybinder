@@ -55,6 +55,12 @@ def event_callback(data):
 mapper.add_callback(event_callback)
 
 
+def request_shutdown():
+    shutdown_fn = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_fn:
+        shutdown_fn()
+
+
 @app.route('/')
 def index():
     return render_template('index.html',
@@ -117,11 +123,28 @@ def get_ports():
 def connect():
     """Connect to MIDI ports."""
     data = request.json or {}
-    result = mapper.connect(data.get('input_port'), data.get('output_port'))
+    retries = data.get('retries', 3)
+    retry_delay = data.get('retry_delay', 0.5)
+    try:
+        retries = max(1, int(retries))
+    except (TypeError, ValueError):
+        retries = 3
+    try:
+        retry_delay = max(0.1, float(retry_delay))
+    except (TypeError, ValueError):
+        retry_delay = 0.5
+    result = mapper.connect(
+        data.get('input_port'),
+        data.get('output_port'),
+        retries=retries,
+        retry_delay=retry_delay,
+    )
     return jsonify({
         "connected": result.get("success", False),
         "message": result.get("message", "Unknown error"),
-        "error": result.get("error")
+        "error": result.get("error"),
+        "errors": result.get("errors"),
+        "attempt": result.get("attempt"),
     })
 
 
@@ -402,6 +425,15 @@ def events():
 
     return Response(generate(), mimetype='text/event-stream',
                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+@app.route('/api/shutdown', methods=['POST'])
+def shutdown():
+    """Shutdown the server (used for one-click close)."""
+    mapper.stop()
+    mapper.disconnect()
+    request_shutdown()
+    return jsonify({"success": True})
 
 
 @app.route('/api/animation/pulse', methods=['POST'])
