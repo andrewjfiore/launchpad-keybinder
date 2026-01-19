@@ -19,10 +19,16 @@
 #SingleInstance Force
 
 ; === CONFIGURATION ===
-global MENU_DELAY := 120         ; Milliseconds between menu operations
-global SUBMENU_DELAY := 80       ; Delay for submenu operations
-global ITEM_DELAY := 30          ; Delay between arrow key presses
+global MENU_DELAY := 200         ; Milliseconds between menu operations
+global SUBMENU_DELAY := 120      ; Delay for submenu operations
+global ITEM_DELAY := 40          ; Delay between arrow key presses
 global PLUGIN_POS := 1           ; Position of Slider Control in Plug-in Extras (1 = first)
+
+configPath := A_ScriptDir "\\lightroom-slider-control.ini"
+MENU_DELAY := IniRead(configPath, "Settings", "MENU_DELAY", MENU_DELAY)
+SUBMENU_DELAY := IniRead(configPath, "Settings", "SUBMENU_DELAY", SUBMENU_DELAY)
+ITEM_DELAY := IniRead(configPath, "Settings", "ITEM_DELAY", ITEM_DELAY)
+PLUGIN_POS := IniRead(configPath, "Settings", "PLUGIN_POS", PLUGIN_POS)
 
 ; === ONLY ACTIVE IN LIGHTROOM ===
 #HotIf WinActive("ahk_exe lightroom.exe") or WinActive("ahk_exe Lightroom.exe")
