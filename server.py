@@ -117,10 +117,11 @@ def get_ports():
 def connect():
     """Connect to MIDI ports."""
     data = request.json or {}
-    success = mapper.connect(data.get('input_port'), data.get('output_port'))
+    result = mapper.connect(data.get('input_port'), data.get('output_port'))
     return jsonify({
-        "connected": success,
-        "message": "Connected successfully" if success else "Failed to connect"
+        "connected": result.get("success", False),
+        "message": result.get("message", "Unknown error"),
+        "error": result.get("error")
     })
 
 
