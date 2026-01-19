@@ -1,3 +1,23 @@
-local SliderUtils = require 'Commands.SliderUtils'
+local LrApplicationView = import 'LrApplicationView'
+local LrDevelopController = import 'LrDevelopController'
+local LrTasks = import 'LrTasks'
 
-SliderUtils.resetParams({"Exposure", "Contrast", "Highlights", "Shadows", "Whites", "Blacks"})
+local function ensureDevelopModule()
+    if LrApplicationView.getCurrentModuleName() ~= 'develop' then
+        LrApplicationView.switchToModule('develop')
+    end
+    local attempts = 0
+    while attempts < 20 and LrApplicationView.getCurrentModuleName() ~= 'develop' do
+        LrTasks.sleep(0.05)
+        attempts = attempts + 1
+    end
+end
+
+LrTasks.startAsyncTask(function()
+    ensureDevelopModule()
+    LrDevelopController.resetToDefault("Contrast")
+    LrDevelopController.resetToDefault("Highlights")
+    LrDevelopController.resetToDefault("Shadows")
+    LrDevelopController.resetToDefault("Whites")
+    LrDevelopController.resetToDefault("Blacks")
+end)

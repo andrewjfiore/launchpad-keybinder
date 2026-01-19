@@ -1,3 +1,21 @@
-local SliderUtils = require 'Commands.SliderUtils'
+local LrApplicationView = import 'LrApplicationView'
+local LrDevelopController = import 'LrDevelopController'
+local LrTasks = import 'LrTasks'
 
-SliderUtils.adjustSlider("Temperature", 200, 2000, 50000)
+local function ensureDevelopModule()
+    if LrApplicationView.getCurrentModuleName() ~= 'develop' then
+        LrApplicationView.switchToModule('develop')
+    end
+    local attempts = 0
+    while attempts < 20 and LrApplicationView.getCurrentModuleName() ~= 'develop' do
+        LrTasks.sleep(0.05)
+        attempts = attempts + 1
+    end
+end
+
+LrTasks.startAsyncTask(function()
+    ensureDevelopModule()
+    local current = LrDevelopController.getValue("Temperature") or 0
+    local newVal = math.max(2000, math.min(50000, current + 200))
+    LrDevelopController.setValue("Temperature", newVal)
+end)
