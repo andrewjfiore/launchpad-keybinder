@@ -1218,7 +1218,7 @@
             fetch('/api/mapping', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mappings: Object.values(mappings), layer: currentLayer })
+                body: JSON.stringify({...mappings[targetNote], layer: currentLayer})
             }).then(() => {
                 log(`Duplicated pad ${note} to ${targetNote}`);
             }).catch(() => {
