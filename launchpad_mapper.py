@@ -583,24 +583,28 @@ class LaunchpadMapper:
         self.layer_stack.append(layer)
         if self.running:
             self.update_pad_colors()
+        self.notify_layer_change()
 
     def pop_layer(self):
         if len(self.layer_stack) > 1:
             self.layer_stack.pop()
             if self.running:
                 self.update_pad_colors()
+            self.notify_layer_change()
 
     def set_layer(self, layer: str):
         self.profile.ensure_layer(layer)
         self.layer_stack = [layer]
         if self.running:
             self.update_pad_colors()
+        self.notify_layer_change()
 
     def set_profile(self, profile: Profile):
         self.profile = profile
         self.layer_stack = [profile.base_layer]
         if self.running:
             self.update_pad_colors()
+        self.notify_layer_change()
     
     def execute_key_combo(self, combo: str):
         """Execute a keyboard shortcut using the keyboard library (works on Windows)."""
@@ -838,6 +842,11 @@ class LaunchpadMapper:
     def remove_callback(self, callback: Callable):
         if callback in self.callbacks:
             self.callbacks.remove(callback)
+
+    def notify_layer_change(self):
+        event = {"type": "layer_change", "current_layer": self.current_layer}
+        for callback in self.callbacks:
+            callback(event)
 
 
 # ============================================================================
@@ -2415,14 +2424,15 @@ HTML_TEMPLATE = '''
                 const response = await fetch('/api/profile');
                 const data = await response.json();
                 mappings = {};
-                const layerMappings = (data.layers && data.active_layer) ? data.layers[data.active_layer] : data.mappings;
+                const activeLayer = data.active_layer || currentLayer || data.base_layer || 'Base';
+                const layerMappings = data.layers ? data.layers[activeLayer] : data.mappings;
                 Object.values(layerMappings || {}).forEach(m => {
                     mappings[m.note] = m;
                 });
                 document.getElementById('profileName').value = data.name || 'Default';
                 document.getElementById('profileDescription').value = data.description || '';
                 document.getElementById('currentProfile').textContent = data.name || 'Default';
-                currentLayer = data.active_layer || data.base_layer || 'Base';
+                currentLayer = activeLayer;
                 document.getElementById('currentLayer').textContent = currentLayer;
                 updatePadDisplay();
             } catch (e) {
@@ -2832,7 +2842,7 @@ HTML_TEMPLATE = '''
             
             eventSource = new EventSource('/api/events');
             
-            eventSource.onmessage = (event) => {
+            eventSource.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'pad_press') {
@@ -2848,6 +2858,12 @@ HTML_TEMPLATE = '''
                     } else {
                         log(`Pad ${data.note} pressed (no mapping)`, 'press');
                     }
+                } else if (data.type === 'layer_change') {
+                    currentLayer = data.current_layer || currentLayer;
+                    document.getElementById('currentLayer').textContent = currentLayer;
+                    await loadLayers();
+                    await loadMappings();
+                    log(`Active layer: ${currentLayer}`, 'success');
                 } else if (data.type === 'pad_release') {
                     // Optional: handle release events
                 }
@@ -3046,7 +3062,9 @@ def delete_mapping(note):
 
 @app.route('/api/profile')
 def get_profile():
-    return jsonify(mapper.profile.to_dict())
+    profile_data = mapper.profile.to_dict()
+    profile_data["active_layer"] = mapper.current_layer
+    return jsonify(profile_data)
 
 
 @app.route('/api/profile/export')
@@ -3059,19 +3077,59 @@ def export_profile():
 
 @app.route('/api/profile/import', methods=['POST'])
 def import_profile():
-    data = request.json
-    mapper.profile = Profile.from_dict(data)
-    if mapper.running:
-        mapper.update_pad_colors()
-    return jsonify({"success": True})
+    data = request.get_json(silent=True)
+    if data is None:
+        raw = request.data.decode('utf-8') if request.data else ''
+        if not raw:
+            return jsonify({"success": False, "error": "No profile data provided"}), 400
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            return jsonify({"success": False, "error": f"Invalid JSON: {exc}"}), 400
+    mapper.set_profile(Profile.from_dict(data))
+    return jsonify({"success": True, "profile": mapper.profile.to_dict()})
 
 
 @app.route('/api/clear', methods=['POST'])
 def clear_mappings():
-    mapper.profile = Profile(mapper.profile.name)
+    mapper.set_profile(Profile(mapper.profile.name))
     if mapper.running:
         mapper.clear_all_pads()
     return jsonify({"success": True})
+
+
+@app.route('/api/layers')
+def get_layers():
+    return jsonify({
+        "layers": sorted(mapper.profile.layers.keys()),
+        "current_layer": mapper.current_layer
+    })
+
+
+@app.route('/api/layer/push', methods=['POST'])
+def push_layer():
+    data = request.get_json(silent=True) or {}
+    layer = data.get("layer")
+    if not layer:
+        return jsonify({"success": False, "error": "No layer provided"}), 400
+    mapper.push_layer(layer)
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/layer/pop', methods=['POST'])
+def pop_layer():
+    mapper.pop_layer()
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/layer/set', methods=['POST'])
+def set_layer():
+    data = request.get_json(silent=True) or {}
+    layer = data.get("layer")
+    if not layer:
+        return jsonify({"success": False, "error": "No layer provided"}), 400
+    mapper.set_layer(layer)
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
 
 
 @app.route('/api/test-key', methods=['POST'])

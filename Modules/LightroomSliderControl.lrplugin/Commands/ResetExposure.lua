@@ -1,10 +1,3 @@
-local LrApplicationView = import 'LrApplicationView'
-local LrDevelopController = import 'LrDevelopController'
-local LrTasks = import 'LrTasks'
+local SliderUtils = require 'Commands/SliderUtils'
 
-LrTasks.startAsyncTask(function()
-    LrApplicationView.switchToModule('develop')
-    LrTasks.sleep(0.05)
-    
-    LrDevelopController.resetToDefault("Exposure")
-end)
+SliderUtils.resetParams({"Exposure"})

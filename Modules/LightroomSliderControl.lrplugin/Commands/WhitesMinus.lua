@@ -1,13 +1,3 @@
-local LrApplicationView = import 'LrApplicationView'
-local LrDevelopController = import 'LrDevelopController'
-local LrTasks = import 'LrTasks'
+local SliderUtils = require 'Commands/SliderUtils'
 
-LrTasks.startAsyncTask(function()
-    LrApplicationView.switchToModule('develop')
-    LrTasks.sleep(0.05)
-    
-    local param = "Whites"
-    local current = LrDevelopController.getValue(param) or 0
-    local newVal = math.max(-100, math.min(100, current - 5))
-    LrDevelopController.setValue(param, newVal)
-end)
+SliderUtils.adjustSlider("Whites", -5, -100, 100)

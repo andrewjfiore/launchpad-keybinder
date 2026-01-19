@@ -1627,14 +1627,15 @@
                 const response = await fetch('/api/profile');
                 const data = await response.json();
                 mappings = {};
-                const layerMappings = (data.layers && data.active_layer) ? data.layers[data.active_layer] : data.mappings;
+                const activeLayer = data.active_layer || currentLayer || data.base_layer || 'Base';
+                const layerMappings = data.layers ? data.layers[activeLayer] : data.mappings;
                 Object.values(layerMappings || {}).forEach(m => {
                     mappings[m.note] = m;
                 });
                 const profileNameEl = document.getElementById('profileName');
                 if (profileNameEl) profileNameEl.value = data.name || 'Default';
                 document.getElementById('currentProfile').textContent = data.name || 'Default';
-                currentLayer = data.active_layer || data.base_layer || 'Base';
+                currentLayer = activeLayer;
                 document.getElementById('currentLayer').textContent = currentLayer;
                 updatePadDisplay();
             } catch (e) {
@@ -2045,7 +2046,7 @@
             
             eventSource = new EventSource('/api/events');
             
-            eventSource.onmessage = (event) => {
+            eventSource.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'pad_press') {
@@ -2061,6 +2062,12 @@
                     } else {
                         log(`Pad ${data.note} pressed (no mapping)`, 'press');
                     }
+                } else if (data.type === 'layer_change') {
+                    currentLayer = data.current_layer || currentLayer;
+                    document.getElementById('currentLayer').textContent = currentLayer;
+                    await loadLayers();
+                    await loadMappings();
+                    log(`Active layer: ${currentLayer}`, 'success');
                 } else if (data.type === 'pad_release') {
                     // Optional: handle release events
                 }
