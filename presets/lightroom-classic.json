@@ -1,0 +1,4645 @@
+{
+  "base_layer": "Base",
+  "description": "Multi-layer Lightroom editing with Base, Crop, Light, Color, and Effects panels",
+  "layers": {
+    "Base": {
+      "11": {
+        "action": "key",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "ctrl+shift+r",
+        "label": "Reset All",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 11,
+        "repeat_delay": 0.5,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "",
+        "velocity_mappings": null
+      },
+      "14": {
+        "action": "key",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "1",
+        "label": "1 Star",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 14,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "15": {
+        "action": "key",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "2",
+        "label": "2 Star",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 15,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "16": {
+        "action": "key",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "3",
+        "label": "3 Star",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 16,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "17": {
+        "action": "key",
+        "color": "lime",
+        "enabled": true,
+        "key_combo": "4",
+        "label": "4 Star",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 17,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "18": {
+        "action": "key",
+        "color": "green",
+        "enabled": true,
+        "key_combo": "5",
+        "label": "5 Star",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 18,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "21": {
+        "action": "key",
+        "color": "green",
+        "enabled": true,
+        "key_combo": "ctrl+left",
+        "label": "Prev Pick",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 21,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "22": {
+        "action": "key",
+        "color": "green",
+        "enabled": true,
+        "key_combo": "ctrl+right",
+        "label": "Next Pick",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 22,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "27": {
+        "action": "key",
+        "color": "sky",
+        "enabled": true,
+        "key_combo": "ctrl+z",
+        "label": "Undo",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 27,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "28": {
+        "action": "key",
+        "color": "sky",
+        "enabled": true,
+        "key_combo": "ctrl+shift+z",
+        "label": "Redo",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 28,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "31": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "home",
+        "label": "First",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 31,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "32": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "end",
+        "label": "Last",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 32,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "34": {
+        "action": "key",
+        "color": "magenta",
+        "enabled": true,
+        "key_combo": "PgDown",
+        "label": "Pan Down",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 34,
+        "repeat_delay": 0.5,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "",
+        "velocity_mappings": null
+      },
+      "37": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "left",
+        "label": "Prev Photo",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 37,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "38": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "right",
+        "label": "Next Photo",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 38,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "41": {
+        "action": "key",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "z",
+        "label": "Fit",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 41,
+        "repeat_delay": 0.5,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "",
+        "velocity_mappings": null
+      },
+      "42": {
+        "action": "key",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "ctrl+alt+0",
+        "label": "Fill",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 42,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "44": {
+        "action": "key",
+        "color": "magenta",
+        "enabled": true,
+        "key_combo": "PgUp",
+        "label": "Pan Up",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 44,
+        "repeat_delay": 0.5,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "",
+        "velocity_mappings": null
+      },
+      "46": {
+        "action": "key",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "z",
+        "label": "Zoom Tgl",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 46,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "47": {
+        "action": "key",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "ctrl+-",
+        "label": "Zoom -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 47,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "48": {
+        "action": "key",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "ctrl+=",
+        "label": "Zoom +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 48,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "49": {
+        "action": "layer",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Effects",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 49,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Effects",
+        "velocity_mappings": null
+      },
+      "51": {
+        "action": "key",
+        "color": "sky",
+        "enabled": true,
+        "key_combo": "ctrl+shift+c",
+        "label": "Copy Set",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 51,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "52": {
+        "action": "key",
+        "color": "sky",
+        "enabled": true,
+        "key_combo": "ctrl+shift+v",
+        "label": "Paste Set",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 52,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "53": {
+        "action": "key",
+        "color": "green",
+        "enabled": true,
+        "key_combo": "ctrl+shift+e",
+        "label": "Export",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 53,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "56": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "u",
+        "label": "Unflag",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 56,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "57": {
+        "action": "key",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "x",
+        "label": "Reject",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 57,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "58": {
+        "action": "key",
+        "color": "green",
+        "enabled": true,
+        "key_combo": "p",
+        "label": "Pick",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 58,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "59": {
+        "action": "layer",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Color",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 59,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Color",
+        "velocity_mappings": null
+      },
+      "61": {
+        "action": "key",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "s",
+        "label": "Soft Proof",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 61,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "62": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "i",
+        "label": "Info",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 62,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "63": {
+        "action": "key",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "l",
+        "label": "Lights Out",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 63,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "65": {
+        "action": "key",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "\\",
+        "label": "Before/Aft",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 65,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "66": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "g",
+        "label": "Grid",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 66,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "67": {
+        "action": "key",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "c",
+        "label": "Compare",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 67,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "68": {
+        "action": "key",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "d",
+        "label": "Detail",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 68,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "69": {
+        "action": "layer",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Light",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 69,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Light",
+        "velocity_mappings": null
+      },
+      "79": {
+        "action": "layer",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Crop",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 79,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Crop",
+        "velocity_mappings": null
+      },
+      "86": {
+        "action": "key",
+        "color": "sky",
+        "enabled": true,
+        "key_combo": "ctrl+u",
+        "label": "Auto",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 86,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "87": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "v",
+        "label": "B&W Tgl",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 87,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "88": {
+        "action": "key",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "ctrl+h",
+        "label": "HDR Merge",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 88,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "89": {
+        "action": "layer",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Base",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 89,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Base",
+        "velocity_mappings": null
+      }
+    },
+    "Color": {
+      "11": {
+        "action": "key",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "ctrl+shift+r",
+        "label": "Reset Clr",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 11,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "23": {
+        "action": "macro",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Red Lum-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+r"
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 23,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "24": {
+        "action": "macro",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Red Lum+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+r"
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 24,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "25": {
+        "action": "macro",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Org Lum-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+o"
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 25,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "26": {
+        "action": "macro",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Org Lum+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+o"
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 26,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "27": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Yel Lum-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+y"
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 27,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "28": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Yel Lum+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+y"
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 28,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "33": {
+        "action": "macro",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Red Sat-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+r"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 33,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "34": {
+        "action": "macro",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Red Sat+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+r"
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 34,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "35": {
+        "action": "macro",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Org Sat-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+o"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 35,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "36": {
+        "action": "macro",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Org Sat+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+o"
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 36,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "37": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Yel Sat-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+y"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 37,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "38": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Yel Sat+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+y"
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 38,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "43": {
+        "action": "macro",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Red Hue-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+r"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 43,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "44": {
+        "action": "macro",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Red Hue+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+r"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 44,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "45": {
+        "action": "macro",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Org Hue-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+o"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 45,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "46": {
+        "action": "macro",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Org Hue+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+o"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 46,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "47": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Yel Hue-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+y"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 47,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "48": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Yel Hue+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": "shift+ctrl+alt+y"
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 48,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "49": {
+        "action": "layer",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Effects",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 49,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Effects",
+        "velocity_mappings": null
+      },
+      "51": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Satur -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 51,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "52": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Satur +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 52,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "59": {
+        "action": "layer",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Color",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 59,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Color",
+        "velocity_mappings": null
+      },
+      "61": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Vibrance-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 61,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "62": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Vibrance+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 62,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "69": {
+        "action": "layer",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Light",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 69,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Light",
+        "velocity_mappings": null
+      },
+      "71": {
+        "action": "macro",
+        "color": "green",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Tint Grn",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 71,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "72": {
+        "action": "macro",
+        "color": "magenta",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Tint Mag",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 72,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "79": {
+        "action": "layer",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Crop",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 79,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Crop",
+        "velocity_mappings": null
+      },
+      "81": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Temp Cool",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 81,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "82": {
+        "action": "macro",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Temp Warm",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 82,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "89": {
+        "action": "layer",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Base",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 89,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Base",
+        "velocity_mappings": null
+      }
+    },
+    "Crop": {
+      "11": {
+        "action": "key",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "ctrl+alt+r",
+        "label": "Reset Crop",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 11,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "48": {
+        "action": "key",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "Shift+T",
+        "label": "Guided Upr",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 48,
+        "repeat_delay": 0.5,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "",
+        "velocity_mappings": null
+      },
+      "49": {
+        "action": "layer",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Effects",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 49,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Effects",
+        "velocity_mappings": null
+      },
+      "57": {
+        "action": "key",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "shift+[",
+        "label": "Rotate L90",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 57,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "58": {
+        "action": "key",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "shift+]",
+        "label": "Rotate R90",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 58,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "59": {
+        "action": "layer",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Color",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 59,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Color",
+        "velocity_mappings": null
+      },
+      "67": {
+        "action": "key",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "ctrl+[",
+        "label": "Rotate CCW",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 67,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "68": {
+        "action": "key",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "ctrl+]",
+        "label": "Rotate CW",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 68,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "69": {
+        "action": "layer",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Light",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 69,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Light",
+        "velocity_mappings": null
+      },
+      "78": {
+        "action": "key",
+        "color": "sky",
+        "enabled": true,
+        "key_combo": "shift+t",
+        "label": "Straighten",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 78,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "79": {
+        "action": "layer",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Crop",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 79,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Crop",
+        "velocity_mappings": null
+      },
+      "86": {
+        "action": "key",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "a",
+        "label": "Lock Aspct",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 86,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "87": {
+        "action": "key",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "o",
+        "label": "Cyc Ovrlay",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 87,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "88": {
+        "action": "key",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "r",
+        "label": "Crop Tool",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 88,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "89": {
+        "action": "layer",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Base",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 89,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Base",
+        "velocity_mappings": null
+      }
+    },
+    "Effects": {
+      "11": {
+        "action": "key",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "ctrl+shift+r",
+        "label": "Reset FX",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 11,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "27": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Rough -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 27,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "28": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Rough +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 28,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "37": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Size -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 37,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "38": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Size +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 38,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "47": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Grain -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 47,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "48": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Grain +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 48,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "49": {
+        "action": "layer",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Effects",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 49,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Effects",
+        "velocity_mappings": null
+      },
+      "57": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Vignette-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 57,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "58": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Vignette+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 58,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "59": {
+        "action": "layer",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Color",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 59,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Color",
+        "velocity_mappings": null
+      },
+      "67": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Dehaze -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 67,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "68": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Dehaze +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 68,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "69": {
+        "action": "layer",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Light",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 69,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Light",
+        "velocity_mappings": null
+      },
+      "77": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Clarity -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 77,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "78": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Clarity +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 78,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "79": {
+        "action": "layer",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Crop",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 79,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Crop",
+        "velocity_mappings": null
+      },
+      "87": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Texture -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 87,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "88": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Texture +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 88,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "89": {
+        "action": "layer",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Base",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 89,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Base",
+        "velocity_mappings": null
+      }
+    },
+    "Light": {
+      "11": {
+        "action": "key",
+        "color": "red",
+        "enabled": true,
+        "key_combo": "ctrl+shift+r",
+        "label": "Reset Lt",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 11,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "16": {
+        "action": "key",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "ctrl+alt+shift+t",
+        "label": "ToneCurve",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 16,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "37": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Blacks -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 37,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "38": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Blacks +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 38,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "47": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Whites -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 47,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "48": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Whites +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 48,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "49": {
+        "action": "layer",
+        "color": "cyan",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Effects",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 49,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Effects",
+        "velocity_mappings": null
+      },
+      "57": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Shadows -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 57,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "58": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Shadows +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 58,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "59": {
+        "action": "layer",
+        "color": "orange",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Color",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 59,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Color",
+        "velocity_mappings": null
+      },
+      "67": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Highlts -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 67,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "68": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Highlts +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 68,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "69": {
+        "action": "layer",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Light",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 69,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Light",
+        "velocity_mappings": null
+      },
+      "77": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Contrast-",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 77,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "78": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Contrast+",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "."
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 78,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "79": {
+        "action": "layer",
+        "color": "purple",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Crop",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 79,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Crop",
+        "velocity_mappings": null
+      },
+      "87": {
+        "action": "macro",
+        "color": "blue",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Exp -",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "-"
+          }
+        ],
+        "note": 87,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "88": {
+        "action": "macro",
+        "color": "yellow",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Exp +",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": [
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": ","
+          },
+          {
+            "delay": 0.05,
+            "key": "+"
+          }
+        ],
+        "note": 88,
+        "repeat_delay": 0.3,
+        "repeat_enabled": true,
+        "repeat_interval": 0.05,
+        "target_layer": null,
+        "velocity_mappings": null
+      },
+      "89": {
+        "action": "layer",
+        "color": "white",
+        "enabled": true,
+        "key_combo": "",
+        "label": "Base",
+        "long_press_action": "",
+        "long_press_enabled": false,
+        "long_press_threshold": 0.5,
+        "macro_steps": null,
+        "note": 89,
+        "repeat_delay": 0.3,
+        "repeat_enabled": false,
+        "repeat_interval": 0.05,
+        "target_layer": "Base",
+        "velocity_mappings": null
+      }
+    }
+  },
+  "name": "Lightroom Desktop - Edit Layers"
+}
