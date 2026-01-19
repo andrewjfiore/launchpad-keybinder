@@ -3062,7 +3062,9 @@ def delete_mapping(note):
 
 @app.route('/api/profile')
 def get_profile():
-    return jsonify(mapper.profile.to_dict())
+    profile_data = mapper.profile.to_dict()
+    profile_data["active_layer"] = mapper.current_layer
+    return jsonify(profile_data)
 
 
 @app.route('/api/profile/export')
@@ -3075,19 +3077,59 @@ def export_profile():
 
 @app.route('/api/profile/import', methods=['POST'])
 def import_profile():
-    data = request.json
-    mapper.profile = Profile.from_dict(data)
-    if mapper.running:
-        mapper.update_pad_colors()
-    return jsonify({"success": True})
+    data = request.get_json(silent=True)
+    if data is None:
+        raw = request.data.decode('utf-8') if request.data else ''
+        if not raw:
+            return jsonify({"success": False, "error": "No profile data provided"}), 400
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            return jsonify({"success": False, "error": f"Invalid JSON: {exc}"}), 400
+    mapper.set_profile(Profile.from_dict(data))
+    return jsonify({"success": True, "profile": mapper.profile.to_dict()})
 
 
 @app.route('/api/clear', methods=['POST'])
 def clear_mappings():
-    mapper.profile = Profile(mapper.profile.name)
+    mapper.set_profile(Profile(mapper.profile.name))
     if mapper.running:
         mapper.clear_all_pads()
     return jsonify({"success": True})
+
+
+@app.route('/api/layers')
+def get_layers():
+    return jsonify({
+        "layers": sorted(mapper.profile.layers.keys()),
+        "current_layer": mapper.current_layer
+    })
+
+
+@app.route('/api/layer/push', methods=['POST'])
+def push_layer():
+    data = request.get_json(silent=True) or {}
+    layer = data.get("layer")
+    if not layer:
+        return jsonify({"success": False, "error": "No layer provided"}), 400
+    mapper.push_layer(layer)
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/layer/pop', methods=['POST'])
+def pop_layer():
+    mapper.pop_layer()
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/layer/set', methods=['POST'])
+def set_layer():
+    data = request.get_json(silent=True) or {}
+    layer = data.get("layer")
+    if not layer:
+        return jsonify({"success": False, "error": "No layer provided"}), 400
+    mapper.set_layer(layer)
+    return jsonify({"success": True, "current_layer": mapper.current_layer})
 
 
 @app.route('/api/test-key', methods=['POST'])
