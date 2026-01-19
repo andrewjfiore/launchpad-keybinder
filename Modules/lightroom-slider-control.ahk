@@ -104,7 +104,8 @@ TriggerPluginCommand(cmdPos) {
 
 CheckIpcQueue() {
     global IPC_DIR
-    for file in DirGetFiles(IPC_DIR, "*.txt") {
+    fileList := DirGetFiles(IPC_DIR, "*.txt")
+    for file in fileList {
         try {
             cmd := Trim(FileRead(file))
             FileDelete(file)
