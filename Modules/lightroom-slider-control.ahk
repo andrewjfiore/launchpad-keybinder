@@ -8,7 +8,7 @@
     1. Install AutoHotkey v2 from https://www.autohotkey.com/
     2. Install LightroomSliderControl.lrplugin in Lightroom
     3. Run this script
-    4. Test: In Lightroom Develop module, press Ctrl+Alt+F13
+    4. Test: In Lightroom Develop module, press Ctrl+Alt+F1
     
     CONFIGURATION:
     - Adjust MENU_DELAY if menus aren't responding (increase for slower PCs)
@@ -96,90 +96,90 @@ TriggerPluginCommand(cmdPos) {
 }
 
 ; === HOTKEY DEFINITIONS ===
-; Pattern: F13-F24 + modifier groups (unused by Lightroom)
-; 1-12:  Ctrl+Alt+F13..F24
-; 13-24: Ctrl+Shift+F13..F24
-; 25-36: Alt+Shift+F13..F24
-; 37-48: Ctrl+Alt+Shift+F13..F24
-; 49-60: Ctrl+F13..F24
+; Pattern: F1-F12 + modifier groups (low-conflict)
+; 1-12:  Ctrl+Alt+F1..F12
+; 13-24: Ctrl+Shift+F1..F12
+; 25-36: Alt+Shift+F1..F12
+; 37-48: Ctrl+Alt+Shift+F1..F12
+; 49-60: Ctrl+F1..F12
 
 ; BASIC TONE (positions 1-12)
-^!F13::TriggerPluginCommand(1)   ; Exposure +
-^!F14::TriggerPluginCommand(2)   ; Exposure -
-^!F15::TriggerPluginCommand(3)   ; Contrast +
-^!F16::TriggerPluginCommand(4)   ; Contrast -
-^!F17::TriggerPluginCommand(5)   ; Highlights +
-^!F18::TriggerPluginCommand(6)   ; Highlights -
-^!F19::TriggerPluginCommand(7)   ; Shadows +
-^!F20::TriggerPluginCommand(8)   ; Shadows -
-^!F21::TriggerPluginCommand(9)   ; Whites +
-^!F22::TriggerPluginCommand(10)  ; Whites -
-^!F23::TriggerPluginCommand(11)  ; Blacks +
-^!F24::TriggerPluginCommand(12)  ; Blacks -
+^!F1::TriggerPluginCommand(1)   ; Exposure +
+^!F2::TriggerPluginCommand(2)   ; Exposure -
+^!F3::TriggerPluginCommand(3)   ; Contrast +
+^!F4::TriggerPluginCommand(4)   ; Contrast -
+^!F5::TriggerPluginCommand(5)   ; Highlights +
+^!F6::TriggerPluginCommand(6)   ; Highlights -
+^!F7::TriggerPluginCommand(7)   ; Shadows +
+^!F8::TriggerPluginCommand(8)   ; Shadows -
+^!F9::TriggerPluginCommand(9)   ; Whites +
+^!F10::TriggerPluginCommand(10)  ; Whites -
+^!F11::TriggerPluginCommand(11)  ; Blacks +
+^!F12::TriggerPluginCommand(12)  ; Blacks -
 
 ; WHITE BALANCE (positions 13-16)
-^+F13::TriggerPluginCommand(13)  ; Temperature + (warmer)
-^+F14::TriggerPluginCommand(14)  ; Temperature - (cooler)
-^+F15::TriggerPluginCommand(15)  ; Tint + (magenta)
-^+F16::TriggerPluginCommand(16)  ; Tint - (green)
+^+F1::TriggerPluginCommand(13)  ; Temperature + (warmer)
+^+F2::TriggerPluginCommand(14)  ; Temperature - (cooler)
+^+F3::TriggerPluginCommand(15)  ; Tint + (magenta)
+^+F4::TriggerPluginCommand(16)  ; Tint - (green)
 
 ; PRESENCE (positions 17-26)
-^+F17::TriggerPluginCommand(17)  ; Texture +
-^+F18::TriggerPluginCommand(18)  ; Texture -
-^+F19::TriggerPluginCommand(19)  ; Clarity +
-^+F20::TriggerPluginCommand(20)  ; Clarity -
-^+F21::TriggerPluginCommand(21)  ; Dehaze +
-^+F22::TriggerPluginCommand(22)  ; Dehaze -
-^+F23::TriggerPluginCommand(23)  ; Vibrance +
-^+F24::TriggerPluginCommand(24)  ; Vibrance -
-!+F13::TriggerPluginCommand(25)  ; Saturation +
-!+F14::TriggerPluginCommand(26)  ; Saturation -
+^+F5::TriggerPluginCommand(17)  ; Texture +
+^+F6::TriggerPluginCommand(18)  ; Texture -
+^+F7::TriggerPluginCommand(19)  ; Clarity +
+^+F8::TriggerPluginCommand(20)  ; Clarity -
+^+F9::TriggerPluginCommand(21)  ; Dehaze +
+^+F10::TriggerPluginCommand(22)  ; Dehaze -
+^+F11::TriggerPluginCommand(23)  ; Vibrance +
+^+F12::TriggerPluginCommand(24)  ; Vibrance -
+!+F1::TriggerPluginCommand(25)  ; Saturation +
+!+F2::TriggerPluginCommand(26)  ; Saturation -
 
 ; EFFECTS (positions 27-34)
-!+F15::TriggerPluginCommand(27)  ; Vignette +
-!+F16::TriggerPluginCommand(28)  ; Vignette -
-!+F17::TriggerPluginCommand(29)  ; Grain +
-!+F18::TriggerPluginCommand(30)  ; Grain -
-!+F19::TriggerPluginCommand(31)  ; GrainSize +
-!+F20::TriggerPluginCommand(32)  ; GrainSize -
-!+F21::TriggerPluginCommand(33)  ; GrainRough +
-!+F22::TriggerPluginCommand(34)  ; GrainRough -
+!+F3::TriggerPluginCommand(27)  ; Vignette +
+!+F4::TriggerPluginCommand(28)  ; Vignette -
+!+F5::TriggerPluginCommand(29)  ; Grain +
+!+F6::TriggerPluginCommand(30)  ; Grain -
+!+F7::TriggerPluginCommand(31)  ; GrainSize +
+!+F8::TriggerPluginCommand(32)  ; GrainSize -
+!+F9::TriggerPluginCommand(33)  ; GrainRough +
+!+F10::TriggerPluginCommand(34)  ; GrainRough -
 
 ; HSL RED (positions 35-40)
-!+F23::TriggerPluginCommand(35)  ; Red Hue +
-!+F24::TriggerPluginCommand(36)  ; Red Hue -
-^!+F13::TriggerPluginCommand(37) ; Red Sat +
-^!+F14::TriggerPluginCommand(38) ; Red Sat -
-^!+F15::TriggerPluginCommand(39) ; Red Lum +
-^!+F16::TriggerPluginCommand(40) ; Red Lum -
+!+F11::TriggerPluginCommand(35)  ; Red Hue +
+!+F12::TriggerPluginCommand(36)  ; Red Hue -
+^!+F1::TriggerPluginCommand(37) ; Red Sat +
+^!+F2::TriggerPluginCommand(38) ; Red Sat -
+^!+F3::TriggerPluginCommand(39) ; Red Lum +
+^!+F4::TriggerPluginCommand(40) ; Red Lum -
 
 ; HSL ORANGE (positions 41-46)
-^!+F17::TriggerPluginCommand(41) ; Orange Hue +
-^!+F18::TriggerPluginCommand(42) ; Orange Hue -
-^!+F19::TriggerPluginCommand(43) ; Orange Sat +
-^!+F20::TriggerPluginCommand(44) ; Orange Sat -
-^!+F21::TriggerPluginCommand(45) ; Orange Lum +
-^!+F22::TriggerPluginCommand(46) ; Orange Lum -
+^!+F5::TriggerPluginCommand(41) ; Orange Hue +
+^!+F6::TriggerPluginCommand(42) ; Orange Hue -
+^!+F7::TriggerPluginCommand(43) ; Orange Sat +
+^!+F8::TriggerPluginCommand(44) ; Orange Sat -
+^!+F9::TriggerPluginCommand(45) ; Orange Lum +
+^!+F10::TriggerPluginCommand(46) ; Orange Lum -
 
 ; HSL YELLOW (positions 47-52)
-^!+F23::TriggerPluginCommand(47) ; Yellow Hue +
-^!+F24::TriggerPluginCommand(48) ; Yellow Hue -
-^F13::TriggerPluginCommand(49)   ; Yellow Sat +
-^F14::TriggerPluginCommand(50)   ; Yellow Sat -
-^F15::TriggerPluginCommand(51)   ; Yellow Lum +
-^F16::TriggerPluginCommand(52)   ; Yellow Lum -
+^!+F11::TriggerPluginCommand(47) ; Yellow Hue +
+^!+F12::TriggerPluginCommand(48) ; Yellow Hue -
+^F1::TriggerPluginCommand(49)   ; Yellow Sat +
+^F2::TriggerPluginCommand(50)   ; Yellow Sat -
+^F3::TriggerPluginCommand(51)   ; Yellow Lum +
+^F4::TriggerPluginCommand(52)   ; Yellow Lum -
 
 ; CROP (positions 53-55)
-^F17::TriggerPluginCommand(53)   ; Straighten +
-^F18::TriggerPluginCommand(54)   ; Straighten -
-^F19::TriggerPluginCommand(55)   ; CropAngle Reset
+^F5::TriggerPluginCommand(53)   ; Straighten +
+^F6::TriggerPluginCommand(54)   ; Straighten -
+^F7::TriggerPluginCommand(55)   ; CropAngle Reset
 
 ; RESETS (positions 56-60)
-^F20::TriggerPluginCommand(56)   ; Reset Exposure
-^F21::TriggerPluginCommand(57)   ; Reset White Balance
-^F22::TriggerPluginCommand(58)   ; Reset Tone
-^F23::TriggerPluginCommand(59)   ; Reset Presence
-^F24::TriggerPluginCommand(60)   ; Reset Effects
+^F8::TriggerPluginCommand(56)   ; Reset Exposure
+^F9::TriggerPluginCommand(57)   ; Reset White Balance
+^F10::TriggerPluginCommand(58)   ; Reset Tone
+^F11::TriggerPluginCommand(59)   ; Reset Presence
+^F12::TriggerPluginCommand(60)   ; Reset Effects
 
 #HotIf
 
@@ -208,19 +208,19 @@ ShowHelp(*) {
 LIGHTROOM SLIDER CONTROL HOTKEYS
 ================================
 
-All hotkeys use unused function keys (F13-F24) with modifiers.
+All hotkeys use function keys (F1-F12) with modifiers.
 These combinations are not bound to Lightroom by default.
 
 GROUPS:
-  Ctrl+Alt+F13..F24   = Commands 01-12 (Basic Tone)
-  Ctrl+Shift+F13..F24 = Commands 13-24 (WB + Presence)
-  Alt+Shift+F13..F24  = Commands 25-36 (Saturation + Effects + Red Hue)
-  Ctrl+Alt+Shift+F13..F24 = Commands 37-48 (Red Sat/Lum, Orange, Yellow Hue)
-  Ctrl+F13..F24       = Commands 49-60 (Yellow Sat/Lum, Crop, Resets)
+  Ctrl+Alt+F1..F12   = Commands 01-12 (Basic Tone)
+  Ctrl+Shift+F1..F12 = Commands 13-24 (WB + Presence)
+  Alt+Shift+F1..F12  = Commands 25-36 (Saturation + Effects + Red Hue)
+  Ctrl+Alt+Shift+F1..F12 = Commands 37-48 (Red Sat/Lum, Orange, Yellow Hue)
+  Ctrl+F1..F12       = Commands 49-60 (Yellow Sat/Lum, Crop, Resets)
 
 EXAMPLE:
-  Ctrl+Alt+F13 = Exposure increase
-  Ctrl+Alt+F14 = Exposure decrease
+  Ctrl+Alt+F1 = Exposure increase
+  Ctrl+Alt+F2 = Exposure decrease
     )"
     MsgBox(help, "Hotkey Reference", 0x40)
 }
