@@ -1,3 +1,21 @@
-local SliderUtils = require 'Commands.SliderUtils'
+local LrApplicationView = import 'LrApplicationView'
+local LrDevelopController = import 'LrDevelopController'
+local LrTasks = import 'LrTasks'
 
-SliderUtils.adjustSlider("CropAngle", -0.5, -45, 45)
+local function ensureDevelopModule()
+    if LrApplicationView.getCurrentModuleName() ~= 'develop' then
+        LrApplicationView.switchToModule('develop')
+    end
+    local attempts = 0
+    while attempts < 20 and LrApplicationView.getCurrentModuleName() ~= 'develop' do
+        LrTasks.sleep(0.05)
+        attempts = attempts + 1
+    end
+end
+
+LrTasks.startAsyncTask(function()
+    ensureDevelopModule()
+    local current = LrDevelopController.getValue("straightenAngle") or 0
+    local newVal = math.max(-45, math.min(45, current + -0.5))
+    LrDevelopController.setValue("straightenAngle", newVal)
+end)
