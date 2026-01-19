@@ -1508,6 +1508,20 @@
             }
         }
         
+        function isLaunchpadPort(port) {
+            const normalized = port.toLowerCase().replace(/\s+/g, '');
+            const keywords = [
+                'launchpad',
+                'lpmini',
+                'lpminimk',
+                'lpmk',
+                'lppro',
+                'launchpadx',
+                'novation'
+            ];
+            return keywords.some(keyword => normalized.includes(keyword));
+        }
+
         async function refreshPorts() {
             try {
                 const response = await fetch('/api/ports');
@@ -1523,7 +1537,7 @@
                     const option = document.createElement('option');
                     option.value = port;
                     option.textContent = port;
-                    if (port.toLowerCase().includes('launchpad')) option.selected = true;
+                    if (isLaunchpadPort(port)) option.selected = true;
                     inputSelect.appendChild(option);
                 });
                 
@@ -1531,7 +1545,7 @@
                     const option = document.createElement('option');
                     option.value = port;
                     option.textContent = port;
-                    if (port.toLowerCase().includes('launchpad')) option.selected = true;
+                    if (isLaunchpadPort(port)) option.selected = true;
                     outputSelect.appendChild(option);
                 });
                 

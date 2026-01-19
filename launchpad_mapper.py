@@ -391,16 +391,31 @@ class LaunchpadMapper:
     
     def find_launchpad_ports(self) -> Dict[str, Optional[str]]:
         ports = self.get_available_ports()
-        result = {"input": None, "output": None}
-        for port in ports["inputs"]:
-            if "launchpad" in port.lower():
-                result["input"] = port
-                break
-        for port in ports["outputs"]:
-            if "launchpad" in port.lower():
-                result["output"] = port
-                break
-        return result
+
+        def pick_port(port_list: List[str]) -> Optional[str]:
+            if not port_list:
+                return None
+            normalized = [(port, port.lower().replace(" ", "")) for port in port_list]
+            keywords = [
+                "launchpad",
+                "lpmini",
+                "lpminimk",
+                "lpmk",
+                "lppro",
+                "launchpadx",
+                "novation",
+            ]
+            for port, normalized_name in normalized:
+                if any(keyword in normalized_name for keyword in keywords):
+                    return port
+            if len(port_list) == 1:
+                return port_list[0]
+            return None
+
+        return {
+            "input": pick_port(ports["inputs"]),
+            "output": pick_port(ports["outputs"]),
+        }
     
     def connect(self, input_port: str = None, output_port: str = None) -> bool:
         try:
@@ -2225,6 +2240,20 @@ HTML_TEMPLATE = '''
             }
         }
         
+        function isLaunchpadPort(port) {
+            const normalized = port.toLowerCase().replace(/\s+/g, '');
+            const keywords = [
+                'launchpad',
+                'lpmini',
+                'lpminimk',
+                'lpmk',
+                'lppro',
+                'launchpadx',
+                'novation'
+            ];
+            return keywords.some(keyword => normalized.includes(keyword));
+        }
+
         async function refreshPorts() {
             try {
                 const response = await fetch('/api/ports');
@@ -2240,7 +2269,7 @@ HTML_TEMPLATE = '''
                     const option = document.createElement('option');
                     option.value = port;
                     option.textContent = port;
-                    if (port.toLowerCase().includes('launchpad')) option.selected = true;
+                    if (isLaunchpadPort(port)) option.selected = true;
                     inputSelect.appendChild(option);
                 });
                 
@@ -2248,7 +2277,7 @@ HTML_TEMPLATE = '''
                     const option = document.createElement('option');
                     option.value = port;
                     option.textContent = port;
-                    if (port.toLowerCase().includes('launchpad')) option.selected = true;
+                    if (isLaunchpadPort(port)) option.selected = true;
                     outputSelect.appendChild(option);
                 });
                 
