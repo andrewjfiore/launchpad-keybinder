@@ -1265,6 +1265,89 @@ HTML_TEMPLATE = '''
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
+
+        /* Collapsible Sections */
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .collapsible-header:hover {
+            color: #00d4ff;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            font-size: 18px;
+        }
+
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        /* Compact Status Bar */
+        .compact-status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        /* Compact Form Row */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -1273,58 +1356,45 @@ HTML_TEMPLATE = '''
             <h1>🎹 Launchpad Mapper</h1>
             <p class="subtitle">Map your Launchpad Mini to keyboard shortcuts</p>
         </header>
-        
-        <div class="status-bar">
-            <div class="status-item">
-                <div class="status-dot" id="connectionDot"></div>
-                <span id="connectionStatus">Disconnected</span>
-            </div>
-            <div class="status-item">
-                <div class="status-dot" id="runningDot"></div>
-                <span id="runningStatus">Stopped</span>
-            </div>
-            <div class="status-item">
-                <span>Profile: <strong id="currentProfile">Default</strong></span>
-            </div>
-            <div class="status-item">
-                <span>Layer: <strong id="currentLayer">Base</strong></span>
-            </div>
-            <div class="status-item">
-                <span>Mappings: <strong id="mappingCount">0</strong></span>
-            </div>
-        </div>
-        
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="port-select">
-                <div class="form-group">
-                    <label>MIDI Input Port</label>
-                    <select id="inputPort">
-                        <option value="">Select input port...</option>
-                    </select>
+
+        <!-- Compact Connection & Status -->
+        <div class="compact-status">
+            <div class="status-row">
+                <div class="status-badge">
+                    <div class="status-dot" id="connectionDot"></div>
+                    <span id="connectionStatus">Disconnected</span>
                 </div>
-                <div class="form-group">
-                    <label>MIDI Output Port</label>
-                    <select id="outputPort">
-                        <option value="">Select output port...</option>
-                    </select>
+                <div class="status-badge">
+                    <div class="status-dot" id="runningDot"></div>
+                    <span id="runningStatus">Stopped</span>
+                </div>
+                <div class="status-badge">
+                    <span>Mappings: <strong id="mappingCount">0</strong></span>
+                </div>
+                <div class="status-badge">
+                    <span>Profile: <strong id="currentProfile">Default</strong></span>
                 </div>
             </div>
-            
-            <div class="controls">
-                <button class="btn-primary" onclick="connect()" id="connectBtn">
-                    <span>⚡</span> Connect
+
+            <div class="status-row">
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <select id="inputPort" style="padding: 8px 12px;">
+                        <option value="">MIDI Input Port...</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <select id="outputPort" style="padding: 8px 12px;">
+                        <option value="">MIDI Output Port...</option>
+                    </select>
+                </div>
+                <button class="btn-success" onclick="quickStart()" id="quickStartBtn" style="padding: 8px 16px;">
+                    <span>⚡</span> Connect & Start
                 </button>
-                <button class="btn-secondary" onclick="disconnect()" id="disconnectBtn">
-                    <span>✕</span> Disconnect
-                </button>
-                <button class="btn-success" onclick="startMapper()" id="startBtn">
-                    <span>▶</span> Start
-                </button>
-                <button class="btn-warning" onclick="stopMapper()" id="stopBtn">
+                <button class="btn-warning" onclick="stopMapper()" id="stopBtn" style="padding: 8px 16px;">
                     <span>⏹</span> Stop
                 </button>
-                <button class="btn-secondary" onclick="refreshPorts()">
-                    <span>↻</span> Refresh Ports
+                <button class="btn-secondary" onclick="refreshPorts()" style="padding: 8px 16px;">
+                    <span>↻</span>
                 </button>
             </div>
         </div>
@@ -1342,125 +1412,120 @@ HTML_TEMPLATE = '''
                     </div>
                 </div>
                 
+                <!-- Combined Preset & Profile Management -->
                 <div class="card" style="margin-top: 20px;">
-                    <h2>📋 Event Log</h2>
-                    <div class="log" id="eventLog"></div>
-                </div>
-                
-                <div class="card" style="margin-top: 20px;">
-                    <h2>🧭 Layer Controls</h2>
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Active Layer</label>
-                            <select id="layerSelect"></select>
-                        </div>
-                        <div class="form-group">
-                            <label>New Layer Name</label>
-                            <input type="text" id="newLayerName" placeholder="e.g., Editing">
-                        </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
-                        <button class="btn-primary" onclick="setLayer()">
-                            <span>↕</span> Switch Layer
-                        </button>
-                        <button class="btn-success" onclick="pushLayer()">
-                            <span>⤵</span> Go Down
-                        </button>
-                        <button class="btn-warning" onclick="popLayer()">
-                            <span>⤴</span> Go Up
-                        </button>
-                    </div>
-                </div>
+                    <h2>💾 Presets & Profiles</h2>
 
-                <div class="card" style="margin-top: 20px;">
-                    <h2>📦 Preset Profiles</h2>
-                    <p style="color: #666; margin-bottom: 15px; font-size: 13px;">Load pre-configured profiles for popular applications</p>
-                    <div class="form-group">
-                        <label>Available Presets</label>
-                        <select id="presetSelect">
-                            <option value="">Select a preset...</option>
+                    <!-- Quick Load Preset -->
+                    <div class="form-row">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select id="presetSelect">
+                                <option value="">Load a preset...</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-success" onclick="loadPreset()" style="flex: 1;">
+                                <span>📥</span> Load
+                            </button>
+                            <button class="btn-secondary" onclick="loadPresetList()">
+                                <span>↻</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Profile Actions -->
+                    <div class="form-row">
+                        <input type="text" id="profileName" value="Default" placeholder="Profile name" style="padding: 10px 12px;">
+                        <select id="profileSelect" style="padding: 10px 12px;">
+                            <option value="">Switch profile...</option>
                         </select>
                     </div>
-                    <div class="controls">
-                        <button class="btn-success" onclick="loadPreset()">
-                            <span>📥</span> Load Preset
-                        </button>
-                        <button class="btn-secondary" onclick="loadPresetList()">
-                            <span>↻</span> Refresh Presets
-                        </button>
-                    </div>
-                </div>
 
-                <div class="card" style="margin-top: 20px;">
-                    <h2>💾 Profile Management</h2>
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Profile Name</label>
-                            <input type="text" id="profileName" value="Default" placeholder="Enter profile name">
-                        </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <input type="text" id="profileDescription" placeholder="Optional description">
-                        </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
+                    <div class="form-row-3">
                         <button class="btn-primary" onclick="exportProfile()">
-                            <span>📤</span> Export Profile
+                            <span>📤</span> Export
                         </button>
                         <button class="btn-secondary" onclick="document.getElementById('importFile').click()">
-                            <span>📥</span> Import Profile
+                            <span>📥</span> Import
                         </button>
-                        <button class="btn-danger" onclick="clearAllMappings()">
-                            <span>🗑</span> Clear All
+                        <button class="btn-secondary" onclick="switchProfile()">
+                            <span>🔀</span> Switch
                         </button>
                         <input type="file" id="importFile" accept=".json" onchange="importProfile(event)">
                     </div>
 
-                    <div class="divider"></div>
-
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Switch Profile</label>
-                            <select id="profileSelect"></select>
+                    <!-- Advanced Options (Collapsible) -->
+                    <div class="collapsible-header" onclick="toggleSection('advancedOptions')">
+                        <span style="font-size: 0.95em; color: #888;">⚙️ Advanced Options</span>
+                        <span class="collapse-icon collapsed" id="advancedOptionsIcon">▼</span>
+                    </div>
+                    <div class="collapsible-content collapsed" id="advancedOptionsContent">
+                        <!-- Layers -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="color: #888; font-size: 13px; display: block; margin-bottom: 8px;">Layer: <strong id="currentLayer">Base</strong></label>
+                            <div class="form-row">
+                                <select id="layerSelect" style="padding: 8px 12px;">
+                                    <option value="">Select layer...</option>
+                                </select>
+                                <input type="text" id="newLayerName" placeholder="New layer name" style="padding: 8px 12px;">
+                            </div>
+                            <div class="form-row-3">
+                                <button class="btn-secondary" onclick="setLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Switch
+                                </button>
+                                <button class="btn-secondary" onclick="pushLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Push Layer
+                                </button>
+                                <button class="btn-secondary" onclick="popLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Pop Layer
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Auto Switch</label>
-                            <label class="checkbox-group">
+
+                        <div class="divider"></div>
+
+                        <!-- Auto Switch -->
+                        <div>
+                            <label class="checkbox-group" style="padding: 8px 0;">
                                 <input type="checkbox" id="autoSwitchEnabled">
-                                <span>Enable by active window title</span>
+                                <span style="font-size: 13px;">Auto-switch by window title</span>
                             </label>
+                            <div class="form-row" style="margin-top: 10px;">
+                                <input type="text" id="autoMatch" placeholder="Window title contains..." style="padding: 8px 12px;">
+                                <select id="autoProfileSelect" style="padding: 8px 12px;">
+                                    <option value="">Select profile...</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <button class="btn-success" onclick="addAutoRule()" style="padding: 6px 10px; font-size: 13px;">
+                                    <span>➕</span> Add Rule
+                                </button>
+                                <button class="btn-secondary" onclick="saveAutoSwitchRules()" style="padding: 6px 10px; font-size: 13px;">
+                                    <span>💾</span> Save Rules
+                                </button>
+                            </div>
+                            <div class="log" id="autoRulesLog" style="height: 100px; margin-top: 10px;"></div>
                         </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
-                        <button class="btn-primary" onclick="switchProfile()">
-                            <span>🔀</span> Switch Profile
-                        </button>
-                        <button class="btn-secondary" onclick="loadProfiles()">
-                            <span>↻</span> Refresh Profiles
-                        </button>
-                        <button class="btn-secondary" onclick="saveAutoSwitchRules()">
-                            <span>💾</span> Save Auto Rules
-                        </button>
-                    </div>
 
-                    <div class="divider"></div>
+                        <div class="divider"></div>
 
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Window Title Contains</label>
-                            <input type="text" id="autoMatch" placeholder="e.g., OBS, Premiere">
-                        </div>
-                        <div class="form-group">
-                            <label>Profile</label>
-                            <select id="autoProfileSelect"></select>
-                        </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
-                        <button class="btn-success" onclick="addAutoRule()">
-                            <span>➕</span> Add Rule
+                        <button class="btn-danger" onclick="clearAllMappings()" style="width: 100%; padding: 8px;">
+                            <span>🗑</span> Clear All Mappings
                         </button>
                     </div>
-                    <div class="log" id="autoRulesLog" style="margin-top: 10px; height: 110px;"></div>
+                </div>
+
+                <!-- Event Log (Collapsible) -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="collapsible-header" onclick="toggleSection('eventLog')">
+                        <h2 style="margin: 0;">📋 Event Log</h2>
+                        <span class="collapse-icon collapsed" id="eventLogIcon">▼</span>
+                    </div>
+                    <div class="collapsible-content collapsed" id="eventLogContent">
+                        <div class="log" id="eventLog"></div>
+                    </div>
                 </div>
             </div>
             
@@ -1970,10 +2035,33 @@ HTML_TEMPLATE = '''
             }
         }
         
+        // Toggle collapsible sections
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId + 'Content');
+            const icon = document.getElementById(sectionId + 'Icon');
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                icon.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                icon.classList.add('collapsed');
+            }
+        }
+
+        // Quick start: connect and start in one click
+        async function quickStart() {
+            await connect();
+            // Wait a moment for connection to establish
+            setTimeout(async () => {
+                await startMapper();
+            }, 500);
+        }
+
         async function connect() {
             const inputPort = document.getElementById('inputPort').value;
             const outputPort = document.getElementById('outputPort').value;
-            
+
             try {
                 const response = await fetch('/api/connect', {
                     method: 'POST',
