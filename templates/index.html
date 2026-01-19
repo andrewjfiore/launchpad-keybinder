@@ -548,6 +548,89 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
+
+        /* Collapsible Sections */
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .collapsible-header:hover {
+            color: #00d4ff;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            font-size: 18px;
+        }
+
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        /* Compact Status Bar */
+        .compact-status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        /* Compact Form Row */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -556,58 +639,45 @@
             <h1>🎹 Launchpad Mapper</h1>
             <p class="subtitle">Map your Launchpad Mini to keyboard shortcuts</p>
         </header>
-        
-        <div class="status-bar">
-            <div class="status-item">
-                <div class="status-dot" id="connectionDot"></div>
-                <span id="connectionStatus">Disconnected</span>
-            </div>
-            <div class="status-item">
-                <div class="status-dot" id="runningDot"></div>
-                <span id="runningStatus">Stopped</span>
-            </div>
-            <div class="status-item">
-                <span>Profile: <strong id="currentProfile">Default</strong></span>
-            </div>
-            <div class="status-item">
-                <span>Layer: <strong id="currentLayer">Base</strong></span>
-            </div>
-            <div class="status-item">
-                <span>Mappings: <strong id="mappingCount">0</strong></span>
-            </div>
-        </div>
-        
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="port-select">
-                <div class="form-group">
-                    <label>MIDI Input Port</label>
-                    <select id="inputPort">
-                        <option value="">Select input port...</option>
-                    </select>
+
+        <!-- Compact Connection & Status -->
+        <div class="compact-status">
+            <div class="status-row">
+                <div class="status-badge">
+                    <div class="status-dot" id="connectionDot"></div>
+                    <span id="connectionStatus">Disconnected</span>
                 </div>
-                <div class="form-group">
-                    <label>MIDI Output Port</label>
-                    <select id="outputPort">
-                        <option value="">Select output port...</option>
-                    </select>
+                <div class="status-badge">
+                    <div class="status-dot" id="runningDot"></div>
+                    <span id="runningStatus">Stopped</span>
+                </div>
+                <div class="status-badge">
+                    <span>Mappings: <strong id="mappingCount">0</strong></span>
+                </div>
+                <div class="status-badge">
+                    <span>Profile: <strong id="currentProfile">Default</strong></span>
                 </div>
             </div>
-            
-            <div class="controls">
-                <button class="btn-primary" onclick="connect()" id="connectBtn">
-                    <span>⚡</span> Connect
+
+            <div class="status-row">
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <select id="inputPort" style="padding: 8px 12px;">
+                        <option value="">MIDI Input Port...</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <select id="outputPort" style="padding: 8px 12px;">
+                        <option value="">MIDI Output Port...</option>
+                    </select>
+                </div>
+                <button class="btn-success" onclick="quickStart()" id="quickStartBtn" style="padding: 8px 16px;">
+                    <span>⚡</span> Connect & Start
                 </button>
-                <button class="btn-secondary" onclick="disconnect()" id="disconnectBtn">
-                    <span>✕</span> Disconnect
-                </button>
-                <button class="btn-success" onclick="startMapper()" id="startBtn">
-                    <span>▶</span> Start
-                </button>
-                <button class="btn-warning" onclick="stopMapper()" id="stopBtn">
+                <button class="btn-warning" onclick="stopMapper()" id="stopBtn" style="padding: 8px 16px;">
                     <span>⏹</span> Stop
                 </button>
-                <button class="btn-secondary" onclick="refreshPorts()">
-                    <span>↻</span> Refresh Ports
+                <button class="btn-secondary" onclick="refreshPorts()" style="padding: 8px 16px;">
+                    <span>↻</span>
                 </button>
             </div>
         </div>
@@ -625,125 +695,120 @@
                     </div>
                 </div>
                 
+                <!-- Combined Preset & Profile Management -->
                 <div class="card" style="margin-top: 20px;">
-                    <h2>📋 Event Log</h2>
-                    <div class="log" id="eventLog"></div>
-                </div>
-                
-                <div class="card" style="margin-top: 20px;">
-                    <h2>🧭 Layer Controls</h2>
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Active Layer</label>
-                            <select id="layerSelect"></select>
-                        </div>
-                        <div class="form-group">
-                            <label>New Layer Name</label>
-                            <input type="text" id="newLayerName" placeholder="e.g., Editing">
-                        </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
-                        <button class="btn-primary" onclick="setLayer()">
-                            <span>↕</span> Switch Layer
-                        </button>
-                        <button class="btn-success" onclick="pushLayer()">
-                            <span>⤵</span> Go Down
-                        </button>
-                        <button class="btn-warning" onclick="popLayer()">
-                            <span>⤴</span> Go Up
-                        </button>
-                    </div>
-                </div>
+                    <h2>💾 Presets & Profiles</h2>
 
-                <div class="card" style="margin-top: 20px;">
-                    <h2>📦 Preset Profiles</h2>
-                    <p style="color: #666; margin-bottom: 15px; font-size: 13px;">Load pre-configured profiles for popular applications</p>
-                    <div class="form-group">
-                        <label>Available Presets</label>
-                        <select id="presetSelect">
-                            <option value="">Select a preset...</option>
+                    <!-- Quick Load Preset -->
+                    <div class="form-row">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select id="presetSelect">
+                                <option value="">Load a preset...</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-success" onclick="loadPreset()" style="flex: 1;">
+                                <span>📥</span> Load
+                            </button>
+                            <button class="btn-secondary" onclick="loadPresetList()">
+                                <span>↻</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Profile Actions -->
+                    <div class="form-row">
+                        <input type="text" id="profileName" value="Default" placeholder="Profile name" style="padding: 10px 12px;">
+                        <select id="profileSelect" style="padding: 10px 12px;">
+                            <option value="">Switch profile...</option>
                         </select>
                     </div>
-                    <div class="controls">
-                        <button class="btn-success" onclick="loadPreset()">
-                            <span>📥</span> Load Preset
-                        </button>
-                        <button class="btn-secondary" onclick="loadPresetList()">
-                            <span>↻</span> Refresh Presets
-                        </button>
-                    </div>
-                </div>
 
-                <div class="card" style="margin-top: 20px;">
-                    <h2>💾 Profile Management</h2>
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Profile Name</label>
-                            <input type="text" id="profileName" value="Default" placeholder="Enter profile name">
-                        </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <input type="text" id="profileDescription" placeholder="Optional description">
-                        </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
+                    <div class="form-row-3">
                         <button class="btn-primary" onclick="exportProfile()">
-                            <span>📤</span> Export Profile
+                            <span>📤</span> Export
                         </button>
                         <button class="btn-secondary" onclick="document.getElementById('importFile').click()">
-                            <span>📥</span> Import Profile
+                            <span>📥</span> Import
                         </button>
-                        <button class="btn-danger" onclick="clearAllMappings()">
-                            <span>🗑</span> Clear All
+                        <button class="btn-secondary" onclick="switchProfile()">
+                            <span>🔀</span> Switch
                         </button>
                         <input type="file" id="importFile" accept=".json" onchange="importProfile(event)">
                     </div>
 
-                    <div class="divider"></div>
-
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Switch Profile</label>
-                            <select id="profileSelect"></select>
+                    <!-- Advanced Options (Collapsible) -->
+                    <div class="collapsible-header" onclick="toggleSection('advancedOptions')">
+                        <span style="font-size: 0.95em; color: #888;">⚙️ Advanced Options</span>
+                        <span class="collapse-icon collapsed" id="advancedOptionsIcon">▼</span>
+                    </div>
+                    <div class="collapsible-content collapsed" id="advancedOptionsContent">
+                        <!-- Layers -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="color: #888; font-size: 13px; display: block; margin-bottom: 8px;">Layer: <strong id="currentLayer">Base</strong></label>
+                            <div class="form-row">
+                                <select id="layerSelect" style="padding: 8px 12px;">
+                                    <option value="">Select layer...</option>
+                                </select>
+                                <input type="text" id="newLayerName" placeholder="New layer name" style="padding: 8px 12px;">
+                            </div>
+                            <div class="form-row-3">
+                                <button class="btn-secondary" onclick="setLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Switch
+                                </button>
+                                <button class="btn-secondary" onclick="pushLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Push Layer
+                                </button>
+                                <button class="btn-secondary" onclick="popLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Pop Layer
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Auto Switch</label>
-                            <label class="checkbox-group">
+
+                        <div class="divider"></div>
+
+                        <!-- Auto Switch -->
+                        <div>
+                            <label class="checkbox-group" style="padding: 8px 0;">
                                 <input type="checkbox" id="autoSwitchEnabled">
-                                <span>Enable by active window title</span>
+                                <span style="font-size: 13px;">Auto-switch by window title</span>
                             </label>
+                            <div class="form-row" style="margin-top: 10px;">
+                                <input type="text" id="autoMatch" placeholder="Window title contains..." style="padding: 8px 12px;">
+                                <select id="autoProfileSelect" style="padding: 8px 12px;">
+                                    <option value="">Select profile...</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <button class="btn-success" onclick="addAutoRule()" style="padding: 6px 10px; font-size: 13px;">
+                                    <span>➕</span> Add Rule
+                                </button>
+                                <button class="btn-secondary" onclick="saveAutoSwitchRules()" style="padding: 6px 10px; font-size: 13px;">
+                                    <span>💾</span> Save Rules
+                                </button>
+                            </div>
+                            <div class="log" id="autoRulesLog" style="height: 100px; margin-top: 10px;"></div>
                         </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
-                        <button class="btn-primary" onclick="switchProfile()">
-                            <span>🔀</span> Switch Profile
-                        </button>
-                        <button class="btn-secondary" onclick="loadProfiles()">
-                            <span>↻</span> Refresh Profiles
-                        </button>
-                        <button class="btn-secondary" onclick="saveAutoSwitchRules()">
-                            <span>💾</span> Save Auto Rules
-                        </button>
-                    </div>
 
-                    <div class="divider"></div>
+                        <div class="divider"></div>
 
-                    <div class="profile-grid">
-                        <div class="form-group">
-                            <label>Window Title Contains</label>
-                            <input type="text" id="autoMatch" placeholder="e.g., OBS, Premiere">
-                        </div>
-                        <div class="form-group">
-                            <label>Profile</label>
-                            <select id="autoProfileSelect"></select>
-                        </div>
-                    </div>
-                    <div class="controls" style="margin-top: 15px;">
-                        <button class="btn-success" onclick="addAutoRule()">
-                            <span>➕</span> Add Rule
+                        <button class="btn-danger" onclick="clearAllMappings()" style="width: 100%; padding: 8px;">
+                            <span>🗑</span> Clear All Mappings
                         </button>
                     </div>
-                    <div class="log" id="autoRulesLog" style="margin-top: 10px; height: 110px;"></div>
+                </div>
+
+                <!-- Event Log (Collapsible) -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="collapsible-header" onclick="toggleSection('eventLog')">
+                        <h2 style="margin: 0;">📋 Event Log</h2>
+                        <span class="collapse-icon collapsed" id="eventLogIcon">▼</span>
+                    </div>
+                    <div class="collapsible-content collapsed" id="eventLogContent">
+                        <div class="log" id="eventLog"></div>
+                    </div>
                 </div>
             </div>
             
@@ -769,6 +834,7 @@
                             <label>Action Type</label>
                             <select id="actionType" onchange="updateActionFields()">
                                 <option value="key">Key Combination</option>
+                                <option value="macro">Macro Sequence</option>
                                 <option value="layer">Go to Layer</option>
                                 <option value="layer_up">Go Up One Layer</option>
                             </select>
@@ -777,6 +843,43 @@
                         <div class="form-group" id="targetLayerGroup" style="display: none;">
                             <label>Target Layer</label>
                             <input type="text" id="targetLayer" placeholder="e.g., Editing">
+                        </div>
+
+                        <!-- Macro Builder -->
+                        <div id="macroBuilderGroup" style="display: none;">
+                            <div class="form-group">
+                                <label>Macro Steps</label>
+                                <div id="macroSteps" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                                    <div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">
+                                        No macro steps yet. Add steps below.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Add Step</label>
+                                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                                    <input type="text" id="macroStepKey" placeholder="Key combo or 'wait'">
+                                    <input type="number" id="macroStepDelay" placeholder="Delay (ms)" value="100" min="0" step="50">
+                                </div>
+                                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                                    <button class="btn-success" onclick="addMacroStep()" style="flex: 1; padding: 6px;">
+                                        <span>➕</span> Add Step
+                                    </button>
+                                    <button class="btn-secondary" onclick="clearMacroSteps()" style="padding: 6px;">
+                                        <span>🗑</span> Clear All
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(0,212,255,0.1); padding: 10px; border-radius: 6px; margin-top: 10px;">
+                                <div style="font-size: 12px; color: #00d4ff; margin-bottom: 6px;"><strong>💡 Macro Tips:</strong></div>
+                                <ul style="font-size: 11px; color: #aaa; margin: 0; padding-left: 20px;">
+                                    <li>Enter "wait" as key combo to add a pure delay</li>
+                                    <li>Delay is time to wait AFTER the action (in milliseconds)</li>
+                                    <li>Example: "ctrl+c" with 500ms delay, then "wait" with 1000ms</li>
+                                </ul>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -914,6 +1017,9 @@
 
                         // Click handler
                         pad.onclick = () => selectPad(note);
+
+                        // Double-click handler for layer actions
+                        pad.addEventListener('dblclick', () => handlePadDoubleClick(note));
 
                         // Drag and drop handlers
                         pad.addEventListener('dragstart', handleDragStart);
@@ -1075,6 +1181,48 @@
             });
         }
 
+        // Handle double-click on pads to execute layer actions
+        async function handlePadDoubleClick(note) {
+            const mapping = mappings[note];
+            if (!mapping) return;
+
+            // Only handle layer-related actions
+            if (mapping.action === 'layer' && mapping.target_layer) {
+                log(`Double-click: Switching to layer "${mapping.target_layer}"`);
+                try {
+                    const response = await fetch('/api/layer/set', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ layer: mapping.target_layer })
+                    });
+                    if (response.ok) {
+                        currentLayer = mapping.target_layer;
+                        document.getElementById('currentLayer').textContent = currentLayer;
+                        await loadMappings();
+                        log(`Switched to layer: ${currentLayer}`);
+                    }
+                } catch (err) {
+                    log('Failed to switch layer', 'error');
+                }
+            } else if (mapping.action === 'layer_up') {
+                log('Double-click: Going up one layer');
+                try {
+                    const response = await fetch('/api/layer/pop', {
+                        method: 'POST'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentLayer = data.current_layer || 'Base';
+                        document.getElementById('currentLayer').textContent = currentLayer;
+                        await loadMappings();
+                        log(`Layer popped, now on: ${currentLayer}`);
+                    }
+                } catch (err) {
+                    log('Failed to pop layer', 'error');
+                }
+            }
+        }
+
         // Initialize color picker
         function initColorPicker() {
             const picker = document.getElementById('colorPicker');
@@ -1108,9 +1256,9 @@
             document.querySelectorAll('.pad').forEach(el => {
                 el.classList.toggle('selected', el.dataset.note == note);
             });
-            
+
             document.getElementById('selectedPadNote').textContent = `Note: ${note}`;
-            
+
             // Load existing mapping
             const mapping = mappings[note];
             if (mapping) {
@@ -1120,6 +1268,17 @@
                 selectColor(mapping.color || 'green');
                 document.getElementById('actionType').value = mapping.action || 'key';
                 document.getElementById('targetLayer').value = mapping.target_layer || '';
+
+                // Load macro steps if this is a macro action
+                if (mapping.action === 'macro' && mapping.macro_steps) {
+                    currentMacroSteps = mapping.macro_steps.map(step => ({
+                        key_combo: step.key_combo || '',
+                        delay_after: step.delay_after || 0
+                    }));
+                } else {
+                    currentMacroSteps = [];
+                }
+                updateMacroStepsDisplay();
             } else {
                 document.getElementById('padLabel').value = '';
                 document.getElementById('keyCombo').value = '';
@@ -1127,6 +1286,8 @@
                 selectColor('green');
                 document.getElementById('actionType').value = 'key';
                 document.getElementById('targetLayer').value = '';
+                currentMacroSteps = [];
+                updateMacroStepsDisplay();
             }
             updateActionFields();
         }
@@ -1170,10 +1331,11 @@
                 log('Please select a pad first', 'error');
                 return;
             }
-            
+
             const keyCombo = document.getElementById('keyCombo').value.trim();
             const actionType = document.getElementById('actionType').value;
             const targetLayer = document.getElementById('targetLayer').value.trim();
+
             if (actionType === 'key' && !keyCombo) {
                 log('Please enter a key combination', 'error');
                 return;
@@ -1182,7 +1344,11 @@
                 log('Please enter a target layer', 'error');
                 return;
             }
-            
+            if (actionType === 'macro' && currentMacroSteps.length === 0) {
+                log('Please add at least one macro step', 'error');
+                return;
+            }
+
             const mapping = {
                 note: selectedPad,
                 label: document.getElementById('padLabel').value,
@@ -1193,6 +1359,11 @@
                 target_layer: targetLayer,
                 layer: currentLayer
             };
+
+            // Add macro steps if action is macro
+            if (actionType === 'macro') {
+                mapping.macro_steps = currentMacroSteps;
+            }
             
             try {
                 const response = await fetch('/api/mapping', {
@@ -1253,10 +1424,33 @@
             }
         }
         
+        // Toggle collapsible sections
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId + 'Content');
+            const icon = document.getElementById(sectionId + 'Icon');
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                icon.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                icon.classList.add('collapsed');
+            }
+        }
+
+        // Quick start: connect and start in one click
+        async function quickStart() {
+            await connect();
+            // Wait a moment for connection to establish
+            setTimeout(async () => {
+                await startMapper();
+            }, 500);
+        }
+
         async function connect() {
             const inputPort = document.getElementById('inputPort').value;
             const outputPort = document.getElementById('outputPort').value;
-            
+
             try {
                 const response = await fetch('/api/connect', {
                     method: 'POST',
@@ -1429,17 +1623,94 @@
             }
         }
 
+        // Macro steps storage
+        let currentMacroSteps = [];
+
         function updateActionFields() {
             const actionType = document.getElementById('actionType').value;
             const targetGroup = document.getElementById('targetLayerGroup');
+            const macroGroup = document.getElementById('macroBuilderGroup');
             const keyCombo = document.getElementById('keyCombo');
+
             if (actionType === 'layer') {
                 targetGroup.style.display = 'block';
+                macroGroup.style.display = 'none';
                 keyCombo.placeholder = 'Optional';
+            } else if (actionType === 'macro') {
+                targetGroup.style.display = 'none';
+                macroGroup.style.display = 'block';
+                keyCombo.placeholder = 'Not used for macros';
+                keyCombo.value = '';
             } else {
                 targetGroup.style.display = 'none';
+                macroGroup.style.display = 'none';
                 keyCombo.placeholder = 'e.g., ctrl+c, space, shift+alt+f1';
             }
+        }
+
+        function addMacroStep() {
+            const keyCombo = document.getElementById('macroStepKey').value.trim();
+            const delay = parseInt(document.getElementById('macroStepDelay').value) || 0;
+
+            if (!keyCombo) {
+                log('Please enter a key combo or "wait"', 'warn');
+                return;
+            }
+
+            currentMacroSteps.push({
+                key_combo: keyCombo,
+                delay_after: delay / 1000 // Convert ms to seconds
+            });
+
+            updateMacroStepsDisplay();
+
+            // Clear inputs
+            document.getElementById('macroStepKey').value = '';
+            document.getElementById('macroStepDelay').value = '100';
+            log(`Added macro step: ${keyCombo} (${delay}ms delay)`);
+        }
+
+        function removeMacroStep(index) {
+            currentMacroSteps.splice(index, 1);
+            updateMacroStepsDisplay();
+            log('Removed macro step');
+        }
+
+        function clearMacroSteps() {
+            if (currentMacroSteps.length === 0) return;
+            if (confirm('Clear all macro steps?')) {
+                currentMacroSteps = [];
+                updateMacroStepsDisplay();
+                log('Cleared all macro steps');
+            }
+        }
+
+        function updateMacroStepsDisplay() {
+            const container = document.getElementById('macroSteps');
+
+            if (currentMacroSteps.length === 0) {
+                container.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">No macro steps yet. Add steps below.</div>';
+                return;
+            }
+
+            container.innerHTML = currentMacroSteps.map((step, index) => {
+                const isWait = step.key_combo.toLowerCase() === 'wait';
+                const icon = isWait ? '⏱️' : '⌨️';
+                const label = isWait ? 'Wait' : step.key_combo;
+                const delayMs = Math.round(step.delay_after * 1000);
+
+                return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; margin-bottom: 4px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                            <span style="font-size: 14px;">${icon}</span>
+                            <span style="color: #00d4ff; font-family: monospace;">${index + 1}.</span>
+                            <code style="color: ${isWait ? '#ffaa00' : '#00ff88'};">${label}</code>
+                            ${delayMs > 0 ? `<span style="color: #666;">→ ${delayMs}ms</span>` : ''}
+                        </div>
+                        <button onclick="removeMacroStep(${index})" style="background: rgba(255,59,48,0.8); color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 11px;">×</button>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function loadLayers() {
