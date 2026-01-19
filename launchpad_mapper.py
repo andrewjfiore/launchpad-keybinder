@@ -498,6 +498,8 @@ class LaunchpadMapper:
                     }
 
             if self.input_port is not None:
+                # Enter Programmer mode to enable custom LED control
+                self.enter_programmer_mode()
                 return {
                     "success": True,
                     "message": "Connected: " + ", ".join(messages)
@@ -517,7 +519,7 @@ class LaunchpadMapper:
                 "error": str(e)
             }
     
-    def disconnect(self):         
+    def disconnect(self):
         self.stop()
         if self.input_port:
             self.input_port.close()
@@ -525,7 +527,30 @@ class LaunchpadMapper:
         if self.output_port:
             self.output_port.close()
             self.output_port = None
-    
+
+    def enter_programmer_mode(self):
+        """Send SysEx to enter Programmer mode for custom LED control."""
+        if not self.output_port:
+            return
+
+        # SysEx messages to enter Programmer mode for various Launchpad models
+        # Launchpad Mini MK3: F0 00 20 29 02 0D 0E 01 F7
+        # Launchpad X: F0 00 20 29 02 0C 0E 01 F7
+        # Launchpad Pro MK3: F0 00 20 29 02 0E 0E 01 F7
+        sysex_messages = [
+            [0x00, 0x20, 0x29, 0x02, 0x0D, 0x0E, 0x01],  # Mini MK3
+            [0x00, 0x20, 0x29, 0x02, 0x0C, 0x0E, 0x01],  # Launchpad X
+            [0x00, 0x20, 0x29, 0x02, 0x0E, 0x0E, 0x01],  # Pro MK3
+        ]
+
+        try:
+            for sysex_data in sysex_messages:
+                msg = Message('sysex', data=sysex_data)
+                self.output_port.send(msg)
+            print("Sent Programmer mode SysEx commands")
+        except Exception as e:
+            print(f"Error sending Programmer mode SysEx: {e}")
+
     def set_pad_color(self, note: int, color: str):
         if self.output_port:
             if color.startswith('#'):

@@ -631,9 +631,54 @@
             gap: 10px;
             margin-bottom: 15px;
         }
+
+        /* Drag and Drop Overlay */
+        .drop-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 212, 255, 0.15);
+            border: 4px dashed #00d4ff;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .drop-overlay.active {
+            display: flex;
+        }
+
+        .drop-overlay-content {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .drop-overlay-content h2 {
+            color: #00d4ff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .drop-overlay-content p {
+            color: #888;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
+    <!-- Drag and Drop Overlay -->
+    <div class="drop-overlay" id="dropOverlay">
+        <div class="drop-overlay-content">
+            <h2>Drop Profile JSON</h2>
+            <p>Release to load profile</p>
+        </div>
+    </div>
     <div class="container">
         <header>
             <h1>🎹 Launchpad Mapper</h1>
@@ -2097,10 +2142,74 @@
             }
         }
 
+        // Drag and Drop Profile Loading
+        function initDragAndDrop() {
+            const dropOverlay = document.getElementById('dropOverlay');
+            let dragCounter = 0;
+
+            document.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                dragCounter++;
+                if (e.dataTransfer.types.includes('Files')) {
+                    dropOverlay.classList.add('active');
+                }
+            });
+
+            document.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dragCounter--;
+                if (dragCounter === 0) {
+                    dropOverlay.classList.remove('active');
+                }
+            });
+
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            document.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                dragCounter = 0;
+                dropOverlay.classList.remove('active');
+
+                const files = e.dataTransfer.files;
+                if (files.length === 0) return;
+
+                const file = files[0];
+                if (!file.name.endsWith('.json')) {
+                    log('Please drop a JSON profile file', 'error');
+                    return;
+                }
+
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+
+                    const response = await fetch('/api/profile/import', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: text
+                    });
+
+                    if (response.ok) {
+                        await loadMappings();
+                        await loadLayers();
+                        await loadProfiles();
+                        log(`Loaded profile: ${data.name || file.name}`, 'success');
+                    } else {
+                        log('Failed to import profile', 'error');
+                    }
+                } catch (err) {
+                    log('Invalid JSON file: ' + err.message, 'error');
+                }
+            });
+        }
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             initGrid();
             initColorPicker();
+            initDragAndDrop();
             refreshPorts();
             loadMappings();
             loadLayers();
