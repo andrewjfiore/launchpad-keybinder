@@ -25,16 +25,12 @@ return {
         { title = "11 Blacks +",      file = "Commands/BlacksPlus.lua" },
         { title = "12 Blacks -",      file = "Commands/BlacksMinus.lua" },
         
-        { title = "---" },
-        
         -- ============ WHITE BALANCE (13-16) ============
         { title = "13 Temperature +", file = "Commands/TemperaturePlus.lua" },
         { title = "14 Temperature -", file = "Commands/TemperatureMinus.lua" },
         { title = "15 Tint +",        file = "Commands/TintPlus.lua" },
         { title = "16 Tint -",        file = "Commands/TintMinus.lua" },
-        
-        { title = "---" },
-        
+
         -- ============ PRESENCE (17-26) ============
         { title = "17 Texture +",     file = "Commands/TexturePlus.lua" },
         { title = "18 Texture -",     file = "Commands/TextureMinus.lua" },
@@ -46,9 +42,7 @@ return {
         { title = "24 Vibrance -",    file = "Commands/VibranceMinus.lua" },
         { title = "25 Saturation +",  file = "Commands/SaturationPlus.lua" },
         { title = "26 Saturation -",  file = "Commands/SaturationMinus.lua" },
-        
-        { title = "---" },
-        
+
         -- ============ EFFECTS (27-34) ============
         { title = "27 Vignette +",    file = "Commands/VignettePlus.lua" },
         { title = "28 Vignette -",    file = "Commands/VignetteMinus.lua" },
@@ -58,9 +52,7 @@ return {
         { title = "32 GrainSize -",   file = "Commands/GrainSizeMinus.lua" },
         { title = "33 GrainRough +",  file = "Commands/GrainRoughPlus.lua" },
         { title = "34 GrainRough -",  file = "Commands/GrainRoughMinus.lua" },
-        
-        { title = "---" },
-        
+
         -- ============ HSL RED (35-40) ============
         { title = "35 Red Hue +",     file = "Commands/RedHuePlus.lua" },
         { title = "36 Red Hue -",     file = "Commands/RedHueMinus.lua" },
@@ -84,16 +76,12 @@ return {
         { title = "50 Yellow Sat -",  file = "Commands/YellowSatMinus.lua" },
         { title = "51 Yellow Lum +",  file = "Commands/YellowLumPlus.lua" },
         { title = "52 Yellow Lum -",  file = "Commands/YellowLumMinus.lua" },
-        
-        { title = "---" },
-        
+
         -- ============ CROP (53-56) ============
         { title = "53 Straighten +",  file = "Commands/StraightenPlus.lua" },
         { title = "54 Straighten -",  file = "Commands/StraightenMinus.lua" },
         { title = "55 CropAngle Reset", file = "Commands/CropAngleReset.lua" },
-        
-        { title = "---" },
-        
+
         -- ============ RESETS (56+) ============
         { title = "56 Reset Exposure",    file = "Commands/ResetExposure.lua" },
         { title = "57 Reset White Balance", file = "Commands/ResetWB.lua" },
