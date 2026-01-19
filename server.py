@@ -35,15 +35,17 @@ auto_switch_enabled = False
 
 # Event queue for server-sent events
 event_queues = []
+event_queues_lock = threading.Lock()
 
 
 def broadcast_event(data):
     """Broadcast an event to all connected clients."""
-    for q in event_queues:
-        try:
-            q.put_nowait(data)
-        except queue.Full:
-            pass
+    with event_queues_lock:
+        for q in list(event_queues):
+            try:
+                q.put_nowait(data)
+            except queue.Full:
+                pass
 
 
 def event_callback(data):
@@ -411,7 +413,8 @@ def events():
     """Server-sent events for real-time updates."""
     def generate():
         q = queue.Queue(maxsize=100)
-        event_queues.append(q)
+        with event_queues_lock:
+            event_queues.append(q)
         try:
             while True:
                 try:
@@ -421,7 +424,8 @@ def events():
                     # Send keepalive
                     yield f": keepalive\n\n"
         finally:
-            event_queues.remove(q)
+            with event_queues_lock:
+                event_queues.remove(q)
 
     return Response(generate(), mimetype='text/event-stream',
                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
@@ -506,8 +510,12 @@ def list_presets():
 def get_preset(filename):
     """Load a specific preset profile."""
     import os
-    preset_dir = os.path.join(os.path.dirname(__file__), 'presets')
-    filepath = os.path.join(preset_dir, filename)
+    preset_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), 'presets'))
+    filepath = os.path.realpath(os.path.join(preset_dir, filename))
+
+    # Prevent path traversal attacks
+    if not filepath.startswith(preset_dir + os.sep):
+        return jsonify({"error": "Invalid preset path"}), 400
 
     if not os.path.exists(filepath) or not filename.endswith('.json'):
         return jsonify({"error": "Preset not found"}), 404
