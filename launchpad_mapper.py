@@ -17,6 +17,8 @@ from functools import lru_cache
 from itertools import chain
 from typing import Optional, Dict, List, Callable, Any
 
+os.environ.setdefault("MIDO_BACKEND", "mido.backends.rtmidi")
+
 import mido
 from mido import Message
 from flask import Flask, request, jsonify, Response
@@ -365,6 +367,10 @@ class LaunchpadMapper:
     ]
     CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]
     SCENE_NOTES = [89, 79, 69, 59, 49, 39, 29, 19]
+    BACKEND_OPTIONS = [
+        "mido.backends.rtmidi",
+        "mido.backends.pygame",
+    ]
     
     def __init__(self):
         self.profile = Profile()
@@ -381,6 +387,7 @@ class LaunchpadMapper:
         self.auto_reconnect_interval = 2.0
         self.auto_reconnect_stop = threading.Event()
         self.auto_reconnect_thread = None
+        self.midi_backend = mido.backend.name
 
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
@@ -392,6 +399,23 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
+
+    def get_midi_backend(self) -> str:
+        return self.midi_backend
+
+    def set_midi_backend(self, backend_name: str) -> Dict[str, Any]:
+        if backend_name not in self.BACKEND_OPTIONS:
+            return {"success": False, "error": "Unsupported MIDI backend."}
+        try:
+            if self.running:
+                self.stop()
+            if self.input_port or self.output_port:
+                self.disconnect()
+            mido.set_backend(backend_name)
+            self.midi_backend = backend_name
+            return {"success": True}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
         
     def get_available_ports(self) -> Dict[str, Any]:
         """Get available MIDI ports with error handling"""
