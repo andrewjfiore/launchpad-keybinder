@@ -1626,6 +1626,13 @@
                     outputSelect.appendChild(option);
                 });
 
+                if (data.inputs.length && !inputSelect.value) {
+                    inputSelect.value = data.inputs[0];
+                }
+                if (data.outputs.length && !outputSelect.value) {
+                    outputSelect.value = data.outputs[0];
+                }
+
                 if (data.inputs.length === 0 && data.outputs.length === 0 && data.error) {
                     log(data.error, 'error');
                 } else {
@@ -1636,8 +1643,24 @@
             }
         }
 
-        function downloadLogs() {
-            window.location.href = '/api/logs/download';
+        async function downloadLogs() {
+            try {
+                const response = await fetch('/api/logs/download');
+                if (!response.ok) {
+                    throw new Error('Failed to download logs');
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'launchpad_mapper.log';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                log('Failed to download logs: ' + e.message, 'error');
+            }
         }
 
         function formatBackendName(backend) {

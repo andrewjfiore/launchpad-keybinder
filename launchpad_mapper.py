@@ -440,7 +440,7 @@ class LaunchpadMapper:
         frames = self._idle_face_frames()
         frame_index = 0
         previous_notes: Dict[int, str] = {}
-        while not self.idle_stop_event.is_set() and self.running and self.output_port:
+        while not self.idle_stop_event.is_set() and self.output_port and not self._has_active_mappings():
             frame = frames[frame_index]
             for note in previous_notes:
                 if note not in frame:
@@ -597,6 +597,8 @@ class LaunchpadMapper:
 
                     if self.input_port is not None:
                         self.enter_programmer_mode()
+                        if self.output_port:
+                            self.update_pad_colors()
                         return {
                             "success": True,
                             "message": "Connected: " + ", ".join(messages),
@@ -727,7 +729,7 @@ class LaunchpadMapper:
         self.clear_all_pads()
         mappings = self.profile.get_layer_mappings(self.current_layer)
         if not self._has_active_mappings():
-            if self.running and self.output_port:
+            if self.output_port:
                 self._start_idle_animation()
             return
         for note, mapping in mappings.items():

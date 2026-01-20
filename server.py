@@ -50,6 +50,11 @@ def append_log(message: str):
         handle.write(f"[{timestamp}] {message}\n")
 
 
+with open(LOG_PATH, "a", encoding="utf-8") as _handle:
+    _handle.write("")
+append_log("Server initialized")
+
+
 def broadcast_event(data):
     """Broadcast an event to all connected clients."""
     with event_queues_lock:
