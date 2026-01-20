@@ -191,6 +191,19 @@ def log_click():
     return jsonify({"success": True})
 
 
+@app.route('/api/emulate', methods=['POST'])
+def emulate_pad():
+    data = request.json or {}
+    note = data.get("note")
+    if note is None:
+        return jsonify({"success": False, "error": "No note provided"}), 400
+    result = mapper.emulate_pad_press(int(note))
+    append_log(f"Emulate pad: note={note}, success={result.get('success')}")
+    if not result.get("success"):
+        return jsonify(result), 400
+    return jsonify(result)
+
+
 @app.route('/api/connect', methods=['POST'])
 def connect():
     """Connect to MIDI ports."""

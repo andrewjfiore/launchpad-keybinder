@@ -720,6 +720,10 @@
                         <option value="">MIDI Backend...</option>
                     </select>
                 </div>
+                <label class="status-badge" style="gap: 8px;">
+                    <input type="checkbox" id="emulationMode" style="margin: 0;">
+                    <span>Emulation</span>
+                </label>
                 <button class="btn-secondary" onclick="forceRefreshBackend()" style="padding: 8px 16px;">
                     <span>🔌</span> Force Refresh
                 </button>
@@ -1025,6 +1029,7 @@
         let availableLayers = [];
         let autoRules = [];
         let autoSwitchAvailable = false;
+        let emulationEnabled = false;
         
         // Initialize the grid
         function initGrid() {
@@ -1072,7 +1077,7 @@
                         pad.appendChild(actionsDiv);
 
                         // Click handler
-                        pad.onclick = () => selectPad(note);
+                        pad.onclick = () => handlePadClick(note);
 
                         // Double-click handler for layer actions
                         pad.addEventListener('dblclick', () => handlePadDoubleClick(note));
@@ -1127,6 +1132,35 @@
             }
 
             return false;
+        }
+
+        async function handlePadClick(note) {
+            if (emulationEnabled) {
+                await emulatePad(note);
+                return;
+            }
+            selectPad(note);
+        }
+
+        async function emulatePad(note) {
+            try {
+                const response = await fetch('/api/emulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({note})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to emulate pad');
+                }
+                if (data.action === 'layer' || data.action === 'layer_up') {
+                    currentLayer = data.current_layer || currentLayer;
+                    document.getElementById('currentLayer').textContent = currentLayer;
+                }
+                log(`Emulated pad ${note}`, 'success');
+            } catch (e) {
+                log('Failed to emulate pad: ' + e.message, 'error');
+            }
         }
 
         function handleDragEnd(e) {
@@ -1732,15 +1766,21 @@
 
         async function logClick(label, target) {
             try {
-                await fetch('/api/logs/click', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        label,
-                        id: target.id || '',
-                        tag: target.tagName || ''
-                    })
+                const payload = JSON.stringify({
+                    label,
+                    id: target.id || '',
+                    tag: target.tagName || ''
                 });
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([payload], {type: 'application/json'});
+                    navigator.sendBeacon('/api/logs/click', blob);
+                } else {
+                    await fetch('/api/logs/click', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: payload
+                    });
+                }
             } catch (e) {
             }
         }
@@ -2373,6 +2413,13 @@
             initColorPicker();
             initDragAndDrop();
             loadMidiBackend();
+            const emulationToggle = document.getElementById('emulationMode');
+            if (emulationToggle) {
+                emulationToggle.addEventListener('change', event => {
+                    emulationEnabled = event.target.checked;
+                    log(`Emulation mode ${emulationEnabled ? 'enabled' : 'disabled'}`);
+                });
+            }
             refreshPorts();
             loadMappings();
             loadLayers();

@@ -407,11 +407,15 @@ class LaunchpadMapper:
 
     def _discover_backends(self) -> List[str]:
         discovered = []
-        for module in pkgutil.iter_modules(mido.backends.__path__):
-            name = module.name
-            if name == "backend":
-                continue
-            discovered.append(f"mido.backends.{name}")
+        backend_path = getattr(mido.backends, "__path__", None)
+        if backend_path:
+            for module in pkgutil.iter_modules(backend_path):
+                name = module.name
+                if name == "backend":
+                    continue
+                discovered.append(f"mido.backends.{name}")
+        if not discovered:
+            discovered.extend(["mido.backends.rtmidi", "mido.backends.pygame"])
         return sorted(set(discovered))
 
     def _grid_note(self, row: int, col: int) -> int:
@@ -511,6 +515,7 @@ class LaunchpadMapper:
             if self.input_port or self.output_port:
                 self.disconnect()
             mido.set_backend(self.midi_backend)
+            self.backend_options = self._discover_backends()
             return {"success": True}
         except Exception as exc:
             return {"success": False, "error": str(exc)}
@@ -839,6 +844,26 @@ class LaunchpadMapper:
 
         thread = threading.Thread(target=macro_worker, daemon=True)
         thread.start()
+
+    def emulate_pad_press(self, note: int) -> Dict[str, Any]:
+        mapping = self.profile.get_mapping(note, self.current_layer)
+        if not mapping or not mapping.enabled:
+            return {"success": False, "error": "No mapping for this pad."}
+        if mapping.action == "layer_up":
+            self.pop_layer()
+            return {"success": True, "action": "layer_up", "current_layer": self.current_layer}
+        if mapping.action == "layer" and mapping.target_layer:
+            self.push_layer(mapping.target_layer)
+            return {"success": True, "action": "layer", "current_layer": self.current_layer}
+        if mapping.macro_steps:
+            self.execute_macro(mapping)
+            return {"success": True, "action": "macro"}
+        action = self.get_velocity_action(mapping, 127)
+        if action:
+            self.execute_key_combo(action)
+            self.pulse(note, mapping.color, 0.2)
+            return {"success": True, "action": "key"}
+        return {"success": False, "error": "No action for this mapping."}
 
     def get_velocity_action(self, mapping: PadMapping, velocity: int) -> Optional[str]:
         """Get the action for a specific velocity value."""
