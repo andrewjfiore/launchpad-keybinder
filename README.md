@@ -1,25 +1,28 @@
 # 🎹 Launchpad Mapper
 
-Map your Novation Launchpad Mini to keyboard shortcuts with customizable LED colors and profile management.
+Map MIDI controller inputs (Launchpad and other devices) to keyboard shortcuts with configurable LED feedback and profiles.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 ## Features
 
-- **MIDI to Keyboard Mapping**: Map any Launchpad pad to keyboard shortcuts
+- **MIDI to Keyboard Mapping**: Map MIDI notes to keyboard shortcuts
 - **Full Key Support**: Single keys, modifiers (Ctrl, Shift, Alt, Cmd), function keys, media keys
-- **LED Color Control**: Set pad colors from 28 available colors
+- **LED Color Control**: Set pad colors from 28 available colors (Launchpad) or simple on/off for generic devices
 - **Profile System**: Import/export JSON profiles for different use cases
 - **Real-time Feedback**: See pad presses in the web UI with live event logging
-- **Auto-detection**: Automatically finds connected Launchpad devices
+- **Auto-detection**: Automatically finds connected MIDI devices
+- **MIDI Backend Selection**: Switch and refresh the active `mido` backend from the UI
+- **Emulation Mode**: Click pads in the web UI to trigger mapped actions without hardware
+- **Log Export**: Download a runtime log for debugging
 
 ## Installation
 
 ### Prerequisites
 
 - Python 3.8 or higher
-- Novation Launchpad Mini (MK3 recommended, but should work with other models)
+- A MIDI device (Launchpad models work best for LED feedback, but other devices are supported)
 
 ## Packaging (Windows EXE with PyInstaller)
 
@@ -76,8 +79,8 @@ python server.py
 
 2. **Open the web interface**: Navigate to `http://localhost:5000` in your browser
 
-3. **Connect your Launchpad**:
-   - Select your Launchpad from the MIDI Input/Output dropdowns
+3. **Connect your MIDI device**:
+   - Select your MIDI Input/Output ports from the dropdowns
    - Click "Connect"
 
 4. **Configure pad mappings**:
@@ -88,6 +91,7 @@ python server.py
    - Click "Save Mapping"
 
 5. **Start the mapper**: Click "Start" to begin sending keystrokes
+6. **Emulation (optional)**: Toggle "Emulation" to trigger actions by clicking pads
 
 ## Key Combination Syntax
 
@@ -178,9 +182,9 @@ python server.py
 
 ### No MIDI ports found
 
-- Make sure your Launchpad is connected via USB
+- Make sure your MIDI device is connected via USB
 - On Linux, ensure you're in the `audio` group
-- Try unplugging and reconnecting the Launchpad
+- Try unplugging and reconnecting the device
 
 ### Keyboard shortcuts not working
 
@@ -192,6 +196,7 @@ python server.py
 
 - Make sure you've connected the MIDI Output port
 - Some Launchpad models may need to be in Programmer mode (consult your Launchpad manual)
+- For non-Launchpad devices, LED feedback is limited to basic on/off
 
 ## Example Profiles
 
@@ -230,6 +235,10 @@ The web interface communicates with the server via REST API:
 | `/api/profile/export` | GET | Export profile as JSON |
 | `/api/profile/import` | POST | Import a profile |
 | `/api/events` | GET | SSE stream of MIDI events |
+| `/api/midi-backend` | GET/POST | Get or set the active MIDI backend |
+| `/api/midi-backend/refresh` | POST | Reinitialize the current backend and refresh ports |
+| `/api/logs/download` | GET | Download the runtime log |
+| `/api/emulate` | POST | Trigger a mapped pad action from the UI |
 
 ## License
 
