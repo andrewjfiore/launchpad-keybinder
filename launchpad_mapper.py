@@ -8,6 +8,7 @@ import json
 import os
 import platform
 import queue
+import socket
 import threading
 import time
 import tempfile
@@ -97,6 +98,9 @@ COLOR_HEX = {
     "amber": "#FFBF00",
     "amber_dim": "#806000",
 }
+
+LIGHTROOM_SOCKET_HOST = os.getenv("LR_SOCKET_HOST", "127.0.0.1")
+LIGHTROOM_SOCKET_PORT = int(os.getenv("LR_SOCKET_PORT", "55555"))
 
 # Map color names to closest Launchpad velocity by RGB distance
 @lru_cache(maxsize=128)
@@ -774,17 +778,25 @@ class LaunchpadMapper:
             if combo.startswith("lrslider:"):
                 command = combo.split(":", 1)[1].strip()
                 if command:
-                    ipc_dir = os.path.join(tempfile.gettempdir(), "lrslider_ipc")
-                    os.makedirs(ipc_dir, exist_ok=True)
-                    filename = f"cmd_{uuid.uuid4().hex}.txt"
-                    with open(os.path.join(ipc_dir, filename), "w", encoding="utf-8") as handle:
-                        handle.write(command)
+                    self.send_to_lightroom(command)
                 return
             # The keyboard library uses '+' for combinations naturally
             # It sends to the active window
             keyboard.send(combo)
         except Exception as e:
             print(f"Error sending key combo '{combo}': {e}")
+
+    def send_to_lightroom(self, command: str):
+        try:
+            with socket.create_connection(
+                (LIGHTROOM_SOCKET_HOST, LIGHTROOM_SOCKET_PORT),
+                timeout=0.5,
+            ) as handle:
+                handle.sendall(command.encode("utf-8"))
+        except ConnectionRefusedError:
+            print("Lightroom is not listening. Is the plugin running?")
+        except OSError as e:
+            print(f"Error sending Lightroom command: {e}")
 
     def execute_macro(self, mapping: PadMapping):
         """Execute a macro sequence."""
