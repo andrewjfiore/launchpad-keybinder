@@ -486,8 +486,26 @@ class LaunchpadMapper:
             if self.input_port or self.output_port:
                 self.disconnect()
             mido.set_backend(backend_name)
+            # Verify the backend actually switched
+            actual_backend = mido.backend.name
+            if actual_backend != backend_name:
+                return {
+                    "success": False,
+                    "error": f"Backend switch failed. Requested '{backend_name}' but got '{actual_backend}'."
+                }
+            # Verify the backend can enumerate ports (catches driver/library issues)
+            try:
+                mido.get_input_names()
+                mido.get_output_names()
+            except Exception as port_err:
+                return {
+                    "success": False,
+                    "error": f"Backend '{backend_name}' loaded but cannot enumerate ports: {port_err}"
+                }
             self.midi_backend = backend_name
             return {"success": True}
+        except ImportError as exc:
+            return {"success": False, "error": f"Backend module not available: {exc}"}
         except Exception as exc:
             return {"success": False, "error": str(exc)}
         
@@ -558,6 +576,23 @@ class LaunchpadMapper:
     ) -> Dict[str, Any]:
         """Connect to MIDI ports with retries."""
         errors = []
+        # Log current backend and available ports for diagnostics
+        current_backend = getattr(mido.backend, 'name', 'unknown')
+        print(f"[MIDI Connect] Backend: {current_backend}")
+        try:
+            all_inputs = list(mido.get_input_names())
+            all_outputs = list(mido.get_output_names())
+            print(f"[MIDI Connect] Available inputs: {all_inputs}")
+            print(f"[MIDI Connect] Available outputs: {all_outputs}")
+        except Exception as enum_err:
+            error_msg = f"Cannot enumerate MIDI ports with backend '{current_backend}': {enum_err}"
+            print(f"[MIDI Connect] ERROR: {error_msg}")
+            return {
+                "success": False,
+                "message": "MIDI enumeration failed",
+                "error": error_msg,
+                "errors": [error_msg],
+            }
         try:
             with self.connection_lock:
                 for attempt in range(1, retries + 1):
@@ -573,21 +608,37 @@ class LaunchpadMapper:
                     self.last_input_port = detected_input or self.last_input_port
                     self.last_output_port = detected_output or self.last_output_port
 
+                    print(f"[MIDI Connect] Attempt {attempt}: input='{detected_input}', output='{detected_output}'")
+
                     if not detected_input and not detected_output:
-                        errors.append("No Launchpad detected. Please connect your device and click Refresh.")
+                        errors.append("No MIDI ports detected. Ensure your device is connected and drivers are installed.")
                         time.sleep(retry_delay)
                         continue
 
                     messages = []
                     try:
                         if detected_input:
+                            print(f"[MIDI Connect] Opening input port: {detected_input}")
                             self.input_port = mido.open_input(detected_input)
                             messages.append(f"Input: {detected_input}")
-                            print(f"Connected to input: {detected_input}")
+                            print(f"[MIDI Connect] Successfully connected to input: {detected_input}")
                         if detected_output:
+                            print(f"[MIDI Connect] Opening output port: {detected_output}")
                             self.output_port = mido.open_output(detected_output)
                             messages.append(f"Output: {detected_output}")
-                            print(f"Connected to output: {detected_output}")
+                            print(f"[MIDI Connect] Successfully connected to output: {detected_output}")
+                    except OSError as e:
+                        if self.input_port:
+                            self.input_port.close()
+                            self.input_port = None
+                        if self.output_port:
+                            self.output_port.close()
+                            self.output_port = None
+                        error_msg = f"Cannot open MIDI port (device may be in use or disconnected): {e}"
+                        print(f"[MIDI Connect] ERROR: {error_msg}")
+                        errors.append(error_msg)
+                        time.sleep(retry_delay)
+                        continue
                     except Exception as e:
                         if self.input_port:
                             self.input_port.close()
@@ -595,7 +646,9 @@ class LaunchpadMapper:
                         if self.output_port:
                             self.output_port.close()
                             self.output_port = None
-                        errors.append(str(e))
+                        error_msg = f"Failed to open MIDI port: {e}"
+                        print(f"[MIDI Connect] ERROR: {error_msg}")
+                        errors.append(error_msg)
                         time.sleep(retry_delay)
                         continue
 
