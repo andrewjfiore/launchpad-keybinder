@@ -729,6 +729,9 @@
                 <button class="btn-secondary" onclick="refreshPorts()" style="padding: 8px 16px;">
                     <span>↻</span>
                 </button>
+                <button class="btn-secondary" onclick="downloadLogs()" style="padding: 8px 16px;">
+                    <span>⬇️</span> Log
+                </button>
             </div>
         </div>
         
@@ -1631,6 +1634,10 @@
             } catch (e) {
                 log('Failed to refresh ports: ' + e.message, 'error');
             }
+        }
+
+        function downloadLogs() {
+            window.location.href = '/api/logs/download';
         }
 
         function formatBackendName(backend) {

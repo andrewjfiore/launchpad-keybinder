@@ -388,6 +388,8 @@ class LaunchpadMapper:
         self.auto_reconnect_stop = threading.Event()
         self.auto_reconnect_thread = None
         self.midi_backend = mido.backend.name
+        self.idle_thread = None
+        self.idle_stop_event = threading.Event()
 
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
@@ -399,6 +401,74 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
+
+    def _grid_note(self, row: int, col: int) -> int:
+        return self.GRID_NOTES[row][col]
+
+    def _idle_face_frames(self) -> List[Dict[int, str]]:
+        eyes = [self._grid_note(2, 2), self._grid_note(2, 5)]
+        smile = [
+            self._grid_note(4, 1),
+            self._grid_note(4, 6),
+            self._grid_note(5, 2),
+            self._grid_note(5, 3),
+            self._grid_note(5, 4),
+            self._grid_note(5, 5),
+        ]
+        neutral = [
+            self._grid_note(4, 2),
+            self._grid_note(4, 3),
+            self._grid_note(4, 4),
+            self._grid_note(4, 5),
+        ]
+        frown = [
+            self._grid_note(5, 1),
+            self._grid_note(5, 6),
+            self._grid_note(4, 2),
+            self._grid_note(4, 3),
+            self._grid_note(4, 4),
+            self._grid_note(4, 5),
+        ]
+        return [
+            {note: "yellow" for note in eyes + smile},
+            {note: "yellow" for note in smile},
+            {note: "yellow" for note in eyes + frown},
+            {note: "yellow" for note in eyes + neutral},
+        ]
+
+    def _idle_animation_worker(self):
+        frames = self._idle_face_frames()
+        frame_index = 0
+        previous_notes: Dict[int, str] = {}
+        while not self.idle_stop_event.is_set() and self.running and self.output_port:
+            frame = frames[frame_index]
+            for note in previous_notes:
+                if note not in frame:
+                    self.set_pad_color(note, "off")
+            for note, color in frame.items():
+                self.set_pad_color(note, color)
+            previous_notes = frame
+            frame_index = (frame_index + 1) % len(frames)
+            time.sleep(0.6)
+        for note in previous_notes:
+            self.set_pad_color(note, "off")
+
+    def _start_idle_animation(self):
+        if self.idle_thread and self.idle_thread.is_alive():
+            return
+        self.idle_stop_event.clear()
+        self.idle_thread = threading.Thread(target=self._idle_animation_worker, daemon=True)
+        self.idle_thread.start()
+
+    def _stop_idle_animation(self):
+        if not self.idle_thread:
+            return
+        self.idle_stop_event.set()
+        self.idle_thread.join(timeout=1)
+        self.idle_thread = None
+
+    def _has_active_mappings(self) -> bool:
+        return bool(self.profile.get_layer_mappings(self.current_layer))
 
     def get_midi_backend(self) -> str:
         return self.midi_backend
@@ -653,8 +723,14 @@ class LaunchpadMapper:
                 self.set_pad_color(note, "off")
     
     def update_pad_colors(self):
+        self._stop_idle_animation()
         self.clear_all_pads()
-        for note, mapping in self.profile.get_layer_mappings(self.current_layer).items():
+        mappings = self.profile.get_layer_mappings(self.current_layer)
+        if not self._has_active_mappings():
+            if self.running and self.output_port:
+                self._start_idle_animation()
+            return
+        for note, mapping in mappings.items():
             if mapping.enabled:
                 self.set_pad_color(note, mapping.color)
 
@@ -924,6 +1000,7 @@ class LaunchpadMapper:
         self.running = False
         self.stop_all_repeats()
         self.stop_all_animations()
+        self._stop_idle_animation()
         if self.midi_thread:
             self.midi_thread.join(timeout=1)
         self.clear_all_pads()
