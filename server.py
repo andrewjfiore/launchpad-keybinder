@@ -125,6 +125,24 @@ def get_ports():
     return jsonify(mapper.get_available_ports())
 
 
+@app.route('/api/midi-backend', methods=['GET', 'POST'])
+def midi_backend():
+    if request.method == 'GET':
+        return jsonify({
+            "current": mapper.get_midi_backend(),
+            "options": mapper.BACKEND_OPTIONS,
+        })
+    data = request.json or {}
+    backend = data.get("backend")
+    result = mapper.set_midi_backend(backend)
+    if not result.get("success"):
+        return jsonify(result), 400
+    return jsonify({
+        "success": True,
+        "current": mapper.get_midi_backend(),
+    })
+
+
 @app.route('/api/connect', methods=['POST'])
 def connect():
     """Connect to MIDI ports."""

@@ -17,6 +17,8 @@ from functools import lru_cache
 from itertools import chain
 from typing import Optional, Dict, List, Callable, Any
 
+os.environ.setdefault("MIDO_BACKEND", "mido.backends.rtmidi")
+
 import mido
 from mido import Message
 from flask import Flask, request, jsonify, Response
@@ -365,6 +367,10 @@ class LaunchpadMapper:
     ]
     CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]
     SCENE_NOTES = [89, 79, 69, 59, 49, 39, 29, 19]
+    BACKEND_OPTIONS = [
+        "mido.backends.rtmidi",
+        "mido.backends.pygame",
+    ]
     
     def __init__(self):
         self.profile = Profile()
@@ -381,6 +387,7 @@ class LaunchpadMapper:
         self.auto_reconnect_interval = 2.0
         self.auto_reconnect_stop = threading.Event()
         self.auto_reconnect_thread = None
+        self.midi_backend = mido.backend.name
 
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
@@ -392,6 +399,23 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
+
+    def get_midi_backend(self) -> str:
+        return self.midi_backend
+
+    def set_midi_backend(self, backend_name: str) -> Dict[str, Any]:
+        if backend_name not in self.BACKEND_OPTIONS:
+            return {"success": False, "error": "Unsupported MIDI backend."}
+        try:
+            if self.running:
+                self.stop()
+            if self.input_port or self.output_port:
+                self.disconnect()
+            mido.set_backend(backend_name)
+            self.midi_backend = backend_name
+            return {"success": True}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
         
     def get_available_ports(self) -> Dict[str, Any]:
         """Get available MIDI ports with error handling"""
@@ -436,23 +460,13 @@ class LaunchpadMapper:
             if not port_list:
                 return None
             normalized = [(port, port.lower().replace(" ", "")) for port in port_list]
-            keywords = [
-                "launchpad",
-                "lpmini",
-                "lpminimk",
-                "lpmk",
-                "lppro",
-                "launchpadx",
-                "novation",
-            ]
+            keywords = ["launchpad", "lpmini", "lpmk", "novation"]
             for port, normalized_name in normalized:
                 if any(keyword in normalized_name for keyword in keywords):
                     if "daw" not in normalized_name and "session" not in normalized_name:
                         return port
-            for port, normalized_name in normalized:
-                if any(keyword in normalized_name for keyword in keywords):
-                    return port
-            if len(port_list) == 1:
+            if len(port_list) > 0:
+                print(f"Auto-selecting generic MIDI device: {port_list[0]}")
                 return port_list[0]
             return None
 
@@ -567,12 +581,17 @@ class LaunchpadMapper:
             self.connect(self.last_input_port, self.last_output_port, retries=1, retry_delay=0.2)
 
     def enter_programmer_mode(self):
-        """Send SysEx to enter Programmer mode for custom LED control."""
+        """Send SysEx to enter Programmer mode (Launchpad only)."""
         if not self.output_port:
             return
 
         port_name = self.output_port.name.lower()
         print(f"Initializing device on port: {self.output_port.name}")
+
+        is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
+        if not is_launchpad:
+            print("Generic MIDI device detected. Skipping Launchpad initialization.")
+            return
 
         # Launchpad MK2 (RGB) requires different commands than MK3/X/Pro models
         # The command 0x0E 0x01 that puts MK3 into Programmer Mode causes MK2
@@ -611,13 +630,20 @@ class LaunchpadMapper:
 
     def set_pad_color(self, note: int, color: str):
         if self.output_port:
-            if color.startswith('#'):
-                closest = find_closest_launchpad_color(color)
-                velocity = LAUNCHPAD_COLORS.get(closest, 0)
-            else:
-                velocity = LAUNCHPAD_COLORS.get(color, 0)
-            msg = Message('note_on', note=note, velocity=velocity)
-            self.output_port.send(msg)
+            port_name = self.output_port.name.lower()
+            is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
+            velocity = 127 if color != "off" else 0
+            if is_launchpad:
+                if color.startswith('#'):
+                    closest = find_closest_launchpad_color(color)
+                    velocity = LAUNCHPAD_COLORS.get(closest, 0)
+                else:
+                    velocity = LAUNCHPAD_COLORS.get(color, 0)
+            try:
+                msg = Message('note_on', note=note, velocity=velocity)
+                self.output_port.send(msg)
+            except Exception as e:
+                print(f"Error setting LED: {e}")
     
     def clear_all_pads(self):
         if self.output_port:
