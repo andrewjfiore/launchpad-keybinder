@@ -1,15 +1,16 @@
 /*
     Lightroom Slider Control - AutoHotkey v2 Script
-    Version: 2.0
-    
+    Version: 2.1 (Fixed)
+
     Maps keyboard shortcuts to Lightroom Slider Control plugin commands.
-    
+    Safety Update: Only executes when Lightroom is in focus.
+
     INSTALLATION:
     1. Install AutoHotkey v2 from https://www.autohotkey.com/
     2. Install LightroomSliderControl.lrplugin in Lightroom
     3. Run this script
     4. Test: In Lightroom Develop module, press Ctrl+Alt+Shift+Win+1
-    
+
     CONFIGURATION:
     - Adjust MENU_DELAY if menus aren't responding (increase for slower PCs)
     - Adjust PLUGIN_POS if you have multiple plugins installed
@@ -26,98 +27,95 @@ global PLUGIN_POS := 1           ; Position of Slider Control in Plug-in Extras 
 global ENABLE_HOTKEYS := 0       ; Set to 1 to enable scancode hotkeys
 
 configPath := A_ScriptDir "\\lightroom-slider-control.ini"
-MENU_DELAY := IniRead(configPath, "Settings", "MENU_DELAY", MENU_DELAY)
-SUBMENU_DELAY := IniRead(configPath, "Settings", "SUBMENU_DELAY", SUBMENU_DELAY)
-ITEM_DELAY := IniRead(configPath, "Settings", "ITEM_DELAY", ITEM_DELAY)
-PLUGIN_POS := IniRead(configPath, "Settings", "PLUGIN_POS", PLUGIN_POS)
-IPC_DIR := IniRead(configPath, "Settings", "IPC_DIR", A_Temp "\\lrslider_ipc")
-ENABLE_HOTKEYS := IniRead(configPath, "Settings", "ENABLE_HOTKEYS", ENABLE_HOTKEYS)
+try {
+    MENU_DELAY := IniRead(configPath, "Settings", "MENU_DELAY", MENU_DELAY)
+    SUBMENU_DELAY := IniRead(configPath, "Settings", "SUBMENU_DELAY", SUBMENU_DELAY)
+    ITEM_DELAY := IniRead(configPath, "Settings", "ITEM_DELAY", ITEM_DELAY)
+    PLUGIN_POS := IniRead(configPath, "Settings", "PLUGIN_POS", PLUGIN_POS)
+    IPC_DIR := IniRead(configPath, "Settings", "IPC_DIR", A_Temp "\\lrslider_ipc")
+    ENABLE_HOTKEYS := IniRead(configPath, "Settings", "ENABLE_HOTKEYS", ENABLE_HOTKEYS)
+}
 
 if !DirExist(IPC_DIR) {
     DirCreate(IPC_DIR)
 }
 
-SetTimer(CheckIpcQueue, 50)
+SetTimer(CheckIpcQueue, 20)
 
 ; === ONLY ACTIVE IN LIGHTROOM ===
 #HotIf WinActive("ahk_exe lightroom.exe") or WinActive("ahk_exe Lightroom.exe")
 
 ; === MENU NAVIGATION FUNCTION ===
 TriggerPluginCommand(cmdPos) {
-    /*
-    Navigate: File > Plug-in Extras > Slider Control > Command
-    
-    Steps:
-    1. Open File menu (Alt+F)
-    2. Open Plug-in Extras submenu (press 'g' or navigate)
-    3. Enter Slider Control submenu
-    4. Navigate to command position
-    5. Press Enter
-    */
-    
-    ; Close any open menus first
-    Send("{Escape}")
-    Sleep(50)
-    
-    ; Open File menu
-    Send("!f")
-    Sleep(MENU_DELAY)
-    
-    ; Navigate to Plug-in Extras
-    ; In English Lightroom, it's near the bottom of File menu
-    ; Use 'g' accelerator key if available, otherwise navigate
-    Send("g")  ; Try accelerator first
-    Sleep(SUBMENU_DELAY)
-    
-    ; If accelerator didn't work, the menu might still be on File
-    ; Navigate down to find Plug-in Extras (typically position varies)
-    ; Uncomment below if 'g' accelerator doesn't work:
-    ; Loop 15 {
-    ;     Send("{Down}")
-    ;     Sleep(ITEM_DELAY)
-    ; }
-    ; Send("{Right}")
-    ; Sleep(SUBMENU_DELAY)
-    
-    ; Now we should be in Plug-in Extras submenu
-    ; Navigate to Slider Control
-    if (PLUGIN_POS > 1) {
-        Loop PLUGIN_POS - 1 {
-            Send("{Down}")
-            Sleep(ITEM_DELAY)
+    ; FINAL SAFETY CHECK: Ensure we are still in Lightroom before typing
+    if !WinActive("ahk_exe lightroom.exe") && !WinActive("ahk_exe Lightroom.exe")
+        return
+
+    BlockInput(true) ; Prevent user interference during macro
+    try {
+        ; Close any open menus first
+        Send("{Escape}")
+        Sleep(50)
+
+        ; Open File menu
+        Send("!f")
+        Sleep(MENU_DELAY)
+
+        ; Navigate to Plug-in Extras
+        ; Try 'u' for Plug-in Extras (common in English LR Classic) or 'g'
+        ; If 'g' is failing for you, we can try navigating down.
+        Send("u")
+        Sleep(SUBMENU_DELAY)
+
+        ; Navigate to Slider Control (assuming it's the first plugin)
+        if (PLUGIN_POS > 1) {
+            Loop PLUGIN_POS - 1 {
+                Send("{Down}")
+                Sleep(ITEM_DELAY)
+            }
         }
-    }
-    
-    ; Enter Slider Control submenu
-    Send("{Right}")
-    Sleep(SUBMENU_DELAY)
-    
-    ; Navigate to the specific command
-    if (cmdPos > 1) {
-        Loop cmdPos - 1 {
-            Send("{Down}")
-            Sleep(ITEM_DELAY)
+
+        ; Enter Slider Control submenu
+        Send("{Right}")
+        Sleep(SUBMENU_DELAY)
+
+        ; Navigate to the specific command
+        if (cmdPos > 1) {
+            Loop cmdPos - 1 {
+                Send("{Down}")
+                Sleep(ITEM_DELAY)
+            }
         }
+
+        ; Execute
+        Send("{Enter}")
+    } finally {
+        BlockInput(false)
     }
-    
-    ; Execute
-    Send("{Enter}")
 }
 
 CheckIpcQueue() {
     global IPC_DIR
+
+    ; Loop through all pending command files
     Loop Files, IPC_DIR "\\*.txt" {
         file := A_LoopFileFullPath
         try {
+            ; Read the command
             cmd := Trim(FileRead(file))
+
+            ; CRITICAL: Delete file immediately to prevent "queue explosion" later
             FileDelete(file)
-            if cmd {
+
+            ; CRITICAL: Only execute if Lightroom is actually focused
+            if (cmd && (WinActive("ahk_exe lightroom.exe") || WinActive("ahk_exe Lightroom.exe"))) {
                 cmdPos := Integer(cmd)
                 if cmdPos > 0 {
                     TriggerPluginCommand(cmdPos)
                 }
             }
         } catch as err {
+            ; If we can't read/delete, try deleting again to avoid stuck files
             try FileDelete(file)
         }
     }
@@ -197,64 +195,24 @@ if (ENABLE_HOTKEYS) {
     ^#sc003::TriggerPluginCommand(50)   ; Yellow Sat -
     ^#sc004::TriggerPluginCommand(51)   ; Yellow Lum +
     ^#sc005::TriggerPluginCommand(52)   ; Yellow Lum -
-
-    ; CROP (positions 53-55)
-    ^#sc006::TriggerPluginCommand(53)   ; Straighten +
-    ^#sc007::TriggerPluginCommand(54)   ; Straighten -
-    ^#sc008::TriggerPluginCommand(55)   ; CropAngle Reset
-
-    ; RESETS (positions 56-60)
-    ^#sc009::TriggerPluginCommand(56)   ; Reset Exposure
-    ^#sc00A::TriggerPluginCommand(57)   ; Reset White Balance
-    ^#sc00B::TriggerPluginCommand(58)   ; Reset Tone
-    ^#sc00C::TriggerPluginCommand(59)   ; Reset Presence
-    ^#sc00D::TriggerPluginCommand(60)   ; Reset Effects
 }
 
 #HotIf
 
 ; === SYSTEM TRAY ===
 A_TrayMenu.Delete()
-A_TrayMenu.Add("LR Slider Control v2.0", (*) => {})
-A_TrayMenu.Disable("LR Slider Control v2.0")
-A_TrayMenu.Add()
-A_TrayMenu.Add("Hotkey Reference", ShowHelp)
-A_TrayMenu.Add()
-A_TrayMenu.Add("Menu Delay + (slower)", (*) => AdjustDelay(25))
-A_TrayMenu.Add("Menu Delay - (faster)", (*) => AdjustDelay(-25))
+A_TrayMenu.Add("LR Slider Control v2.1", (*) => {})
+A_TrayMenu.Disable("LR Slider Control v2.1")
 A_TrayMenu.Add()
 A_TrayMenu.Add("Reload", (*) => Reload())
 A_TrayMenu.Add("Exit", (*) => ExitApp())
 
-AdjustDelay(delta) {
-    global MENU_DELAY
-    MENU_DELAY := Max(50, MENU_DELAY + delta)
-    TrayTip("Delay: " . MENU_DELAY . "ms")
+TrayTip("LR Slider Control", "Active and Safe (LR Only)", 1)
+
+; === EMERGENCY STOP ===
+; Press Ctrl + Escape to immediately kill the script if it acts up
+^Esc::
+{
+    SoundBeep(1000, 200)
+    ExitApp
 }
-
-ShowHelp(*) {
-    help := "
-    (
-LIGHTROOM SLIDER CONTROL HOTKEYS
-================================
-
-Commands can be triggered via IPC queue files. Scancode hotkeys are disabled
-by default because they can interfere with OS shortcuts.
-IPC uses files dropped into: %TEMP%\\lrslider_ipc (override via INI).
-
-OPTIONAL HOTKEY GROUPS (set ENABLE_HOTKEYS=1 in INI):
-  Ctrl+Alt+Shift+Win + 1..= = Commands 01-12 (Basic Tone)
-  Ctrl+Alt+Win + 1..=       = Commands 13-24 (WB + Presence)
-  Ctrl+Shift+Win + 1..=     = Commands 25-36 (Saturation + Effects + Red Hue)
-  Alt+Shift+Win + 1..=      = Commands 37-48 (Red Sat/Lum, Orange, Yellow Hue)
-  Ctrl+Win + 1..=           = Commands 49-60 (Yellow Sat/Lum, Crop, Resets)
-
-EXAMPLE:
-  Ctrl+Alt+Shift+Win+1 = Exposure increase
-  Ctrl+Alt+Shift+Win+2 = Exposure decrease
-    )"
-    MsgBox(help, "Hotkey Reference", 0x40)
-}
-
-; Startup notification
-TrayTip("LR Slider Control", "Hotkeys active - right-click tray for help", 1)

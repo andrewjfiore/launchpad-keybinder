@@ -447,6 +447,10 @@ class LaunchpadMapper:
             ]
             for port, normalized_name in normalized:
                 if any(keyword in normalized_name for keyword in keywords):
+                    if "daw" not in normalized_name and "session" not in normalized_name:
+                        return port
+            for port, normalized_name in normalized:
+                if any(keyword in normalized_name for keyword in keywords):
                     return port
             if len(port_list) == 1:
                 return port_list[0]
