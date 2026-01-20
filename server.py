@@ -10,7 +10,7 @@ import queue
 import tempfile
 import threading
 import time
-from flask import Flask, render_template, jsonify, request, Response
+from flask import Flask, render_template, jsonify, request, Response, send_file
 from flask_cors import CORS
 
 from launchpad_mapper import (
@@ -28,6 +28,8 @@ except ImportError:
 app = Flask(__name__)
 CORS(app)
 
+LOG_PATH = os.path.join(tempfile.gettempdir(), "launchpad_mapper.log")
+
 # Global mapper instance
 mapper = LaunchpadMapper()
 profiles = {mapper.profile.name: mapper.profile}
@@ -40,6 +42,17 @@ mapper.set_auto_reconnect(True, 2.0)
 # Event queue for server-sent events
 event_queues = []
 event_queues_lock = threading.Lock()
+
+
+def append_log(message: str):
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    with open(LOG_PATH, "a", encoding="utf-8") as handle:
+        handle.write(f"[{timestamp}] {message}\n")
+
+
+with open(LOG_PATH, "a", encoding="utf-8") as _handle:
+    _handle.write("")
+append_log("Server initialized")
 
 
 def broadcast_event(data):
@@ -125,6 +138,59 @@ def get_ports():
     return jsonify(mapper.get_available_ports())
 
 
+@app.route('/api/midi-backend', methods=['GET', 'POST'])
+def midi_backend():
+    if request.method == 'GET':
+        return jsonify({
+            "current": mapper.get_midi_backend(),
+            "options": mapper.get_midi_backends(),
+        })
+    data = request.json or {}
+    backend = data.get("backend")
+    result = mapper.set_midi_backend(backend)
+    if not result.get("success"):
+        append_log(f"MIDI backend change failed: {backend} ({result.get('error')})")
+        return jsonify(result), 400
+    append_log(f"MIDI backend set to {backend}")
+    return jsonify({
+        "success": True,
+        "current": mapper.get_midi_backend(),
+    })
+
+
+@app.route('/api/midi-backend/refresh', methods=['POST'])
+def midi_backend_refresh():
+    result = mapper.refresh_midi_backend()
+    if not result.get("success"):
+        append_log(f"MIDI backend refresh failed: {result.get('error')}")
+        return jsonify(result), 400
+    append_log(f"MIDI backend refreshed: {mapper.get_midi_backend()}")
+    return jsonify({
+        "success": True,
+        "current": mapper.get_midi_backend(),
+        "ports": mapper.get_available_ports(),
+    })
+
+
+@app.route('/api/logs/download')
+def download_logs():
+    if not os.path.exists(LOG_PATH):
+        with open(LOG_PATH, "a", encoding="utf-8"):
+            pass
+        append_log("Log download requested with no log file present")
+    return send_file(LOG_PATH, as_attachment=True, download_name="launchpad_mapper.log")
+
+
+@app.route('/api/logs/click', methods=['POST'])
+def log_click():
+    data = request.json or {}
+    label = data.get("label", "")
+    target_id = data.get("id", "")
+    tag = data.get("tag", "")
+    append_log(f"Click: label={label} id={target_id} tag={tag}")
+    return jsonify({"success": True})
+
+
 @app.route('/api/connect', methods=['POST'])
 def connect():
     """Connect to MIDI ports."""
@@ -146,6 +212,11 @@ def connect():
         retry_delay=retry_delay,
     )
     mapper.set_auto_reconnect(True, 2.0)
+    append_log(
+        "Connect request: "
+        f"input={data.get('input_port')}, output={data.get('output_port')}, "
+        f"success={result.get('success')}, error={result.get('error')}"
+    )
     return jsonify({
         "connected": result.get("success", False),
         "message": result.get("message", "Unknown error"),
@@ -180,6 +251,7 @@ def auto_reconnect():
 def disconnect():
     """Disconnect from MIDI ports."""
     mapper.disconnect()
+    append_log("Disconnected from MIDI ports")
     return jsonify({"message": "Disconnected"})
 
 
@@ -187,6 +259,7 @@ def disconnect():
 def start():
     """Start the mapper."""
     success = mapper.start()
+    append_log(f"Mapper start requested (success={success})")
     return jsonify({
         "started": success,
         "message": "Mapper started" if success else "Failed to start - is MIDI connected?"
@@ -197,6 +270,7 @@ def start():
 def stop():
     """Stop the mapper."""
     mapper.stop()
+    append_log("Mapper stopped")
     return jsonify({"message": "Mapper stopped"})
 
 
@@ -241,8 +315,13 @@ def save_mapping():
 
     # Update pad color if running
     if mapper.running and layer == mapper.current_layer:
-        mapper.set_pad_color(mapping.note, mapping.color if mapping.enabled else 'off')
+        mapper.update_pad_colors()
 
+    append_log(
+        "Saved mapping: "
+        f"note={mapping.note}, key_combo={mapping.key_combo}, color={mapping.color}, "
+        f"layer={layer}"
+    )
     return jsonify({"success": True, "mapping": mapping.to_dict()})
 
 
@@ -262,7 +341,8 @@ def delete_mapping(note):
     layer = request.args.get("layer") or mapper.current_layer
     mapper.profile.remove_mapping(note, layer)
     if mapper.running and layer == mapper.current_layer:
-        mapper.set_pad_color(note, 'off')
+        mapper.update_pad_colors()
+    append_log(f"Deleted mapping: note={note}, layer={layer}")
     return jsonify({"success": True})
 
 
@@ -284,8 +364,10 @@ def update_profile():
             mapper.profile.name = data['name']
             profiles.pop(old_name, None)
             profiles[mapper.profile.name] = mapper.profile
+            append_log(f"Profile renamed: {old_name} -> {mapper.profile.name}")
     if 'description' in data:
         mapper.profile.description = data['description']
+        append_log("Profile description updated")
     return jsonify({"success": True})
 
 
@@ -299,6 +381,8 @@ def export_profile():
             mapper.profile.name = name
             profiles.pop(old_name, None)
             profiles[mapper.profile.name] = mapper.profile
+            append_log(f"Profile export renamed: {old_name} -> {mapper.profile.name}")
+    append_log(f"Profile exported: {mapper.profile.name}")
     return jsonify(mapper.profile.to_dict())
 
 
@@ -312,6 +396,7 @@ def import_profile():
     with profile_lock:
         profiles[profile.name] = profile
     mapper.set_profile(profile)
+    append_log(f"Profile imported: {profile.name}")
     return jsonify({"success": True, "profile": mapper.profile.to_dict()})
 
 
@@ -327,7 +412,8 @@ def clear_mappings():
     with profile_lock:
         profiles[current_name] = profile
     if mapper.running:
-        mapper.clear_all_pads()
+        mapper.update_pad_colors()
+    append_log(f"Cleared mappings for profile: {current_name}")
     return jsonify({"success": True})
 
 
