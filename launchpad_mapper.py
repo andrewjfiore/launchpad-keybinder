@@ -9,6 +9,7 @@ import os
 import platform
 import queue
 import socket
+import pkgutil
 import threading
 import time
 import tempfile
@@ -371,10 +372,7 @@ class LaunchpadMapper:
     ]
     CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]
     SCENE_NOTES = [89, 79, 69, 59, 49, 39, 29, 19]
-    BACKEND_OPTIONS = [
-        "mido.backends.rtmidi",
-        "mido.backends.pygame",
-    ]
+    BACKEND_OPTIONS = []
     
     def __init__(self):
         self.profile = Profile()
@@ -391,6 +389,7 @@ class LaunchpadMapper:
         self.auto_reconnect_interval = 2.0
         self.auto_reconnect_stop = threading.Event()
         self.auto_reconnect_thread = None
+        self.backend_options = self._discover_backends()
         self.midi_backend = mido.backend.name
         self.idle_thread = None
         self.idle_stop_event = threading.Event()
@@ -405,6 +404,15 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
+
+    def _discover_backends(self) -> List[str]:
+        discovered = []
+        for module in pkgutil.iter_modules(mido.backends.__path__):
+            name = module.name
+            if name == "backend":
+                continue
+            discovered.append(f"mido.backends.{name}")
+        return sorted(set(discovered))
 
     def _grid_note(self, row: int, col: int) -> int:
         return self.GRID_NOTES[row][col]
@@ -477,8 +485,13 @@ class LaunchpadMapper:
     def get_midi_backend(self) -> str:
         return self.midi_backend
 
+    def get_midi_backends(self) -> List[str]:
+        if not self.backend_options:
+            self.backend_options = self._discover_backends()
+        return self.backend_options
+
     def set_midi_backend(self, backend_name: str) -> Dict[str, Any]:
-        if backend_name not in self.BACKEND_OPTIONS:
+        if backend_name not in self.get_midi_backends():
             return {"success": False, "error": "Unsupported MIDI backend."}
         try:
             if self.running:
@@ -487,6 +500,17 @@ class LaunchpadMapper:
                 self.disconnect()
             mido.set_backend(backend_name)
             self.midi_backend = backend_name
+            return {"success": True}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def refresh_midi_backend(self) -> Dict[str, Any]:
+        try:
+            if self.running:
+                self.stop()
+            if self.input_port or self.output_port:
+                self.disconnect()
+            mido.set_backend(self.midi_backend)
             return {"success": True}
         except Exception as exc:
             return {"success": False, "error": str(exc)}

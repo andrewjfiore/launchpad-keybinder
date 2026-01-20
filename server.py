@@ -143,7 +143,7 @@ def midi_backend():
     if request.method == 'GET':
         return jsonify({
             "current": mapper.get_midi_backend(),
-            "options": mapper.BACKEND_OPTIONS,
+            "options": mapper.get_midi_backends(),
         })
     data = request.json or {}
     backend = data.get("backend")
@@ -158,6 +158,20 @@ def midi_backend():
     })
 
 
+@app.route('/api/midi-backend/refresh', methods=['POST'])
+def midi_backend_refresh():
+    result = mapper.refresh_midi_backend()
+    if not result.get("success"):
+        append_log(f"MIDI backend refresh failed: {result.get('error')}")
+        return jsonify(result), 400
+    append_log(f"MIDI backend refreshed: {mapper.get_midi_backend()}")
+    return jsonify({
+        "success": True,
+        "current": mapper.get_midi_backend(),
+        "ports": mapper.get_available_ports(),
+    })
+
+
 @app.route('/api/logs/download')
 def download_logs():
     if not os.path.exists(LOG_PATH):
@@ -165,6 +179,16 @@ def download_logs():
             pass
         append_log("Log download requested with no log file present")
     return send_file(LOG_PATH, as_attachment=True, download_name="launchpad_mapper.log")
+
+
+@app.route('/api/logs/click', methods=['POST'])
+def log_click():
+    data = request.json or {}
+    label = data.get("label", "")
+    target_id = data.get("id", "")
+    tag = data.get("tag", "")
+    append_log(f"Click: label={label} id={target_id} tag={tag}")
+    return jsonify({"success": True})
 
 
 @app.route('/api/connect', methods=['POST'])

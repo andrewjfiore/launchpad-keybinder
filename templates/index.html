@@ -720,6 +720,9 @@
                         <option value="">MIDI Backend...</option>
                     </select>
                 </div>
+                <button class="btn-secondary" onclick="forceRefreshBackend()" style="padding: 8px 16px;">
+                    <span>🔌</span> Force Refresh
+                </button>
                 <button class="btn-success" onclick="quickStart()" id="quickStartBtn" style="padding: 8px 16px;">
                     <span>⚡</span> Connect & Start
                 </button>
@@ -1711,6 +1714,42 @@
                 log('Failed to set MIDI backend: ' + e.message, 'error');
             }
         }
+
+        async function forceRefreshBackend() {
+            try {
+                const response = await fetch('/api/midi-backend/refresh', {method: 'POST'});
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to refresh MIDI backend');
+                }
+                log(`MIDI backend refreshed: ${formatBackendName(data.current)}`, 'success');
+                loadMidiBackend();
+                refreshPorts();
+            } catch (e) {
+                log('Failed to refresh MIDI backend: ' + e.message, 'error');
+            }
+        }
+
+        async function logClick(label, target) {
+            try {
+                await fetch('/api/logs/click', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        label,
+                        id: target.id || '',
+                        tag: target.tagName || ''
+                    })
+                });
+            } catch (e) {
+            }
+        }
+
+        document.addEventListener('click', event => {
+            const target = event.target.closest('button') || event.target;
+            const label = target.innerText ? target.innerText.trim() : '';
+            logClick(label, target);
+        });
         
         async function loadMappings() {
             try {
