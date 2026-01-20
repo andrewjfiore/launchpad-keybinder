@@ -436,23 +436,13 @@ class LaunchpadMapper:
             if not port_list:
                 return None
             normalized = [(port, port.lower().replace(" ", "")) for port in port_list]
-            keywords = [
-                "launchpad",
-                "lpmini",
-                "lpminimk",
-                "lpmk",
-                "lppro",
-                "launchpadx",
-                "novation",
-            ]
+            keywords = ["launchpad", "lpmini", "lpmk", "novation"]
             for port, normalized_name in normalized:
                 if any(keyword in normalized_name for keyword in keywords):
                     if "daw" not in normalized_name and "session" not in normalized_name:
                         return port
-            for port, normalized_name in normalized:
-                if any(keyword in normalized_name for keyword in keywords):
-                    return port
-            if len(port_list) == 1:
+            if len(port_list) > 0:
+                print(f"Auto-selecting generic MIDI device: {port_list[0]}")
                 return port_list[0]
             return None
 
@@ -567,12 +557,17 @@ class LaunchpadMapper:
             self.connect(self.last_input_port, self.last_output_port, retries=1, retry_delay=0.2)
 
     def enter_programmer_mode(self):
-        """Send SysEx to enter Programmer mode for custom LED control."""
+        """Send SysEx to enter Programmer mode (Launchpad only)."""
         if not self.output_port:
             return
 
         port_name = self.output_port.name.lower()
         print(f"Initializing device on port: {self.output_port.name}")
+
+        is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
+        if not is_launchpad:
+            print("Generic MIDI device detected. Skipping Launchpad initialization.")
+            return
 
         # Launchpad MK2 (RGB) requires different commands than MK3/X/Pro models
         # The command 0x0E 0x01 that puts MK3 into Programmer Mode causes MK2
@@ -611,13 +606,20 @@ class LaunchpadMapper:
 
     def set_pad_color(self, note: int, color: str):
         if self.output_port:
-            if color.startswith('#'):
-                closest = find_closest_launchpad_color(color)
-                velocity = LAUNCHPAD_COLORS.get(closest, 0)
-            else:
-                velocity = LAUNCHPAD_COLORS.get(color, 0)
-            msg = Message('note_on', note=note, velocity=velocity)
-            self.output_port.send(msg)
+            port_name = self.output_port.name.lower()
+            is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
+            velocity = 127 if color != "off" else 0
+            if is_launchpad:
+                if color.startswith('#'):
+                    closest = find_closest_launchpad_color(color)
+                    velocity = LAUNCHPAD_COLORS.get(closest, 0)
+                else:
+                    velocity = LAUNCHPAD_COLORS.get(color, 0)
+            try:
+                msg = Message('note_on', note=note, velocity=velocity)
+                self.output_port.send(msg)
+            except Exception as e:
+                print(f"Error setting LED: {e}")
     
     def clear_all_pads(self):
         if self.output_port:
