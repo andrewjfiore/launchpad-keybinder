@@ -571,7 +571,27 @@ class LaunchpadMapper:
         if not self.output_port:
             return
 
-        # SysEx messages to enter Programmer mode for various Launchpad models
+        port_name = self.output_port.name.lower()
+        print(f"Initializing device on port: {self.output_port.name}")
+
+        # Launchpad MK2 (RGB) requires different commands than MK3/X/Pro models
+        # The command 0x0E 0x01 that puts MK3 into Programmer Mode causes MK2
+        # to turn all LEDs to color 1 (white). MK2 needs Session Layout command instead.
+        if "mk2" in port_name and "mini" not in port_name:
+            print("Detected Launchpad MK2 (RGB). Sending Session Layout command...")
+            try:
+                # Switch to Session Layout (enables grid Notes for input)
+                # SysEx: F0 00 20 29 02 18 22 00 F7
+                self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x22, 0x00]))
+                # Turn off all LEDs (clears the "stuck white" state)
+                # SysEx: F0 00 20 29 02 18 0E 00 F7
+                self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x0E, 0x00]))
+                print("Sent MK2 Session Layout and LED clear commands")
+            except Exception as e:
+                print(f"Error sending MK2 init: {e}")
+            return
+
+        # SysEx messages to enter Programmer mode for MK3/X/Pro models
         # Launchpad Mini MK3: F0 00 20 29 02 0D 0E 01 F7
         # Launchpad X: F0 00 20 29 02 0C 0E 01 F7
         # Launchpad Pro MK3: F0 00 20 29 02 0E 0E 01 F7
