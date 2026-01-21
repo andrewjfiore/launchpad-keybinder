@@ -36,5 +36,5 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Test files
-test_*.py
+# Pytest cache
+.pytest_cache/
