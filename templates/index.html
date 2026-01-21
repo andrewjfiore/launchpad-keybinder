@@ -483,6 +483,53 @@
         .log-entry.error .log-message {
             color: #ff4444;
         }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 4px solid #00d4ff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            min-width: 220px;
+            max-width: 320px;
+            font-size: 12px;
+            color: #e0e0e0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            border-left-color: #00ff99;
+        }
+
+        .toast.error {
+            border-left-color: #ff4d4f;
+        }
+
+        .toast.warn {
+            border-left-color: #ffaa00;
+        }
+
+        .toast.info {
+            border-left-color: #00d4ff;
+        }
         
         /* Key Hints */
         .key-hints {
@@ -715,14 +762,29 @@
                         <option value="">MIDI Output Port...</option>
                     </select>
                 </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 0.9; min-width: 180px;">
+                    <select id="midiBackend" style="padding: 8px 12px;" onchange="setMidiBackend()">
+                        <option value="">MIDI Backend...</option>
+                    </select>
+                </div>
+                <label class="status-badge" style="gap: 8px;">
+                    <input type="checkbox" id="emulationMode" style="margin: 0;">
+                    <span>Emulation</span>
+                </label>
+                <button class="btn-secondary" onclick="forceRefreshBackend()" style="padding: 8px 16px;" title="Reinitialize the current backend and rescan ports">
+                    <span>🔌</span> Force Refresh Backend
+                </button>
                 <button class="btn-success" onclick="quickStart()" id="quickStartBtn" style="padding: 8px 16px;">
                     <span>⚡</span> Connect & Start
                 </button>
                 <button class="btn-warning" onclick="stopMapper()" id="stopBtn" style="padding: 8px 16px;">
                     <span>⏹</span> Stop
                 </button>
-                <button class="btn-secondary" onclick="refreshPorts()" style="padding: 8px 16px;">
-                    <span>↻</span>
+                <button class="btn-secondary" onclick="refreshPorts()" style="padding: 8px 16px;" title="Refresh port list with the current backend">
+                    <span>↻</span> Refresh Ports
+                </button>
+                <button class="btn-secondary" onclick="downloadLogs()" style="padding: 8px 16px;">
+                    <span>⬇️</span> Log
                 </button>
             </div>
         </div>
@@ -986,6 +1048,7 @@
             </div>
         </div>
     </div>
+    <div class="toast-container" id="toastContainer"></div>
     
     <script>
         // Grid layout matching Launchpad Mini (Programmer mode)
@@ -1014,6 +1077,7 @@
         let availableLayers = [];
         let autoRules = [];
         let autoSwitchAvailable = false;
+        let emulationEnabled = false;
         
         // Initialize the grid
         function initGrid() {
@@ -1061,7 +1125,7 @@
                         pad.appendChild(actionsDiv);
 
                         // Click handler
-                        pad.onclick = () => selectPad(note);
+                        pad.onclick = () => handlePadClick(note);
 
                         // Double-click handler for layer actions
                         pad.addEventListener('dblclick', () => handlePadDoubleClick(note));
@@ -1116,6 +1180,35 @@
             }
 
             return false;
+        }
+
+        async function handlePadClick(note) {
+            if (emulationEnabled) {
+                await emulatePad(note);
+                return;
+            }
+            selectPad(note);
+        }
+
+        async function emulatePad(note) {
+            try {
+                const response = await fetch('/api/emulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({note})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to emulate pad');
+                }
+                if (data.action === 'layer' || data.action === 'layer_up') {
+                    currentLayer = data.current_layer || currentLayer;
+                    document.getElementById('currentLayer').textContent = currentLayer;
+                }
+                log(`Emulated pad ${note}`, 'success');
+            } catch (e) {
+                log('Failed to emulate pad: ' + e.message, 'error');
+            }
         }
 
         function handleDragEnd(e) {
@@ -1618,6 +1711,13 @@
                     outputSelect.appendChild(option);
                 });
 
+                if (data.inputs.length && !inputSelect.value) {
+                    inputSelect.value = data.inputs[0];
+                }
+                if (data.outputs.length && !outputSelect.value) {
+                    outputSelect.value = data.outputs[0];
+                }
+
                 if (data.inputs.length === 0 && data.outputs.length === 0 && data.error) {
                     log(data.error, 'error');
                 } else {
@@ -1627,6 +1727,124 @@
                 log('Failed to refresh ports: ' + e.message, 'error');
             }
         }
+
+        async function downloadLogs() {
+            try {
+                const response = await fetch('/api/logs/download');
+                if (!response.ok) {
+                    throw new Error('Failed to download logs');
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'launchpad_mapper.log';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                log('Failed to download logs: ' + e.message, 'error');
+            }
+        }
+
+        function formatBackendName(backend) {
+            if (!backend) return '';
+            if (backend.endsWith('.rtmidi')) return 'python-rtmidi';
+            if (backend.endsWith('.pygame')) return 'pygame.midi';
+            return backend;
+        }
+
+        async function loadMidiBackend() {
+            try {
+                const response = await fetch('/api/midi-backend');
+                const data = await response.json();
+                const backendSelect = document.getElementById('midiBackend');
+                backendSelect.innerHTML = '<option value="">MIDI Backend...</option>';
+                const preferred = data.options.find(option => option.endsWith('.rtmidi')) || data.options[0];
+                data.options.forEach(option => {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = option;
+                    optionEl.textContent = formatBackendName(option);
+                    if (option === data.current) {
+                        optionEl.selected = true;
+                    }
+                    backendSelect.appendChild(optionEl);
+                });
+                if (!backendSelect.value && preferred) {
+                    backendSelect.value = preferred;
+                }
+            } catch (e) {
+                log('Failed to load MIDI backends: ' + e.message, 'error');
+            }
+        }
+
+        async function setMidiBackend() {
+            const backend = document.getElementById('midiBackend').value;
+            if (!backend) {
+                return;
+            }
+            try {
+                const response = await fetch('/api/midi-backend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({backend})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to set MIDI backend');
+                }
+                log(`MIDI backend set to ${formatBackendName(data.current)}`, 'success');
+                refreshPorts();
+            } catch (e) {
+                log('Failed to set MIDI backend: ' + e.message, 'error');
+            }
+        }
+
+        async function forceRefreshBackend() {
+            try {
+                const response = await fetch('/api/midi-backend/refresh', {method: 'POST'});
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to refresh MIDI backend');
+                }
+                log(`MIDI backend refreshed: ${formatBackendName(data.current)}`, 'success');
+                loadMidiBackend();
+                refreshPorts();
+            } catch (e) {
+                log('Failed to refresh MIDI backend: ' + e.message, 'error');
+            }
+        }
+
+        async function logClick(label, target) {
+            try {
+                const payload = JSON.stringify({
+                    label,
+                    id: target.id || '',
+                    tag: target.tagName || ''
+                });
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([payload], {type: 'application/json'});
+                    navigator.sendBeacon('/api/logs/click', blob);
+                } else {
+                    await fetch('/api/logs/click', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: payload
+                    });
+                }
+            } catch (e) {
+            }
+        }
+
+        document.addEventListener('click', event => {
+            const target = event.target.closest('button') || event.target;
+            const label = target.innerText ? target.innerText.trim() : '';
+            logClick(label, target);
+            if (target.tagName === 'BUTTON' && label) {
+                showToast(`Clicked ${label}`, 'info');
+            }
+        });
         
         async function loadMappings() {
             try {
@@ -2045,6 +2263,26 @@
             while (logEl.children.length > 100) {
                 logEl.removeChild(logEl.lastChild);
             }
+
+            if (['error', 'warn', 'success'].includes(type)) {
+                showToast(message, type);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 200);
+            }, 3000);
         }
         
         function startEventStream() {
@@ -2249,6 +2487,14 @@
             initGrid();
             initColorPicker();
             initDragAndDrop();
+            loadMidiBackend();
+            const emulationToggle = document.getElementById('emulationMode');
+            if (emulationToggle) {
+                emulationToggle.addEventListener('change', event => {
+                    emulationEnabled = event.target.checked;
+                    log(`Emulation mode ${emulationEnabled ? 'enabled' : 'disabled'}`);
+                });
+            }
             refreshPorts();
             loadMappings();
             loadLayers();

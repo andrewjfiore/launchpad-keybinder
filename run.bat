@@ -22,7 +22,7 @@ if not defined PYTHON_EXE (
 REM Check for virtual environment
 if not exist "venv" (
     echo [2/4] Creating virtual environment...
-    %PYTHON_EXE% -m venv venv
+    %PYTHON_EXE% -m venv venv >nul 2>&1
 )
 
 REM Activate venv
