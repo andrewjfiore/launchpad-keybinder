@@ -4,6 +4,7 @@ Launchpad Mini MIDI to Keyboard Mapper
 Improved version with Windows support, hex colors, and key repeat
 """
 
+import atexit
 import json
 import os
 import platform
@@ -17,7 +18,11 @@ import uuid
 from dataclasses import dataclass, asdict
 from functools import lru_cache
 from itertools import chain
+from pathlib import Path
 from typing import Optional, Dict, List, Callable, Any
+
+# Import persistent Lightroom socket manager
+from lightroom_socket import get_lightroom_socket, LightroomSocketManager
 
 # Try rtmidi first, fall back to other backends if unavailable
 _backend_set = False
@@ -401,6 +406,10 @@ class LaunchpadMapper:
         self.last_input_port = None
         self.last_output_port = None
         self.connection_lock = threading.Lock()
+
+        # Thread-safe profile access lock (RLock allows nested locking from same thread)
+        self.profile_lock = threading.RLock()
+
         self.auto_reconnect_enabled = False
         self.auto_reconnect_interval = 5.0  # Increased from 2.0 to prevent race conditions
         self.auto_reconnect_stop = threading.Event()
@@ -427,6 +436,12 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
+
+        # Lightroom socket manager (persistent connection)
+        self._lightroom_socket: Optional[LightroomSocketManager] = None
+
+        # Register cleanup handler for graceful shutdown
+        atexit.register(self._cleanup_on_exit)
 
     def _discover_backends(self) -> List[str]:
         discovered = []
@@ -939,6 +954,54 @@ class LaunchpadMapper:
                 self.output_port.close()
                 self.output_port = None
 
+    def _cleanup_on_exit(self):
+        """
+        Cleanup handler registered with atexit.
+        Ensures all threads are stopped and resources released on exit.
+        """
+        print("Cleaning up Launchpad Mapper resources...")
+
+        # Stop auto-reconnect
+        self.auto_reconnect_stop.set()
+        if self.auto_reconnect_thread and self.auto_reconnect_thread.is_alive():
+            self.auto_reconnect_thread.join(timeout=1.0)
+
+        # Stop the mapper
+        self.running = False
+        self.stop_all_repeats()
+        self.stop_all_animations()
+        self._stop_idle_animation()
+        self._stop_idle_timeout_tracking()
+
+        # Wait for MIDI thread
+        if self.midi_thread and self.midi_thread.is_alive():
+            self.midi_thread.join(timeout=1.0)
+
+        # Close MIDI ports
+        try:
+            if self.input_port:
+                self.input_port.close()
+                self.input_port = None
+        except Exception as e:
+            print(f"Error closing input port: {e}")
+
+        try:
+            if self.output_port:
+                self.output_port.close()
+                self.output_port = None
+        except Exception as e:
+            print(f"Error closing output port: {e}")
+
+        # Cleanup Lightroom socket
+        try:
+            lightroom_socket = get_lightroom_socket()
+            lightroom_socket.stop_worker()
+            lightroom_socket.disconnect()
+        except Exception as e:
+            print(f"Error cleaning up Lightroom socket: {e}")
+
+        print("Cleanup complete")
+
     def set_auto_reconnect(self, enabled: bool, interval: float = 2.0):
         self.auto_reconnect_enabled = bool(enabled)
         self.auto_reconnect_interval = max(0.5, interval)
@@ -1068,32 +1131,36 @@ class LaunchpadMapper:
         return self.layer_stack[-1]
 
     def push_layer(self, layer: str):
-        self.profile.ensure_layer(layer)
-        self.layer_stack.append(layer)
-        if self.running:
-            self.update_pad_colors()
-        self.notify_layer_change()
-
-    def pop_layer(self):
-        if len(self.layer_stack) > 1:
-            self.layer_stack.pop()
+        with self.profile_lock:
+            self.profile.ensure_layer(layer)
+            self.layer_stack.append(layer)
             if self.running:
                 self.update_pad_colors()
             self.notify_layer_change()
 
+    def pop_layer(self):
+        with self.profile_lock:
+            if len(self.layer_stack) > 1:
+                self.layer_stack.pop()
+                if self.running:
+                    self.update_pad_colors()
+                self.notify_layer_change()
+
     def set_layer(self, layer: str):
-        self.profile.ensure_layer(layer)
-        self.layer_stack = [layer]
-        if self.running:
-            self.update_pad_colors()
-        self.notify_layer_change()
+        with self.profile_lock:
+            self.profile.ensure_layer(layer)
+            self.layer_stack = [layer]
+            if self.running:
+                self.update_pad_colors()
+            self.notify_layer_change()
 
     def set_profile(self, profile: Profile):
-        self.profile = profile
-        self.layer_stack = [profile.base_layer]
-        if self.running:
-            self.update_pad_colors()
-        self.notify_layer_change()
+        with self.profile_lock:
+            self.profile = profile
+            self.layer_stack = [profile.base_layer]
+            if self.running:
+                self.update_pad_colors()
+            self.notify_layer_change()
     
     def execute_key_combo(self, combo: str):
         """Execute a keyboard shortcut using the keyboard library (works on Windows)."""
@@ -1110,16 +1177,11 @@ class LaunchpadMapper:
             print(f"Error sending key combo '{combo}': {e}")
 
     def send_to_lightroom(self, command: str):
-        try:
-            with socket.create_connection(
-                (LIGHTROOM_SOCKET_HOST, LIGHTROOM_SOCKET_PORT),
-                timeout=0.5,
-            ) as handle:
-                handle.sendall(command.encode("utf-8"))
-        except ConnectionRefusedError:
-            print("Lightroom is not listening. Is the plugin running?")
-        except OSError as e:
-            print(f"Error sending Lightroom command: {e}")
+        """Send a command to Lightroom using persistent socket connection."""
+        # Use persistent socket manager for efficient high-frequency communication
+        socket_manager = get_lightroom_socket()
+        socket_manager.send_async(command)
+        socket_manager.start_worker()  # Ensure worker is running
 
     def execute_macro(self, mapping: PadMapping):
         """Execute a macro sequence."""
@@ -1247,7 +1309,9 @@ class LaunchpadMapper:
     def handle_midi_message(self, msg):
         if msg.type == 'note_on' and msg.velocity > 0:
             note = msg.note
-            mapping = self.profile.get_mapping(note, self.current_layer)
+            # Use profile lock for thread-safe access to mappings
+            with self.profile_lock:
+                mapping = self.profile.get_mapping(note, self.current_layer)
 
             # Reset idle timer on any pad activity
             self.reset_activity()
@@ -1305,7 +1369,9 @@ class LaunchpadMapper:
 
         elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
             note = msg.note
-            mapping = self.profile.get_mapping(note, self.current_layer)
+            # Use profile lock for thread-safe access to mappings
+            with self.profile_lock:
+                mapping = self.profile.get_mapping(note, self.current_layer)
 
             # Check if this is a short press (for long press feature)
             if note in self.press_times and mapping and mapping.enabled:
