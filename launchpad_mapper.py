@@ -851,24 +851,33 @@ class LaunchpadMapper:
         thread = threading.Thread(target=macro_worker, daemon=True)
         thread.start()
 
-    def emulate_pad_press(self, note: int) -> Dict[str, Any]:
+    def emulate_pad_press(self, note: int, skip_pulse: bool = False) -> Dict[str, Any]:
         mapping = self.profile.get_mapping(note, self.current_layer)
         if not mapping or not mapping.enabled:
             return {"success": False, "error": "No mapping for this pad."}
+
+        # Common mapping info to include in response
+        mapping_info = {
+            "label": mapping.label,
+            "key_combo": mapping.key_combo,
+            "color": mapping.color,
+        }
+
         if mapping.action == "layer_up":
             self.pop_layer()
-            return {"success": True, "action": "layer_up", "current_layer": self.current_layer}
+            return {"success": True, "action": "layer_up", "current_layer": self.current_layer, **mapping_info}
         if mapping.action == "layer" and mapping.target_layer:
             self.push_layer(mapping.target_layer)
-            return {"success": True, "action": "layer", "current_layer": self.current_layer}
+            return {"success": True, "action": "layer", "current_layer": self.current_layer, "target_layer": mapping.target_layer, **mapping_info}
         if mapping.macro_steps:
             self.execute_macro(mapping)
-            return {"success": True, "action": "macro"}
+            return {"success": True, "action": "macro", **mapping_info}
         action = self.get_velocity_action(mapping, 127)
         if action:
             self.execute_key_combo(action)
-            self.pulse(note, mapping.color, 0.2)
-            return {"success": True, "action": "key"}
+            if not skip_pulse:
+                self.pulse(note, mapping.color, 0.2)
+            return {"success": True, "action": "key", "executed_combo": action, **mapping_info}
         return {"success": False, "error": "No action for this mapping."}
 
     def get_velocity_action(self, mapping: PadMapping, velocity: int) -> Optional[str]:

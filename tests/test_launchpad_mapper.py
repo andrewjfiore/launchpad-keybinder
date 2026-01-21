@@ -296,6 +296,9 @@ class TestLaunchpadMapperEmulation:
         assert result.get('success') is True
         assert result.get('action') == 'layer_up'
         assert mapper.current_layer == mapper.profile.base_layer
+        # Check mapping info is included
+        assert result.get('label') == 'Up'
+        assert result.get('color') == 'green'
 
     def test_emulate_pad_press_layer_switch(self):
         """Test emulating layer switch action."""
@@ -309,6 +312,9 @@ class TestLaunchpadMapperEmulation:
         assert result.get('success') is True
         assert result.get('action') == 'layer'
         assert mapper.current_layer == 'Alt'
+        # Check mapping info is included
+        assert result.get('label') == 'Switch'
+        assert result.get('target_layer') == 'Alt'
 
     def test_emulate_pad_press_key_action(self):
         """Test emulating key action (with mocked execute)."""
@@ -323,6 +329,33 @@ class TestLaunchpadMapperEmulation:
         assert result.get('success') is True
         assert result.get('action') == 'key'
         assert 'ctrl+c' in executed
+        # Check mapping info is included
+        assert result.get('label') == 'Copy'
+        assert result.get('key_combo') == 'ctrl+c'
+        assert result.get('executed_combo') == 'ctrl+c'
+        assert result.get('color') == 'green'
+
+    def test_emulate_pad_press_skip_pulse(self):
+        """Test emulating with skip_pulse option."""
+        mapper = LaunchpadMapper()
+        mapping = PadMapping(
+            note=60, key_combo='ctrl+c', color='green', label='Copy'
+        )
+        mapper.profile.add_mapping(mapping)
+        executed = []
+        mapper.execute_key_combo = lambda combo: executed.append(combo)
+        pulsed = []
+        mapper.pulse = lambda note, color, duration: pulsed.append(note)
+
+        # With skip_pulse=True (default in API), no pulse
+        result = mapper.emulate_pad_press(60, skip_pulse=True)
+        assert result.get('success') is True
+        assert len(pulsed) == 0
+
+        # With skip_pulse=False, pulse is called
+        result = mapper.emulate_pad_press(60, skip_pulse=False)
+        assert result.get('success') is True
+        assert len(pulsed) == 1
 
 
 class TestLaunchpadMapperStartStop:
