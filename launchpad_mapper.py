@@ -1410,7 +1410,7 @@ class LaunchpadMapper:
 # HTML TEMPLATE (embedded)
 # ============================================================================
 
-HTML_TEMPLATE = '''
+HTML_TEMPLATE = r'''
 <!DOCTYPE html>
 <html lang="en">
 <head>

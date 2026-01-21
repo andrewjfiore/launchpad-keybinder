@@ -344,7 +344,47 @@ def status():
         "connected": mapper.input_port is not None,
         "running": mapper.running,
         "profile_name": mapper.profile.name,
-        "mapping_count": len(mapper.profile.get_layer_mappings(mapper.current_layer))
+        "mapping_count": len(mapper.profile.get_layer_mappings(mapper.current_layer)),
+        "input": getattr(mapper.input_port, 'name', None) if mapper.input_port else None,
+        "output": getattr(mapper.output_port, 'name', None) if mapper.output_port else None,
+    })
+
+
+@app.route('/api/midi-backend')
+def get_backend():
+    """Get the current MIDI backend."""
+    return jsonify({
+        "backend": os.environ.get("MIDO_BACKEND", "mido.backends.rtmidi"),
+        "available": mapper.get_midi_backends()
+    })
+
+
+@app.route('/api/set-backend', methods=['POST'])
+def set_backend():
+    """Set the MIDI backend (requires server restart to take effect)."""
+    data = request.json or {}
+    backend = data.get('backend')
+    if not backend:
+        return jsonify({"success": False, "error": "No backend provided"}), 400
+    result = mapper.set_midi_backend(backend)
+    if result.get("success"):
+        os.environ["MIDO_BACKEND"] = backend
+        append_log(f"MIDI backend set to: {backend}")
+    return jsonify(result)
+
+
+@app.route('/api/diagnostics')
+def diagnostics():
+    """Get diagnostic information about MIDI state."""
+    import mido
+    return jsonify({
+        "backend": os.environ.get("MIDO_BACKEND", "mido.backends.rtmidi"),
+        "inputs": list(mido.get_input_names()),
+        "outputs": list(mido.get_output_names()),
+        "connected": mapper.input_port is not None,
+        "device": getattr(mapper, 'device_type', None),
+        "input_port": getattr(mapper.input_port, 'name', None) if mapper.input_port else None,
+        "output_port": getattr(mapper.output_port, 'name', None) if mapper.output_port else None,
     })
 
 
