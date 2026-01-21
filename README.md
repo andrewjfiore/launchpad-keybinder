@@ -24,6 +24,11 @@ Map MIDI controller inputs (Launchpad and other devices) to keyboard shortcuts w
 - Python 3.8 or higher
 - A MIDI device (Launchpad models work best for LED feedback, but other devices are supported)
 
+### JavaScript/Web MIDI Rewrite
+
+A JavaScript rewrite lives in `web-midi/` and runs MIDI in the browser using the Web MIDI API. See
+`web-midi/README.md` for details on running the Node.js server and UI.
+
 ## Packaging (Windows EXE with PyInstaller)
 
 If you want a double-clickable Windows EXE, you can build one with PyInstaller:
