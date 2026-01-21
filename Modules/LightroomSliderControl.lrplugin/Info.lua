@@ -9,6 +9,7 @@ return {
     LrSdkMinimumVersion = 6.0,
     LrToolkitIdentifier = "com.launchpad.slidercontrol",
     LrPluginName = "Slider Control",
+    LrInitPlugin = "SocketServer.lua",
     
     LrExportMenuItems = {
         -- ============ BASIC TONE (1-12) ============

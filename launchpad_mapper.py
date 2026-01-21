@@ -8,6 +8,8 @@ import json
 import os
 import platform
 import queue
+import socket
+import pkgutil
 import threading
 import time
 import tempfile
@@ -16,6 +18,8 @@ from dataclasses import dataclass, asdict
 from functools import lru_cache
 from itertools import chain
 from typing import Optional, Dict, List, Callable, Any
+
+os.environ.setdefault("MIDO_BACKEND", "mido.backends.rtmidi")
 
 import mido
 from mido import Message
@@ -95,6 +99,9 @@ COLOR_HEX = {
     "amber": "#FFBF00",
     "amber_dim": "#806000",
 }
+
+LIGHTROOM_SOCKET_HOST = os.getenv("LR_SOCKET_HOST", "127.0.0.1")
+LIGHTROOM_SOCKET_PORT = int(os.getenv("LR_SOCKET_PORT", "55555"))
 
 # Map color names to closest Launchpad velocity by RGB distance
 @lru_cache(maxsize=128)
@@ -365,6 +372,7 @@ class LaunchpadMapper:
     ]
     CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]
     SCENE_NOTES = [89, 79, 69, 59, 49, 39, 29, 19]
+    BACKEND_OPTIONS = []
     
     def __init__(self):
         self.profile = Profile()
@@ -381,6 +389,10 @@ class LaunchpadMapper:
         self.auto_reconnect_interval = 2.0
         self.auto_reconnect_stop = threading.Event()
         self.auto_reconnect_thread = None
+        self.backend_options = self._discover_backends()
+        self.midi_backend = mido.backend.name
+        self.idle_thread = None
+        self.idle_stop_event = threading.Event()
 
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
@@ -392,6 +404,121 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
+
+    def _discover_backends(self) -> List[str]:
+        discovered = []
+        backend_path = getattr(mido.backends, "__path__", None)
+        if backend_path:
+            for module in pkgutil.iter_modules(backend_path):
+                name = module.name
+                if name == "backend":
+                    continue
+                discovered.append(f"mido.backends.{name}")
+        if not discovered:
+            discovered.extend(["mido.backends.rtmidi", "mido.backends.pygame"])
+        return sorted(set(discovered))
+
+    def _grid_note(self, row: int, col: int) -> int:
+        return self.GRID_NOTES[row][col]
+
+    def _idle_face_frames(self) -> List[Dict[int, str]]:
+        eyes = [self._grid_note(2, 2), self._grid_note(2, 5)]
+        smile = [
+            self._grid_note(4, 1),
+            self._grid_note(4, 6),
+            self._grid_note(5, 2),
+            self._grid_note(5, 3),
+            self._grid_note(5, 4),
+            self._grid_note(5, 5),
+        ]
+        neutral = [
+            self._grid_note(4, 2),
+            self._grid_note(4, 3),
+            self._grid_note(4, 4),
+            self._grid_note(4, 5),
+        ]
+        frown = [
+            self._grid_note(5, 1),
+            self._grid_note(5, 6),
+            self._grid_note(4, 2),
+            self._grid_note(4, 3),
+            self._grid_note(4, 4),
+            self._grid_note(4, 5),
+        ]
+        return [
+            {note: "yellow" for note in eyes + smile},
+            {note: "yellow" for note in smile},
+            {note: "yellow" for note in eyes + frown},
+            {note: "yellow" for note in eyes + neutral},
+        ]
+
+    def _idle_animation_worker(self):
+        frames = self._idle_face_frames()
+        frame_index = 0
+        previous_notes: Dict[int, str] = {}
+        while not self.idle_stop_event.is_set() and self.output_port and not self._has_active_mappings():
+            frame = frames[frame_index]
+            for note in previous_notes:
+                if note not in frame:
+                    self.set_pad_color(note, "off")
+            for note, color in frame.items():
+                self.set_pad_color(note, color)
+            previous_notes = frame
+            frame_index = (frame_index + 1) % len(frames)
+            time.sleep(0.6)
+        for note in previous_notes:
+            self.set_pad_color(note, "off")
+
+    def _start_idle_animation(self):
+        if self.idle_thread and self.idle_thread.is_alive():
+            return
+        self.idle_stop_event.clear()
+        self.idle_thread = threading.Thread(target=self._idle_animation_worker, daemon=True)
+        self.idle_thread.start()
+
+    def _stop_idle_animation(self):
+        if not self.idle_thread:
+            return
+        self.idle_stop_event.set()
+        self.idle_thread.join(timeout=1)
+        self.idle_thread = None
+
+    def _has_active_mappings(self) -> bool:
+        return bool(self.profile.get_layer_mappings(self.current_layer))
+
+    def get_midi_backend(self) -> str:
+        return self.midi_backend
+
+    def get_midi_backends(self) -> List[str]:
+        if not self.backend_options:
+            self.backend_options = self._discover_backends()
+        return self.backend_options
+
+    def set_midi_backend(self, backend_name: str) -> Dict[str, Any]:
+        if backend_name not in self.get_midi_backends():
+            return {"success": False, "error": "Unsupported MIDI backend."}
+        try:
+            if self.running:
+                self.stop()
+            if self.input_port or self.output_port:
+                self.disconnect()
+            mido.set_backend(backend_name)
+            self.midi_backend = backend_name
+            return {"success": True}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def refresh_midi_backend(self) -> Dict[str, Any]:
+        try:
+            if self.running:
+                self.stop()
+            if self.input_port or self.output_port:
+                self.disconnect()
+            mido.set_backend(self.midi_backend)
+            self.backend_options = self._discover_backends()
+            return {"success": True}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
         
     def get_available_ports(self) -> Dict[str, Any]:
         """Get available MIDI ports with error handling"""
@@ -436,23 +563,13 @@ class LaunchpadMapper:
             if not port_list:
                 return None
             normalized = [(port, port.lower().replace(" ", "")) for port in port_list]
-            keywords = [
-                "launchpad",
-                "lpmini",
-                "lpminimk",
-                "lpmk",
-                "lppro",
-                "launchpadx",
-                "novation",
-            ]
+            keywords = ["launchpad", "lpmini", "lpmk", "novation"]
             for port, normalized_name in normalized:
                 if any(keyword in normalized_name for keyword in keywords):
                     if "daw" not in normalized_name and "session" not in normalized_name:
                         return port
-            for port, normalized_name in normalized:
-                if any(keyword in normalized_name for keyword in keywords):
-                    return port
-            if len(port_list) == 1:
+            if len(port_list) > 0:
+                print(f"Auto-selecting generic MIDI device: {port_list[0]}")
                 return port_list[0]
             return None
 
@@ -513,6 +630,8 @@ class LaunchpadMapper:
 
                     if self.input_port is not None:
                         self.enter_programmer_mode()
+                        if self.output_port:
+                            self.update_pad_colors()
                         return {
                             "success": True,
                             "message": "Connected: " + ", ".join(messages),
@@ -567,12 +686,23 @@ class LaunchpadMapper:
             self.connect(self.last_input_port, self.last_output_port, retries=1, retry_delay=0.2)
 
     def enter_programmer_mode(self):
-        """Send SysEx to enter Programmer mode for custom LED control."""
+        """Send SysEx to enter Programmer mode (Launchpad only)."""
         if not self.output_port:
             return
 
         port_name = self.output_port.name.lower()
         print(f"Initializing device on port: {self.output_port.name}")
+
+        is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
+        if not is_launchpad:
+            print("Generic MIDI device detected. Skipping Launchpad initialization.")
+            return
+
+        try:
+            self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x22, 0x01]))
+            print("Sent Launchpad User 1 layout command")
+        except Exception as e:
+            print(f"Error sending User 1 layout command: {e}")
 
         # Launchpad MK2 (RGB) requires different commands than MK3/X/Pro models
         # The command 0x0E 0x01 that puts MK3 into Programmer Mode causes MK2
@@ -611,13 +741,20 @@ class LaunchpadMapper:
 
     def set_pad_color(self, note: int, color: str):
         if self.output_port:
-            if color.startswith('#'):
-                closest = find_closest_launchpad_color(color)
-                velocity = LAUNCHPAD_COLORS.get(closest, 0)
-            else:
-                velocity = LAUNCHPAD_COLORS.get(color, 0)
-            msg = Message('note_on', note=note, velocity=velocity)
-            self.output_port.send(msg)
+            port_name = self.output_port.name.lower()
+            is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
+            velocity = 127 if color != "off" else 0
+            if is_launchpad:
+                if color.startswith('#'):
+                    closest = find_closest_launchpad_color(color)
+                    velocity = LAUNCHPAD_COLORS.get(closest, 0)
+                else:
+                    velocity = LAUNCHPAD_COLORS.get(color, 0)
+            try:
+                msg = Message('note_on', note=note, velocity=velocity)
+                self.output_port.send(msg)
+            except Exception as e:
+                print(f"Error setting LED: {e}")
     
     def clear_all_pads(self):
         if self.output_port:
@@ -627,8 +764,14 @@ class LaunchpadMapper:
                 self.set_pad_color(note, "off")
     
     def update_pad_colors(self):
+        self._stop_idle_animation()
         self.clear_all_pads()
-        for note, mapping in self.profile.get_layer_mappings(self.current_layer).items():
+        mappings = self.profile.get_layer_mappings(self.current_layer)
+        if not self._has_active_mappings():
+            if self.output_port:
+                self._start_idle_animation()
+            return
+        for note, mapping in mappings.items():
             if mapping.enabled:
                 self.set_pad_color(note, mapping.color)
 
@@ -670,17 +813,25 @@ class LaunchpadMapper:
             if combo.startswith("lrslider:"):
                 command = combo.split(":", 1)[1].strip()
                 if command:
-                    ipc_dir = os.path.join(tempfile.gettempdir(), "lrslider_ipc")
-                    os.makedirs(ipc_dir, exist_ok=True)
-                    filename = f"cmd_{uuid.uuid4().hex}.txt"
-                    with open(os.path.join(ipc_dir, filename), "w", encoding="utf-8") as handle:
-                        handle.write(command)
+                    self.send_to_lightroom(command)
                 return
             # The keyboard library uses '+' for combinations naturally
             # It sends to the active window
             keyboard.send(combo)
         except Exception as e:
             print(f"Error sending key combo '{combo}': {e}")
+
+    def send_to_lightroom(self, command: str):
+        try:
+            with socket.create_connection(
+                (LIGHTROOM_SOCKET_HOST, LIGHTROOM_SOCKET_PORT),
+                timeout=0.5,
+            ) as handle:
+                handle.sendall(command.encode("utf-8"))
+        except ConnectionRefusedError:
+            print("Lightroom is not listening. Is the plugin running?")
+        except OSError as e:
+            print(f"Error sending Lightroom command: {e}")
 
     def execute_macro(self, mapping: PadMapping):
         """Execute a macro sequence."""
@@ -699,6 +850,26 @@ class LaunchpadMapper:
 
         thread = threading.Thread(target=macro_worker, daemon=True)
         thread.start()
+
+    def emulate_pad_press(self, note: int) -> Dict[str, Any]:
+        mapping = self.profile.get_mapping(note, self.current_layer)
+        if not mapping or not mapping.enabled:
+            return {"success": False, "error": "No mapping for this pad."}
+        if mapping.action == "layer_up":
+            self.pop_layer()
+            return {"success": True, "action": "layer_up", "current_layer": self.current_layer}
+        if mapping.action == "layer" and mapping.target_layer:
+            self.push_layer(mapping.target_layer)
+            return {"success": True, "action": "layer", "current_layer": self.current_layer}
+        if mapping.macro_steps:
+            self.execute_macro(mapping)
+            return {"success": True, "action": "macro"}
+        action = self.get_velocity_action(mapping, 127)
+        if action:
+            self.execute_key_combo(action)
+            self.pulse(note, mapping.color, 0.2)
+            return {"success": True, "action": "key"}
+        return {"success": False, "error": "No action for this mapping."}
 
     def get_velocity_action(self, mapping: PadMapping, velocity: int) -> Optional[str]:
         """Get the action for a specific velocity value."""
@@ -898,6 +1069,7 @@ class LaunchpadMapper:
         self.running = False
         self.stop_all_repeats()
         self.stop_all_animations()
+        self._stop_idle_animation()
         if self.midi_thread:
             self.midi_thread.join(timeout=1)
         self.clear_all_pads()
