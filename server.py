@@ -215,40 +215,6 @@ def get_ports():
     return jsonify(mapper.get_available_ports())
 
 
-@app.route('/api/midi-backend', methods=['GET', 'POST'])
-def midi_backend():
-    if request.method == 'GET':
-        return jsonify({
-            "current": mapper.get_midi_backend(),
-            "options": mapper.get_midi_backends(),
-        })
-    data = request.json or {}
-    backend = data.get("backend")
-    result = mapper.set_midi_backend(backend)
-    if not result.get("success"):
-        append_log(f"MIDI backend change failed: {backend} ({result.get('error')})")
-        return jsonify(result), 400
-    append_log(f"MIDI backend set to {backend}")
-    return jsonify({
-        "success": True,
-        "current": mapper.get_midi_backend(),
-    })
-
-
-@app.route('/api/midi-backend/refresh', methods=['POST'])
-def midi_backend_refresh():
-    result = mapper.refresh_midi_backend()
-    if not result.get("success"):
-        append_log(f"MIDI backend refresh failed: {result.get('error')}")
-        return jsonify(result), 400
-    append_log(f"MIDI backend refreshed: {mapper.get_midi_backend()}")
-    return jsonify({
-        "success": True,
-        "current": mapper.get_midi_backend(),
-        "ports": mapper.get_available_ports(),
-    })
-
-
 @app.route('/api/logs/download')
 def download_logs():
     if not os.path.exists(LOG_PATH):
