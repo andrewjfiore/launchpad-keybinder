@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Optional, Dict, List, Callable, Any
 
 # Import persistent Lightroom socket manager
-from lightroom_socket import get_lightroom_socket, LightroomSocketManager
+from lightroom_socket import get_lightroom_socket, LightroomSocketManager, send_slider_to_lightroom
 
 # Try rtmidi first, fall back to other backends if unavailable
 _backend_set = False
@@ -1178,10 +1178,20 @@ class LaunchpadMapper:
 
     def send_to_lightroom(self, command: str):
         """Send a command to Lightroom using persistent socket connection."""
-        # Use persistent socket manager for efficient high-frequency communication
+        # Parse command to determine if it's a slider operation
+        # Slider commands typically have format: slider_move:ParameterName:value
+        if command.startswith("slider_move:") or command.startswith("slider:"):
+            # Extract slider ID for throttling
+            parts = command.split(":", 2)
+            if len(parts) >= 2:
+                slider_id = parts[1]  # e.g., "Exposure", "Contrast"
+                send_slider_to_lightroom(slider_id, command)
+                return
+
+        # Non-slider commands: use async queue without throttling
         socket_manager = get_lightroom_socket()
-        socket_manager.send_async(command)
         socket_manager.start_worker()  # Ensure worker is running
+        socket_manager.send_async(command)
 
     def execute_macro(self, mapping: PadMapping):
         """Execute a macro sequence."""

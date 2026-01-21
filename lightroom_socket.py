@@ -9,11 +9,171 @@ import queue
 import socket
 import threading
 import time
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional, Any
 
 # Configuration from environment or defaults
 LIGHTROOM_SOCKET_HOST = os.getenv("LR_SOCKET_HOST", "127.0.0.1")
 LIGHTROOM_SOCKET_PORT = int(os.getenv("LR_SOCKET_PORT", "55555"))
+
+
+# =============================================================================
+# THROTTLING / DEBOUNCING FOR HIGH-FREQUENCY OPERATIONS
+# =============================================================================
+
+class SliderThrottler:
+    """
+    Throttles high-frequency slider updates to prevent overwhelming the target.
+
+    Features:
+    - Rate limiting: Only sends updates at configurable intervals
+    - Debouncing: Coalesces rapid changes, only sending the final value
+    - Per-slider tracking: Each slider parameter is throttled independently
+    - Non-blocking: Uses threading to avoid blocking the main MIDI loop
+    """
+
+    def __init__(
+        self,
+        min_interval_ms: float = 16.0,  # ~60 updates/sec max
+        debounce_ms: float = 50.0,  # Wait 50ms after last change before sending
+        send_func: Optional[Callable[[str], bool]] = None,
+    ):
+        """
+        Initialize the throttler.
+
+        Args:
+            min_interval_ms: Minimum milliseconds between sends for same slider
+            debounce_ms: Milliseconds to wait after last change before sending
+            send_func: Function to call to send the command
+        """
+        self.min_interval_ms = min_interval_ms
+        self.debounce_ms = debounce_ms
+        self.send_func = send_func
+
+        # Per-slider state tracking
+        self._lock = threading.RLock()
+        self._last_send_time: Dict[str, float] = {}  # slider_id -> timestamp
+        self._pending_values: Dict[str, str] = {}  # slider_id -> command
+        self._debounce_timers: Dict[str, threading.Timer] = {}
+
+        # Statistics
+        self._throttled_count = 0
+        self._sent_count = 0
+
+    def update(self, slider_id: str, command: str) -> bool:
+        """
+        Update a slider value with throttling.
+
+        Args:
+            slider_id: Unique identifier for this slider (e.g., "Exposure", "Contrast")
+            command: The full command string to send
+
+        Returns:
+            True if the update was accepted (queued or sent), False if dropped
+        """
+        with self._lock:
+            now = time.time()
+            min_interval_sec = self.min_interval_ms / 1000.0
+            debounce_sec = self.debounce_ms / 1000.0
+
+            # Check rate limit
+            last_send = self._last_send_time.get(slider_id, 0)
+            time_since_last = now - last_send
+
+            # Cancel any existing debounce timer for this slider
+            if slider_id in self._debounce_timers:
+                self._debounce_timers[slider_id].cancel()
+                del self._debounce_timers[slider_id]
+
+            # Store the pending value (will be sent on debounce timeout)
+            self._pending_values[slider_id] = command
+
+            if time_since_last >= min_interval_sec:
+                # Enough time has passed, send immediately
+                self._send_now(slider_id, command)
+                return True
+            else:
+                # Too soon, schedule debounced send
+                self._throttled_count += 1
+                remaining = min_interval_sec - time_since_last
+                wait_time = max(remaining, debounce_sec)
+
+                timer = threading.Timer(wait_time, self._debounce_send, args=[slider_id])
+                timer.daemon = True
+                timer.start()
+                self._debounce_timers[slider_id] = timer
+                return True
+
+    def _send_now(self, slider_id: str, command: str):
+        """Send a command immediately."""
+        with self._lock:
+            self._last_send_time[slider_id] = time.time()
+            self._pending_values.pop(slider_id, None)
+            self._sent_count += 1
+
+        if self.send_func:
+            try:
+                self.send_func(command)
+            except Exception as e:
+                print(f"SliderThrottler send error: {e}")
+
+    def _debounce_send(self, slider_id: str):
+        """Send the pending value after debounce timeout."""
+        with self._lock:
+            # Clean up timer reference
+            self._debounce_timers.pop(slider_id, None)
+
+            # Get and send pending value
+            command = self._pending_values.get(slider_id)
+            if command:
+                self._send_now(slider_id, command)
+
+    def flush(self, slider_id: Optional[str] = None):
+        """
+        Immediately send any pending values.
+
+        Args:
+            slider_id: If provided, only flush this slider. Otherwise flush all.
+        """
+        with self._lock:
+            if slider_id:
+                sliders_to_flush = [slider_id] if slider_id in self._pending_values else []
+            else:
+                sliders_to_flush = list(self._pending_values.keys())
+
+            for sid in sliders_to_flush:
+                # Cancel debounce timer
+                if sid in self._debounce_timers:
+                    self._debounce_timers[sid].cancel()
+                    del self._debounce_timers[sid]
+
+                # Send pending value
+                command = self._pending_values.get(sid)
+                if command:
+                    self._send_now(sid, command)
+
+    def clear(self):
+        """Clear all pending updates without sending."""
+        with self._lock:
+            for timer in self._debounce_timers.values():
+                timer.cancel()
+            self._debounce_timers.clear()
+            self._pending_values.clear()
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Get throttling statistics."""
+        with self._lock:
+            return {
+                "throttled_count": self._throttled_count,
+                "sent_count": self._sent_count,
+                "pending_count": len(self._pending_values),
+                "active_timers": len(self._debounce_timers),
+            }
+
+    def reset_stats(self):
+        """Reset statistics counters."""
+        with self._lock:
+            self._throttled_count = 0
+            self._sent_count = 0
 
 
 class LightroomSocketManager:
@@ -62,6 +222,13 @@ class LightroomSocketManager:
         self._on_connect_callbacks: List[Callable] = []
         self._on_disconnect_callbacks: List[Callable] = []
         self._on_error_callbacks: List[Callable[[str], None]] = []
+
+        # Slider throttler for high-frequency operations
+        self._slider_throttler = SliderThrottler(
+            min_interval_ms=16.0,  # ~60 Hz max
+            debounce_ms=50.0,
+            send_func=self.send
+        )
 
     # =========================================================================
     # CONNECTION MANAGEMENT
@@ -257,6 +424,27 @@ class LightroomSocketManager:
 
         return sent_count
 
+    def send_slider(self, slider_id: str, command: str) -> bool:
+        """
+        Send a slider command with automatic throttling.
+
+        This is the preferred method for high-frequency slider/fader updates.
+        Commands are automatically rate-limited and debounced to prevent
+        overwhelming Lightroom while maintaining responsiveness.
+
+        Args:
+            slider_id: Unique identifier for this slider (e.g., "Exposure")
+            command: The full command string to send
+
+        Returns:
+            True if the update was accepted
+        """
+        return self._slider_throttler.update(slider_id, command)
+
+    def flush_sliders(self):
+        """Immediately send all pending slider updates."""
+        self._slider_throttler.flush()
+
     # =========================================================================
     # WORKER THREAD
     # =========================================================================
@@ -277,6 +465,9 @@ class LightroomSocketManager:
 
     def stop_worker(self):
         """Stop the background worker thread."""
+        # Flush any pending slider updates first
+        self._slider_throttler.flush()
+
         self._stop_event.set()
         if self._worker_thread:
             # Put a sentinel to unblock the queue
@@ -286,6 +477,9 @@ class LightroomSocketManager:
                 pass
             self._worker_thread.join(timeout=2.0)
             self._worker_thread = None
+
+        # Clear any remaining throttler state
+        self._slider_throttler.clear()
         print("Lightroom socket worker stopped")
 
     def _worker_loop(self):
@@ -376,12 +570,14 @@ class LightroomSocketManager:
     def get_stats(self) -> dict:
         """Get connection statistics."""
         with self._lock:
+            throttler_stats = self._slider_throttler.get_stats()
             return {
                 "connected": self._connected,
                 "messages_sent": self._messages_sent,
                 "messages_failed": self._messages_failed,
                 "reconnect_count": self._reconnect_count,
                 "queue_size": self._message_queue.qsize(),
+                "throttler": throttler_stats,
             }
 
     def reset_stats(self):
@@ -390,6 +586,7 @@ class LightroomSocketManager:
             self._messages_sent = 0
             self._messages_failed = 0
             self._reconnect_count = 0
+            self._slider_throttler.reset_stats()
 
 
 # Global singleton instance
@@ -434,3 +631,22 @@ def send_to_lightroom_async(command: str) -> bool:
     socket_mgr = get_lightroom_socket()
     socket_mgr.start_worker()  # Ensure worker is running
     return socket_mgr.send_async(command)
+
+
+def send_slider_to_lightroom(slider_id: str, command: str) -> bool:
+    """
+    Convenience function to send a throttled slider command to Lightroom.
+
+    This is the preferred method for high-frequency slider/fader updates.
+    Automatically rate-limits and debounces to ~60 Hz max.
+
+    Args:
+        slider_id: Unique identifier for this slider (e.g., "Exposure")
+        command: The full command string to send
+
+    Returns:
+        True if the update was accepted
+    """
+    socket_mgr = get_lightroom_socket()
+    socket_mgr.start_worker()  # Ensure worker is running
+    return socket_mgr.send_slider(slider_id, command)

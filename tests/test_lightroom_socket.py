@@ -10,8 +10,10 @@ import pytest
 
 from lightroom_socket import (
     LightroomSocketManager,
+    SliderThrottler,
     get_lightroom_socket,
     send_to_lightroom,
+    send_slider_to_lightroom,
 )
 
 
@@ -179,6 +181,131 @@ class TestMockConnection:
         assert mock_socket.sendall.call_count == 1
         call_data = mock_socket.sendall.call_args[0][0]
         assert b"cmd1\ncmd2\ncmd3" == call_data
+
+
+class TestSliderThrottler:
+    """Tests for SliderThrottler class."""
+
+    def test_initialization(self):
+        """Test throttler initializes with correct defaults."""
+        throttler = SliderThrottler()
+        assert throttler.min_interval_ms == 16.0
+        assert throttler.debounce_ms == 50.0
+
+    def test_first_update_sends_immediately(self):
+        """Test first update for a slider is sent immediately."""
+        sent_commands = []
+        throttler = SliderThrottler(
+            min_interval_ms=100,
+            debounce_ms=50,
+            send_func=lambda cmd: sent_commands.append(cmd)
+        )
+
+        result = throttler.update("Exposure", "slider_move:Exposure:+0.1")
+        assert result is True
+
+        # Give a tiny bit of time for the send
+        time.sleep(0.01)
+        assert len(sent_commands) == 1
+        assert sent_commands[0] == "slider_move:Exposure:+0.1"
+
+    def test_rapid_updates_are_throttled(self):
+        """Test rapid updates are throttled and only final value sent."""
+        sent_commands = []
+        throttler = SliderThrottler(
+            min_interval_ms=100,  # 100ms between sends
+            debounce_ms=50,
+            send_func=lambda cmd: sent_commands.append(cmd)
+        )
+
+        # Send first (immediate)
+        throttler.update("Exposure", "slider_move:Exposure:+0.1")
+
+        # Rapid updates within throttle window
+        for i in range(10):
+            throttler.update("Exposure", f"slider_move:Exposure:+0.{i+2}")
+
+        # Should have sent first one immediately
+        assert len(sent_commands) >= 1
+
+        # Wait for debounce
+        time.sleep(0.2)
+
+        # Should have sent final value
+        assert sent_commands[-1] == "slider_move:Exposure:+0.11"
+
+    def test_different_sliders_tracked_independently(self):
+        """Test different sliders are throttled independently."""
+        sent_commands = []
+        throttler = SliderThrottler(
+            min_interval_ms=100,
+            debounce_ms=50,
+            send_func=lambda cmd: sent_commands.append(cmd)
+        )
+
+        # First update for each slider should send immediately
+        throttler.update("Exposure", "slider_move:Exposure:+0.1")
+        throttler.update("Contrast", "slider_move:Contrast:+0.2")
+
+        time.sleep(0.01)
+        assert len(sent_commands) == 2
+
+    def test_flush_sends_pending(self):
+        """Test flush sends all pending values immediately."""
+        sent_commands = []
+        throttler = SliderThrottler(
+            min_interval_ms=1000,  # Long interval
+            debounce_ms=500,
+            send_func=lambda cmd: sent_commands.append(cmd)
+        )
+
+        # First update sends immediately
+        throttler.update("Exposure", "cmd1")
+        time.sleep(0.01)
+        initial_count = len(sent_commands)
+
+        # Second update within throttle window
+        throttler.update("Exposure", "cmd2")
+
+        # Flush should send pending
+        throttler.flush()
+        time.sleep(0.01)
+
+        assert len(sent_commands) > initial_count
+        assert "cmd2" in sent_commands
+
+    def test_clear_removes_pending(self):
+        """Test clear removes all pending without sending."""
+        sent_commands = []
+        throttler = SliderThrottler(
+            min_interval_ms=1000,
+            debounce_ms=500,
+            send_func=lambda cmd: sent_commands.append(cmd)
+        )
+
+        # First update
+        throttler.update("Exposure", "cmd1")
+        time.sleep(0.01)
+        initial_count = len(sent_commands)
+
+        # Queue another
+        throttler.update("Exposure", "cmd2")
+
+        # Clear without sending
+        throttler.clear()
+        time.sleep(0.1)
+
+        # Should not have sent the second command
+        assert len(sent_commands) == initial_count
+
+    def test_get_stats(self):
+        """Test statistics retrieval."""
+        throttler = SliderThrottler()
+        stats = throttler.get_stats()
+        assert 'throttled_count' in stats
+        assert 'sent_count' in stats
+        assert 'pending_count' in stats
+        assert 'active_timers' in stats
 
 
 class TestGlobalFunctions:
