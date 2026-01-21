@@ -698,6 +698,12 @@ class LaunchpadMapper:
             print("Generic MIDI device detected. Skipping Launchpad initialization.")
             return
 
+        try:
+            self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x22, 0x01]))
+            print("Sent Launchpad User 1 layout command")
+        except Exception as e:
+            print(f"Error sending User 1 layout command: {e}")
+
         # Launchpad MK2 (RGB) requires different commands than MK3/X/Pro models
         # The command 0x0E 0x01 that puts MK3 into Programmer Mode causes MK2
         # to turn all LEDs to color 1 (white). MK2 needs Session Layout command instead.

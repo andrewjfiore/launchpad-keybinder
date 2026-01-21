@@ -15,6 +15,21 @@ def main():
     invalid = mapper.set_midi_backend("mido.backends.invalid")
     assert invalid.get("success") is False, "Invalid backend should fail"
 
+    from launchpad_mapper import PadMapping
+
+    mapper.profile.add_mapping(
+        PadMapping(
+            note=60,
+            key_combo="space",
+            color="green",
+            label="Test",
+            enabled=True,
+        )
+    )
+    mapper.execute_key_combo = lambda _combo: None
+    result = mapper.emulate_pad_press(60)
+    assert result.get("success") is True, "Emulated pad press should succeed"
+
     print("Automated checks passed.")
 
 
