@@ -377,6 +377,43 @@ class TestAnimationEndpoints:
         response = client.post('/api/animation/stop')
         assert response.status_code == 200
 
+    def test_smiley_get_faces(self, client, reset_mapper):
+        """Test getting available smiley faces."""
+        response = client.get('/api/animation/smiley')
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert 'faces' in data
+        assert isinstance(data['faces'], list)
+        assert 'happy' in data['faces']
+        assert 'cool' in data['faces']
+        assert 'heart_eyes' in data['faces']
+
+    def test_smiley_play_animation(self, client, reset_mapper):
+        """Test playing smiley animation."""
+        response = client.post('/api/animation/smiley',
+                              json={'duration': 1.0},
+                              content_type='application/json')
+        # Returns 400 because no MIDI output is connected
+        assert response.status_code == 400
+
+    def test_smiley_show_specific_face(self, client, reset_mapper):
+        """Test showing a specific smiley face."""
+        response = client.post('/api/animation/smiley',
+                              json={'face': 'happy'},
+                              content_type='application/json')
+        # Returns 400 because no MIDI output is connected
+        assert response.status_code == 400
+
+    def test_smiley_invalid_face(self, client, reset_mapper):
+        """Test showing invalid face name."""
+        response = client.post('/api/animation/smiley',
+                              json={'face': 'nonexistent'},
+                              content_type='application/json')
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        # Error could be connection or invalid face depending on check order
+        assert data['success'] is False
+
 
 class TestAutoReconnectEndpoint:
     """Test /api/auto-reconnect endpoint."""

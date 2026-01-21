@@ -461,3 +461,92 @@ class TestLaunchpadMapperGridHelpers:
         mapping = PadMapping(note=60, key_combo='a', color='red', label='Test')
         mapper.profile.add_mapping(mapping)
         assert mapper._has_active_mappings() is True
+
+
+class TestLaunchpadMapperSmileyAnimations:
+    """Test smiley animation functionality."""
+
+    def test_get_smiley_faces(self):
+        """Test getting smiley face patterns."""
+        mapper = LaunchpadMapper()
+        faces = mapper._get_smiley_faces()
+        assert isinstance(faces, dict)
+        assert len(faces) > 0
+        # Check expected faces exist
+        expected = ['happy', 'wink', 'blink', 'heart_eyes', 'cool',
+                   'surprised', 'tongue', 'blush', 'neutral', 'sleepy']
+        for face in expected:
+            assert face in faces, f"Missing face: {face}"
+
+    def test_get_smiley_face_patterns_have_colors(self):
+        """Test that face patterns contain color values."""
+        mapper = LaunchpadMapper()
+        faces = mapper._get_smiley_faces()
+        for name, frame in faces.items():
+            assert isinstance(frame, dict), f"{name} should be a dict"
+            for note, color in frame.items():
+                assert isinstance(note, int), f"{name} note should be int"
+                assert isinstance(color, str), f"{name} color should be str"
+
+    def test_get_available_smiley_faces(self):
+        """Test getting list of available face names."""
+        mapper = LaunchpadMapper()
+        faces = mapper.get_available_smiley_faces()
+        assert isinstance(faces, list)
+        assert 'happy' in faces
+        assert 'cool' in faces
+        assert 'heart_eyes' in faces
+
+    def test_get_smiley_animation_sequence(self):
+        """Test animation sequence format."""
+        mapper = LaunchpadMapper()
+        sequence = mapper._get_smiley_animation_sequence()
+        assert isinstance(sequence, list)
+        assert len(sequence) > 0
+        for item in sequence:
+            assert isinstance(item, tuple)
+            assert len(item) == 2
+            face_name, duration = item
+            assert isinstance(face_name, str)
+            assert isinstance(duration, (int, float))
+            assert duration > 0
+
+    def test_show_smiley_face_no_output(self):
+        """Test showing face without output port."""
+        mapper = LaunchpadMapper()
+        result = mapper.show_smiley_face('happy')
+        assert result.get('success') is False
+        assert 'error' in result
+
+    def test_show_smiley_face_invalid(self):
+        """Test showing invalid face name."""
+        mapper = LaunchpadMapper()
+        # Without output port, returns connection error
+        result = mapper.show_smiley_face('nonexistent_face')
+        assert result.get('success') is False
+        # Error could be connection or invalid face depending on check order
+        assert 'error' in result
+
+    def test_play_smiley_animation_no_output(self):
+        """Test playing animation without output port."""
+        mapper = LaunchpadMapper()
+        result = mapper.play_smiley_animation()
+        assert result.get('success') is False
+        assert 'error' in result
+
+    def test_reset_activity(self):
+        """Test resetting activity timer."""
+        mapper = LaunchpadMapper()
+        import time
+        old_time = mapper.last_activity_time
+        time.sleep(0.01)
+        mapper.reset_activity()
+        assert mapper.last_activity_time > old_time
+
+    def test_idle_timeout_initialization(self):
+        """Test idle timeout is properly initialized."""
+        mapper = LaunchpadMapper()
+        assert mapper.idle_timeout == 120  # 2 minutes
+        assert mapper.last_activity_time > 0
+        assert mapper.idle_timeout_thread is None
+        assert mapper.idle_timeout_stop is not None

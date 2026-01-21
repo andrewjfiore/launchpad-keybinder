@@ -614,6 +614,35 @@ def stop_animations():
     return jsonify({"success": True})
 
 
+@app.route('/api/animation/smiley', methods=['GET', 'POST'])
+def animate_smiley():
+    """Play smiley face animation or get available faces."""
+    if request.method == 'GET':
+        return jsonify({
+            "faces": mapper.get_available_smiley_faces(),
+            "description": "Use POST to play animation or show a specific face"
+        })
+
+    data = request.json or {}
+    face = data.get('face')
+    duration = data.get('duration', 15.0)
+
+    # If a specific face is requested, show it
+    if face:
+        result = mapper.show_smiley_face(face)
+        append_log(f"Show smiley face: {face}, success={result.get('success')}")
+        if not result.get("success"):
+            return jsonify(result), 400
+        return jsonify(result)
+
+    # Otherwise play the animation
+    result = mapper.play_smiley_animation(duration)
+    append_log(f"Play smiley animation: duration={duration}, success={result.get('success')}")
+    if not result.get("success"):
+        return jsonify(result), 400
+    return jsonify(result)
+
+
 @app.route('/api/presets')
 def list_presets():
     """List available preset profiles."""

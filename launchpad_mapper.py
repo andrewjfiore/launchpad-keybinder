@@ -394,6 +394,12 @@ class LaunchpadMapper:
         self.idle_thread = None
         self.idle_stop_event = threading.Event()
 
+        # Idle timeout tracking (2 minutes)
+        self.last_activity_time = time.time()
+        self.idle_timeout = 120  # 2 minutes in seconds
+        self.idle_timeout_thread = None
+        self.idle_timeout_stop = threading.Event()
+
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
         self.repeat_stop_events: Dict[int, threading.Event] = {}
@@ -421,51 +427,158 @@ class LaunchpadMapper:
     def _grid_note(self, row: int, col: int) -> int:
         return self.GRID_NOTES[row][col]
 
-    def _idle_face_frames(self) -> List[Dict[int, str]]:
-        eyes = [self._grid_note(2, 2), self._grid_note(2, 5)]
+    def _get_smiley_faces(self) -> Dict[str, Dict[int, str]]:
+        """Get all smiley face patterns."""
+        # Eye positions
+        left_eye = self._grid_note(2, 2)
+        right_eye = self._grid_note(2, 5)
+        eyes = [left_eye, right_eye]
+
+        # Wink (left eye closed)
+        wink_eye = [right_eye]
+
+        # Blink (both closed - represented by lower position)
+        blink_eyes = [self._grid_note(3, 2), self._grid_note(3, 5)]
+
+        # Heart eyes
+        heart_left = [self._grid_note(1, 1), self._grid_note(1, 3),
+                     self._grid_note(2, 1), self._grid_note(2, 2), self._grid_note(2, 3),
+                     self._grid_note(3, 2)]
+        heart_right = [self._grid_note(1, 4), self._grid_note(1, 6),
+                      self._grid_note(2, 4), self._grid_note(2, 5), self._grid_note(2, 6),
+                      self._grid_note(3, 5)]
+
+        # Sunglasses
+        sunglasses = [
+            self._grid_note(2, 1), self._grid_note(2, 2), self._grid_note(2, 3),
+            self._grid_note(2, 4), self._grid_note(2, 5), self._grid_note(2, 6),
+            self._grid_note(3, 3), self._grid_note(3, 4),  # bridge
+        ]
+
+        # Star eyes
+        star_left = [self._grid_note(1, 2), self._grid_note(2, 1), self._grid_note(2, 2),
+                    self._grid_note(2, 3), self._grid_note(3, 2)]
+        star_right = [self._grid_note(1, 5), self._grid_note(2, 4), self._grid_note(2, 5),
+                     self._grid_note(2, 6), self._grid_note(3, 5)]
+
+        # Mouth expressions
         smile = [
-            self._grid_note(4, 1),
-            self._grid_note(4, 6),
-            self._grid_note(5, 2),
-            self._grid_note(5, 3),
-            self._grid_note(5, 4),
-            self._grid_note(5, 5),
+            self._grid_note(4, 1), self._grid_note(4, 6),
+            self._grid_note(5, 2), self._grid_note(5, 3),
+            self._grid_note(5, 4), self._grid_note(5, 5),
         ]
+        big_smile = smile + [self._grid_note(4, 2), self._grid_note(4, 5)]
+
         neutral = [
-            self._grid_note(4, 2),
-            self._grid_note(4, 3),
-            self._grid_note(4, 4),
-            self._grid_note(4, 5),
+            self._grid_note(5, 2), self._grid_note(5, 3),
+            self._grid_note(5, 4), self._grid_note(5, 5),
         ]
-        frown = [
-            self._grid_note(5, 1),
-            self._grid_note(5, 6),
-            self._grid_note(4, 2),
-            self._grid_note(4, 3),
-            self._grid_note(4, 4),
-            self._grid_note(4, 5),
+
+        open_mouth = [
+            self._grid_note(4, 2), self._grid_note(4, 3),
+            self._grid_note(4, 4), self._grid_note(4, 5),
+            self._grid_note(5, 2), self._grid_note(5, 3),
+            self._grid_note(5, 4), self._grid_note(5, 5),
+            self._grid_note(6, 3), self._grid_note(6, 4),
         ]
+
+        tongue = smile + [self._grid_note(6, 3), self._grid_note(6, 4)]
+
+        # Cheeks (blush)
+        cheeks = [self._grid_note(3, 1), self._grid_note(3, 6)]
+
+        return {
+            "happy": {**{n: "yellow" for n in eyes + smile}},
+            "big_happy": {**{n: "yellow" for n in eyes + big_smile}},
+            "wink": {**{n: "yellow" for n in wink_eye + smile}},
+            "blink": {**{n: "yellow" for n in blink_eyes + smile}},
+            "heart_eyes": {**{n: "pink" for n in heart_left + heart_right},
+                          **{n: "yellow" for n in smile}},
+            "cool": {**{n: "blue" for n in sunglasses},
+                    **{n: "yellow" for n in smile}},
+            "star_eyes": {**{n: "yellow" for n in star_left + star_right + smile}},
+            "surprised": {**{n: "yellow" for n in eyes + open_mouth}},
+            "tongue": {**{n: "yellow" for n in eyes + smile},
+                      **{n: "pink" for n in [self._grid_note(6, 3), self._grid_note(6, 4)]}},
+            "blush": {**{n: "yellow" for n in eyes + smile},
+                     **{n: "pink" for n in cheeks}},
+            "neutral": {**{n: "yellow" for n in eyes + neutral}},
+            "sleepy": {**{n: "yellow" for n in blink_eyes + neutral}},
+        }
+
+    def _get_smiley_animation_sequence(self) -> List[tuple]:
+        """Get animation sequence with (face_name, duration) tuples."""
         return [
-            {note: "yellow" for note in eyes + smile},
-            {note: "yellow" for note in smile},
-            {note: "yellow" for note in eyes + frown},
-            {note: "yellow" for note in eyes + neutral},
+            ("happy", 1.5),
+            ("wink", 0.3),
+            ("happy", 0.5),
+            ("blink", 0.15),
+            ("happy", 1.0),
+            ("big_happy", 0.8),
+            ("happy", 0.5),
+            ("tongue", 1.0),
+            ("happy", 0.5),
+            ("blink", 0.15),
+            ("happy", 0.8),
+            ("heart_eyes", 1.5),
+            ("happy", 0.5),
+            ("cool", 2.0),
+            ("happy", 0.5),
+            ("wink", 0.3),
+            ("happy", 0.5),
+            ("star_eyes", 1.2),
+            ("happy", 0.5),
+            ("surprised", 0.8),
+            ("happy", 0.5),
+            ("blush", 1.0),
+            ("happy", 0.5),
+            ("blink", 0.15),
+            ("sleepy", 0.5),
+            ("blink", 0.15),
+            ("happy", 1.0),
+        ]
+
+    def _idle_face_frames(self) -> List[Dict[int, str]]:
+        """Legacy method for basic idle face animation."""
+        faces = self._get_smiley_faces()
+        return [
+            faces["happy"],
+            faces["blink"],
+            faces["happy"],
+            faces["wink"],
+            faces["happy"],
+            faces["neutral"],
         ]
 
     def _idle_animation_worker(self):
-        frames = self._idle_face_frames()
-        frame_index = 0
+        faces = self._get_smiley_faces()
+        sequence = self._get_smiley_animation_sequence()
+        seq_index = 0
         previous_notes: Dict[int, str] = {}
+
         while not self.idle_stop_event.is_set() and self.output_port and not self._has_active_mappings():
-            frame = frames[frame_index]
+            face_name, duration = sequence[seq_index]
+            frame = faces.get(face_name, faces["happy"])
+
+            # Clear previous notes not in current frame
             for note in previous_notes:
                 if note not in frame:
                     self.set_pad_color(note, "off")
+
+            # Set current frame colors
             for note, color in frame.items():
                 self.set_pad_color(note, color)
-            previous_notes = frame
-            frame_index = (frame_index + 1) % len(frames)
-            time.sleep(0.6)
+
+            previous_notes = dict(frame)
+            seq_index = (seq_index + 1) % len(sequence)
+
+            # Wait for duration, checking stop event periodically
+            wait_time = 0
+            while wait_time < duration and not self.idle_stop_event.is_set():
+                time.sleep(0.05)
+                wait_time += 0.05
+
+        # Clean up
         for note in previous_notes:
             self.set_pad_color(note, "off")
 
@@ -482,6 +595,99 @@ class LaunchpadMapper:
         self.idle_stop_event.set()
         self.idle_thread.join(timeout=1)
         self.idle_thread = None
+
+    def _idle_timeout_worker(self):
+        """Check for idle timeout and trigger smiley animation."""
+        while not self.idle_timeout_stop.is_set():
+            time.sleep(5)  # Check every 5 seconds
+            if not self.running or not self.output_port:
+                continue
+            if self._has_active_mappings():
+                continue
+            # Check if idle for 2+ minutes
+            elapsed = time.time() - self.last_activity_time
+            if elapsed >= self.idle_timeout:
+                self._start_idle_animation()
+
+    def _start_idle_timeout_tracking(self):
+        """Start the idle timeout tracking thread."""
+        if self.idle_timeout_thread and self.idle_timeout_thread.is_alive():
+            return
+        self.idle_timeout_stop.clear()
+        self.idle_timeout_thread = threading.Thread(target=self._idle_timeout_worker, daemon=True)
+        self.idle_timeout_thread.start()
+
+    def _stop_idle_timeout_tracking(self):
+        """Stop the idle timeout tracking thread."""
+        self.idle_timeout_stop.set()
+        if self.idle_timeout_thread:
+            self.idle_timeout_thread.join(timeout=1)
+            self.idle_timeout_thread = None
+
+    def reset_activity(self):
+        """Reset the activity timer (called on pad press or user interaction)."""
+        self.last_activity_time = time.time()
+        self._stop_idle_animation()
+
+    def play_smiley_animation(self, duration: float = 15.0) -> Dict[str, Any]:
+        """Manually trigger the smiley animation.
+
+        Args:
+            duration: How long to play the animation in seconds (default 15s)
+
+        Returns:
+            Dict with success status
+        """
+        if not self.output_port:
+            return {"success": False, "error": "Not connected to MIDI output"}
+
+        # Stop any existing idle animation
+        self._stop_idle_animation()
+
+        # Start the animation
+        self._start_idle_animation()
+
+        # Schedule stop after duration
+        def stop_after_duration():
+            time.sleep(duration)
+            self._stop_idle_animation()
+            if self.running:
+                self.update_pad_colors()
+
+        threading.Thread(target=stop_after_duration, daemon=True).start()
+
+        return {"success": True, "message": f"Playing smiley animation for {duration}s"}
+
+    def get_available_smiley_faces(self) -> List[str]:
+        """Get list of available smiley face names."""
+        return list(self._get_smiley_faces().keys())
+
+    def show_smiley_face(self, face_name: str) -> Dict[str, Any]:
+        """Show a specific smiley face.
+
+        Args:
+            face_name: Name of the face (happy, wink, heart_eyes, cool, etc.)
+
+        Returns:
+            Dict with success status
+        """
+        if not self.output_port:
+            return {"success": False, "error": "Not connected to MIDI output"}
+
+        faces = self._get_smiley_faces()
+        if face_name not in faces:
+            return {"success": False, "error": f"Unknown face: {face_name}",
+                   "available": list(faces.keys())}
+
+        # Clear all pads first
+        self.clear_all_pads()
+
+        # Show the face
+        frame = faces[face_name]
+        for note, color in frame.items():
+            self.set_pad_color(note, color)
+
+        return {"success": True, "face": face_name}
 
     def _has_active_mappings(self) -> bool:
         return bool(self.profile.get_layer_mappings(self.current_layer))
@@ -961,6 +1167,9 @@ class LaunchpadMapper:
             note = msg.note
             mapping = self.profile.get_mapping(note, self.current_layer)
 
+            # Reset idle timer on any pad activity
+            self.reset_activity()
+
             # Track press time for long press detection
             self.press_times[note] = time.time()
             self.long_press_triggered[note] = False
@@ -1068,17 +1277,20 @@ class LaunchpadMapper:
             print("No input port connected")
             return False
         self.running = True
+        self.last_activity_time = time.time()  # Reset activity timer
         self.midi_thread = threading.Thread(target=self.midi_loop, daemon=True)
         self.midi_thread.start()
+        self._start_idle_timeout_tracking()
         self.update_pad_colors()
         print("Mapper started")
         return True
-    
+
     def stop(self):
         self.running = False
         self.stop_all_repeats()
         self.stop_all_animations()
         self._stop_idle_animation()
+        self._stop_idle_timeout_tracking()
         if self.midi_thread:
             self.midi_thread.join(timeout=1)
         self.clear_all_pads()
