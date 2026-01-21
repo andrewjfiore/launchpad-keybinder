@@ -28,7 +28,8 @@ class TestLaunchpadMapperInitialization:
         """Test auto reconnect default values."""
         mapper = LaunchpadMapper()
         assert mapper.auto_reconnect_enabled is False
-        assert mapper.auto_reconnect_interval == 2.0
+        # Interval increased from 2.0 to 5.0 to prevent race conditions
+        assert mapper.auto_reconnect_interval == 5.0
 
     def test_repeat_and_long_press_tracking(self):
         """Test key repeat and long press tracking initialized."""

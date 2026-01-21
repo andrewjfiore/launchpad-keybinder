@@ -3,6 +3,7 @@
 Web server for Launchpad Mapper configuration interface.
 """
 
+import atexit
 import glob
 import json
 import os
@@ -18,6 +19,8 @@ from launchpad_mapper import (
     LAUNCHPAD_COLORS, COLOR_HEX,
     PulseAnimation, ProgressBarAnimation, RainbowCycleAnimation
 )
+from persistence import get_persistence_manager, PersistenceManager
+from schema_validation import validate_profile_import, ValidationError
 
 try:
     import pygetwindow
@@ -38,6 +41,80 @@ auto_switch_lock = threading.Lock()
 auto_switch_rules = []
 auto_switch_enabled = False
 mapper.set_auto_reconnect(True, 2.0)
+
+# Persistence manager
+persistence = get_persistence_manager()
+
+
+def load_persisted_state():
+    """Load profiles and config from disk on startup."""
+    global profiles, auto_switch_rules, auto_switch_enabled
+
+    # Load profiles
+    profiles_data = persistence.load_profiles()
+    if profiles_data:
+        with profile_lock:
+            profiles.clear()
+            for name, profile_dict in profiles_data.get('profiles', {}).items():
+                try:
+                    profile = Profile.from_dict(profile_dict)
+                    profiles[profile.name] = profile
+                except Exception as e:
+                    print(f"Error loading profile '{name}': {e}")
+
+            # Set active profile
+            active_name = profiles_data.get('active_profile')
+            if active_name and active_name in profiles:
+                mapper.set_profile(profiles[active_name])
+                print(f"Restored active profile: {active_name}")
+            elif profiles:
+                # Use first available profile
+                first_profile = next(iter(profiles.values()))
+                mapper.set_profile(first_profile)
+
+    # Load config
+    config = persistence.load_config()
+    if config:
+        # Restore auto-switch settings
+        with auto_switch_lock:
+            auto_switch_rules[:] = config.get('auto_switch_rules', [])
+            auto_switch_enabled = config.get('auto_switch_enabled', False)
+
+        # Restore last MIDI ports (will be used on auto-reconnect)
+        last_input = config.get('last_input_port')
+        last_output = config.get('last_output_port')
+        if last_input:
+            mapper.last_input_port = last_input
+        if last_output:
+            mapper.last_output_port = last_output
+
+        print(f"Config restored: auto_switch={auto_switch_enabled}, "
+              f"last_ports=({last_input}, {last_output})")
+
+
+def save_profiles_async():
+    """Save profiles to disk (debounced)."""
+    with profile_lock:
+        persistence.schedule_save_profiles(
+            {name: p.to_dict() for name, p in profiles.items()},
+            mapper.profile.name
+        )
+
+
+def save_config_async():
+    """Save config to disk."""
+    with auto_switch_lock:
+        config = {
+            'last_input_port': mapper.last_input_port,
+            'last_output_port': mapper.last_output_port,
+            'auto_switch_rules': auto_switch_rules,
+            'auto_switch_enabled': auto_switch_enabled,
+        }
+    persistence.save_config(config)
+
+
+# Load persisted state on startup
+load_persisted_state()
 
 # Event queue for server-sent events
 event_queues = []
@@ -232,6 +309,11 @@ def connect():
         f"input={data.get('input_port')}, output={data.get('output_port')}, "
         f"success={result.get('success')}, error={result.get('error')}"
     )
+
+    # Save last used ports to config
+    if result.get("success"):
+        save_config_async()
+
     return jsonify({
         "connected": result.get("success", False),
         "message": result.get("message", "Unknown error"),
@@ -337,6 +419,10 @@ def save_mapping():
         f"note={mapping.note}, key_combo={mapping.key_combo}, color={mapping.color}, "
         f"layer={layer}"
     )
+
+    # Auto-save profiles to disk
+    save_profiles_async()
+
     return jsonify({"success": True, "mapping": mapping.to_dict()})
 
 
@@ -358,6 +444,10 @@ def delete_mapping(note):
     if mapper.running and layer == mapper.current_layer:
         mapper.update_pad_colors()
     append_log(f"Deleted mapping: note={note}, layer={layer}")
+
+    # Auto-save profiles to disk
+    save_profiles_async()
+
     return jsonify({"success": True})
 
 
@@ -383,6 +473,10 @@ def update_profile():
     if 'description' in data:
         mapper.profile.description = data['description']
         append_log("Profile description updated")
+
+    # Auto-save profiles to disk
+    save_profiles_async()
+
     return jsonify({"success": True})
 
 
@@ -403,16 +497,39 @@ def export_profile():
 
 @app.route('/api/profile/import', methods=['POST'])
 def import_profile():
-    """Import a profile from JSON."""
+    """Import a profile from JSON with schema validation."""
     data = request.json or {}
     if not data:
         return jsonify({"success": False, "error": "No profile data provided"}), 400
-    profile = Profile.from_dict(data)
+
+    # Calculate raw size for DoS protection
+    raw_size = len(request.data) if request.data else 0
+
+    # Validate the profile data
+    try:
+        validated_data, warnings = validate_profile_import(data, raw_size)
+    except ValidationError as e:
+        append_log(f"Profile import validation failed: {e.message}")
+        return jsonify({
+            "success": False,
+            "error": f"Validation error: {e.message}",
+            "field": e.field
+        }), 400
+
+    # Create profile from validated data
+    profile = Profile.from_dict(validated_data)
     with profile_lock:
         profiles[profile.name] = profile
     mapper.set_profile(profile)
     append_log(f"Profile imported: {profile.name}")
-    return jsonify({"success": True, "profile": mapper.profile.to_dict()})
+
+    # Auto-save profiles to disk
+    save_profiles_async()
+
+    response = {"success": True, "profile": mapper.profile.to_dict()}
+    if warnings:
+        response["warnings"] = warnings
+    return jsonify(response)
 
 
 @app.route('/api/clear', methods=['POST'])
@@ -429,6 +546,10 @@ def clear_mappings():
     if mapper.running:
         mapper.update_pad_colors()
     append_log(f"Cleared mappings for profile: {current_name}")
+
+    # Auto-save profiles to disk
+    save_profiles_async()
+
     return jsonify({"success": True})
 
 
@@ -507,6 +628,10 @@ def switch_profile_endpoint():
         return jsonify({"success": False, "error": "No profile name provided"}), 400
     if not switch_profile(name):
         return jsonify({"success": False, "error": "Profile not found"}), 404
+
+    # Save profiles to persist active profile selection
+    save_profiles_async()
+
     return jsonify({"success": True, "profile": mapper.profile.to_dict()})
 
 
@@ -532,6 +657,10 @@ def profile_auto_switch():
             if rule.get("match") and rule.get("profile")
         ]
         auto_switch_enabled = bool(enabled)
+
+    # Save auto-switch settings to config
+    save_config_async()
+
     return jsonify({"success": True, "enabled": auto_switch_enabled, "rules": auto_switch_rules})
 
 
@@ -684,11 +813,43 @@ def get_preset(filename):
         return jsonify({"error": str(e)}), 500
 
 
+def cleanup_on_exit():
+    """Cleanup handler for graceful shutdown."""
+    print("\nCleaning up server resources...")
+
+    # Flush any pending profile saves
+    persistence.flush_pending_saves()
+
+    # Final save of current state
+    with profile_lock:
+        persistence.save_profiles(
+            {name: p.to_dict() for name, p in profiles.items()},
+            mapper.profile.name
+        )
+
+    with auto_switch_lock:
+        persistence.save_config({
+            'last_input_port': mapper.last_input_port,
+            'last_output_port': mapper.last_output_port,
+            'auto_switch_rules': auto_switch_rules,
+            'auto_switch_enabled': auto_switch_enabled,
+        })
+
+    # Disconnect mapper
+    mapper.disconnect()
+    print("Server cleanup complete")
+
+
+# Register cleanup handler
+atexit.register(cleanup_on_exit)
+
+
 def main():
     print("\n" + "="*50)
     print("  Launchpad Mapper")
     print("="*50)
     print("\nStarting web interface at http://localhost:5000")
+    print(f"Config stored at: {persistence.persistence_dir}")
     print("Press Ctrl+C to quit\n")
 
     ipc_dir = os.path.join(tempfile.gettempdir(), "lrslider_ipc")
@@ -707,7 +868,7 @@ def main():
         app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
     except KeyboardInterrupt:
         print("\nShutting down...")
-        mapper.disconnect()
+        # atexit handler will handle cleanup
 
 
 if __name__ == '__main__':
