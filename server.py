@@ -197,8 +197,10 @@ def emulate_pad():
     note = data.get("note")
     if note is None:
         return jsonify({"success": False, "error": "No note provided"}), 400
-    result = mapper.emulate_pad_press(int(note))
-    append_log(f"Emulate pad: note={note}, success={result.get('success')}")
+    # skip_pulse defaults to True to prevent MIDI sounds during emulation
+    skip_pulse = data.get("skip_pulse", True)
+    result = mapper.emulate_pad_press(int(note), skip_pulse=skip_pulse)
+    append_log(f"Emulate pad: note={note}, success={result.get('success')}, label={result.get('label')}")
     if not result.get("success"):
         return jsonify(result), 400
     return jsonify(result)
@@ -610,6 +612,35 @@ def stop_animations():
     if mapper.running:
         mapper.update_pad_colors()
     return jsonify({"success": True})
+
+
+@app.route('/api/animation/smiley', methods=['GET', 'POST'])
+def animate_smiley():
+    """Play smiley face animation or get available faces."""
+    if request.method == 'GET':
+        return jsonify({
+            "faces": mapper.get_available_smiley_faces(),
+            "description": "Use POST to play animation or show a specific face"
+        })
+
+    data = request.json or {}
+    face = data.get('face')
+    duration = data.get('duration', 15.0)
+
+    # If a specific face is requested, show it
+    if face:
+        result = mapper.show_smiley_face(face)
+        append_log(f"Show smiley face: {face}, success={result.get('success')}")
+        if not result.get("success"):
+            return jsonify(result), 400
+        return jsonify(result)
+
+    # Otherwise play the animation
+    result = mapper.play_smiley_animation(duration)
+    append_log(f"Play smiley animation: duration={duration}, success={result.get('success')}")
+    if not result.get("success"):
+        return jsonify(result), 400
+    return jsonify(result)
 
 
 @app.route('/api/presets')
