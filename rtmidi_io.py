@@ -18,6 +18,7 @@ Notes:
 
 from __future__ import annotations
 
+import threading
 import time
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Sequence, Tuple
@@ -52,6 +53,7 @@ class RtMidiIO:
         self._midi_out: Optional[rtmidi.MidiOut] = None
         self._opened: Optional[OpenedPorts] = None
         self._on_message: Optional[MidiCallback] = None
+        self._send_lock = threading.Lock()
 
     # -------- Port enumeration --------
 
@@ -286,7 +288,24 @@ class RtMidiIO:
     def send(self, message: Sequence[int]) -> None:
         if self._midi_out is None:
             raise RuntimeError("MIDI output is not open.")
-        self._midi_out.send_message(list(message))
+
+        msg = list(message)
+        # Validate MIDI bytes
+        if any((not isinstance(x, int)) or x < 0 or x > 255 for x in msg):
+            raise ValueError(f"Invalid MIDI byte(s): {msg}")
+
+        # Serialize sends and retry on WinMM errors
+        with self._send_lock:
+            last_err: Optional[Exception] = None
+            for attempt in range(3):
+                try:
+                    self._midi_out.send_message(msg)
+                    return
+                except Exception as e:
+                    last_err = e
+                    time.sleep(0.01)
+            if last_err is not None:
+                raise last_err
 
     # Convenience helpers
     def note_on(self, note: int, velocity: int = 127, channel: int = 0) -> None:
