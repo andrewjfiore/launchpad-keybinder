@@ -9,7 +9,6 @@ import os
 import platform
 import queue
 import socket
-import pkgutil
 import threading
 import time
 import tempfile
@@ -19,25 +18,9 @@ from functools import lru_cache
 from itertools import chain
 from typing import Optional, Dict, List, Callable, Any
 
-# Try rtmidi first, fall back to other backends if unavailable
-_backend_set = False
-for _backend in ["mido.backends.rtmidi", "mido.backends.pygame", "mido.backends.portmidi"]:
-    try:
-        os.environ["MIDO_BACKEND"] = _backend
-        import mido
-        mido.get_input_names()  # Test that backend actually works
-        _backend_set = True
-        print(f"Using MIDI backend: {_backend}")
-        break
-    except Exception as _e:
-        print(f"Backend {_backend} unavailable: {_e}")
-        continue
-
-if not _backend_set:
-    # Last resort: let mido choose
-    if "MIDO_BACKEND" in os.environ:
-        del os.environ["MIDO_BACKEND"]
-    import mido
+# Use rtmidi backend exclusively
+os.environ["MIDO_BACKEND"] = "mido.backends.rtmidi"
+import mido
 from mido import Message
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
@@ -405,8 +388,6 @@ class LaunchpadMapper:
         self.auto_reconnect_interval = 5.0  # Increased from 2.0 to prevent race conditions
         self.auto_reconnect_stop = threading.Event()
         self.auto_reconnect_thread = None
-        self.backend_options = self._discover_backends()
-        self.midi_backend = mido.backend.name
         self.idle_thread = None
         self.idle_stop_event = threading.Event()
 
@@ -427,19 +408,6 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
-
-    def _discover_backends(self) -> List[str]:
-        discovered = []
-        backend_path = getattr(mido.backends, "__path__", None)
-        if backend_path:
-            for module in pkgutil.iter_modules(backend_path):
-                name = module.name
-                if name == "backend":
-                    continue
-                discovered.append(f"mido.backends.{name}")
-        if not discovered:
-            discovered.extend(["mido.backends.rtmidi", "mido.backends.pygame"])
-        return sorted(set(discovered))
 
     def _grid_note(self, row: int, col: int) -> int:
         return self.GRID_NOTES[row][col]
@@ -712,38 +680,18 @@ class LaunchpadMapper:
         return bool(self.profile.get_layer_mappings(self.current_layer))
 
     def get_midi_backend(self) -> str:
-        return self.midi_backend
+        return "mido.backends.rtmidi"
 
     def get_midi_backends(self) -> List[str]:
-        if not self.backend_options:
-            self.backend_options = self._discover_backends()
-        return self.backend_options
+        return ["mido.backends.rtmidi"]
 
     def set_midi_backend(self, backend_name: str) -> Dict[str, Any]:
-        if backend_name not in self.get_midi_backends():
-            return {"success": False, "error": "Unsupported MIDI backend."}
-        try:
-            if self.running:
-                self.stop()
-            if self.input_port or self.output_port:
-                self.disconnect()
-            mido.set_backend(backend_name)
-            self.midi_backend = backend_name
-            return {"success": True}
-        except Exception as exc:
-            return {"success": False, "error": str(exc)}
+        if backend_name != "mido.backends.rtmidi":
+            return {"success": False, "error": "Only rtmidi backend is supported."}
+        return {"success": True}
 
     def refresh_midi_backend(self) -> Dict[str, Any]:
-        try:
-            if self.running:
-                self.stop()
-            if self.input_port or self.output_port:
-                self.disconnect()
-            mido.set_backend(self.midi_backend)
-            self.backend_options = self._discover_backends()
-            return {"success": True}
-        except Exception as exc:
-            return {"success": False, "error": str(exc)}
+        return {"success": True}
         
     def get_available_ports(self) -> Dict[str, Any]:
         """Get available MIDI ports with error handling"""
