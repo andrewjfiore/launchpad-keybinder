@@ -786,8 +786,8 @@
                 <button class="btn-secondary" onclick="downloadLogs()" style="padding: 8px 16px;">
                     <span>⬇️</span> Log
                 </button>
-                <button class="btn-secondary" onclick="downloadLogs()" style="padding: 8px 16px;">
-                    <span>⬇️</span> Log
+                <button class="btn-secondary" onclick="playSmiley()" style="padding: 8px 16px;" title="Play smiley animation on Launchpad">
+                    <span>😊</span> Smiley
                 </button>
             </div>
         </div>
@@ -1751,6 +1751,24 @@
             }
         }
 
+        async function playSmiley() {
+            try {
+                const response = await fetch('/api/animation/smiley', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({duration: 5.0})
+                });
+                const data = await response.json();
+                if (data.success) {
+                    log('Playing smiley animation', 'success');
+                } else {
+                    log(data.error || 'Failed to play smiley', 'error');
+                }
+            } catch (e) {
+                log('Failed to play smiley: ' + e.message, 'error');
+            }
+        }
+
         function formatBackendName(backend) {
             if (!backend) return '';
             if (backend.endsWith('.rtmidi')) return 'python-rtmidi';
@@ -1865,6 +1883,10 @@
                 currentLayer = activeLayer;
                 document.getElementById('currentLayer').textContent = currentLayer;
                 updatePadDisplay();
+                // Refresh selected pad's form fields with updated mapping data
+                if (selectedPad !== null) {
+                    selectPad(selectedPad);
+                }
             } catch (e) {
                 log('Failed to load profile', 'error');
             }
