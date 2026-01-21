@@ -399,6 +399,7 @@ class LaunchpadMapper:
         self.idle_timeout = 120  # 2 minutes in seconds
         self.idle_timeout_thread = None
         self.idle_timeout_stop = threading.Event()
+        self.idle_animation_triggered = False
 
         # Key repeat handling
         self.active_repeats: Dict[int, threading.Thread] = {}
@@ -556,7 +557,7 @@ class LaunchpadMapper:
         seq_index = 0
         previous_notes: Dict[int, str] = {}
 
-        while not self.idle_stop_event.is_set() and self.output_port and not self._has_active_mappings():
+        while not self.idle_stop_event.is_set() and self.output_port and self.running:
             face_name, duration = sequence[seq_index]
             frame = faces.get(face_name, faces["happy"])
 
@@ -602,12 +603,11 @@ class LaunchpadMapper:
             time.sleep(5)  # Check every 5 seconds
             if not self.running or not self.output_port:
                 continue
-            if self._has_active_mappings():
-                continue
             # Check if idle for 2+ minutes
             elapsed = time.time() - self.last_activity_time
-            if elapsed >= self.idle_timeout:
+            if elapsed >= self.idle_timeout and not self.idle_animation_triggered:
                 self._start_idle_animation()
+                self.idle_animation_triggered = True
 
     def _start_idle_timeout_tracking(self):
         """Start the idle timeout tracking thread."""
@@ -628,6 +628,9 @@ class LaunchpadMapper:
         """Reset the activity timer (called on pad press or user interaction)."""
         self.last_activity_time = time.time()
         self._stop_idle_animation()
+        self.idle_animation_triggered = False
+        if self.running:
+            self.update_pad_colors()
 
     def play_smiley_animation(self, duration: float = 15.0) -> Dict[str, Any]:
         """Manually trigger the smiley animation.
