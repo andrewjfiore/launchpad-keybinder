@@ -2361,6 +2361,14 @@
                 if (!response.ok) {
                     throw new Error('status failed');
                 }
+                const data = await response.json();
+                const wasConnected = isConnected;
+                const wasRunning = isRunning;
+                isConnected = data.connected;
+                isRunning = data.running;
+                if (wasConnected !== isConnected || wasRunning !== isRunning) {
+                    updateStatus();
+                }
             } catch (e) {
                 if (!shutdownRequested) {
                     shutdownRequested = true;
