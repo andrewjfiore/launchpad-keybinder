@@ -350,12 +350,42 @@ def status():
     })
 
 
-@app.route('/api/midi-backend')
-def get_backend():
-    """Get the current MIDI backend."""
+@app.route('/api/midi-backend', methods=['GET', 'POST'])
+def midi_backend():
+    """Get or set the current MIDI backend."""
+    current_backend = os.environ.get("MIDO_BACKEND", mapper.get_midi_backend())
+    if request.method == 'GET':
+        return jsonify({
+            "current": current_backend,
+            "options": mapper.get_midi_backends()
+        })
+
+    data = request.json or {}
+    backend = data.get('backend')
+    if not backend:
+        return jsonify({"error": "No backend provided"}), 400
+    result = mapper.set_midi_backend(backend)
+    if not result.get("success"):
+        return jsonify({"error": result.get("error", "Failed to set MIDI backend")}), 400
+    os.environ["MIDO_BACKEND"] = backend
+    append_log(f"MIDI backend set to: {backend}")
     return jsonify({
-        "backend": os.environ.get("MIDO_BACKEND", "mido.backends.rtmidi"),
-        "available": mapper.get_midi_backends()
+        "current": backend,
+        "options": mapper.get_midi_backends()
+    })
+
+
+@app.route('/api/midi-backend/refresh', methods=['POST'])
+def refresh_backend():
+    """Reinitialize the MIDI backend and refresh ports."""
+    result = mapper.refresh_midi_backend()
+    if not result.get("success"):
+        return jsonify({"error": result.get("error", "Failed to refresh MIDI backend")}), 400
+    current_backend = os.environ.get("MIDO_BACKEND", mapper.get_midi_backend())
+    append_log("MIDI backend refreshed")
+    return jsonify({
+        "current": current_backend,
+        "options": mapper.get_midi_backends()
     })
 
 
