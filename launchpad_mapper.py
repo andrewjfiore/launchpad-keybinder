@@ -19,9 +19,25 @@ from functools import lru_cache
 from itertools import chain
 from typing import Optional, Dict, List, Callable, Any
 
-os.environ.setdefault("MIDO_BACKEND", "mido.backends.rtmidi")
+# Try rtmidi first, fall back to other backends if unavailable
+_backend_set = False
+for _backend in ["mido.backends.rtmidi", "mido.backends.pygame", "mido.backends.portmidi"]:
+    try:
+        os.environ["MIDO_BACKEND"] = _backend
+        import mido
+        mido.get_input_names()  # Test that backend actually works
+        _backend_set = True
+        print(f"Using MIDI backend: {_backend}")
+        break
+    except Exception as _e:
+        print(f"Backend {_backend} unavailable: {_e}")
+        continue
 
-import mido
+if not _backend_set:
+    # Last resort: let mido choose
+    if "MIDO_BACKEND" in os.environ:
+        del os.environ["MIDO_BACKEND"]
+    import mido
 from mido import Message
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
@@ -386,7 +402,7 @@ class LaunchpadMapper:
         self.last_output_port = None
         self.connection_lock = threading.Lock()
         self.auto_reconnect_enabled = False
-        self.auto_reconnect_interval = 2.0
+        self.auto_reconnect_interval = 5.0  # Increased from 2.0 to prevent race conditions
         self.auto_reconnect_stop = threading.Event()
         self.auto_reconnect_thread = None
         self.backend_options = self._discover_backends()
@@ -772,11 +788,34 @@ class LaunchpadMapper:
             if not port_list:
                 return None
             normalized = [(port, port.lower().replace(" ", "")) for port in port_list]
-            keywords = ["launchpad", "lpmini", "lpmk", "novation"]
+            # Extended keywords including USB MIDI for generic drivers
+            keywords = ["launchpad", "lpmini", "lpmk", "novation", "usbmidi"]
+
+            # Helper to check if port looks like a secondary port (e.g., MIDIIN2, MIDIOUT2)
+            def is_secondary_port(name: str) -> bool:
+                return any(x in name for x in ["midiin2", "midiout2", "midi2"])
+
+            # Priority 1: Primary Launchpad ports (not DAW, not session, not secondary)
+            for port, normalized_name in normalized:
+                if any(keyword in normalized_name for keyword in keywords):
+                    if "daw" not in normalized_name and "session" not in normalized_name:
+                        if not is_secondary_port(normalized_name):
+                            return port
+
+            # Priority 2: Secondary Launchpad ports (MIDIIN2/MIDIOUT2) - sometimes required
             for port, normalized_name in normalized:
                 if any(keyword in normalized_name for keyword in keywords):
                     if "daw" not in normalized_name and "session" not in normalized_name:
                         return port
+
+            # Priority 3: Session ports (fallback - some MK2 devices require this)
+            for port, normalized_name in normalized:
+                if any(keyword in normalized_name for keyword in keywords):
+                    if "daw" not in normalized_name and "session" in normalized_name:
+                        print(f"Falling back to session port: {port}")
+                        return port
+
+            # Priority 4: Any generic MIDI device
             if len(port_list) > 0:
                 print(f"Auto-selecting generic MIDI device: {port_list[0]}")
                 return port_list[0]
@@ -826,6 +865,22 @@ class LaunchpadMapper:
                             self.output_port = mido.open_output(detected_output)
                             messages.append(f"Output: {detected_output}")
                             print(f"Connected to output: {detected_output}")
+                    except OSError as e:
+                        # Windows MIDI drivers are single-client - port may be locked by another app
+                        error_msg = str(e)
+                        if "busy" in error_msg.lower() or "denied" in error_msg.lower():
+                            print(f"Port exclusivity error: {e}. Another application may have the MIDI port open.")
+                            errors.append(f"MIDI port is busy or locked by another application: {e}")
+                        else:
+                            errors.append(f"OSError opening MIDI port: {e}")
+                        if self.input_port:
+                            self.input_port.close()
+                            self.input_port = None
+                        if self.output_port:
+                            self.output_port.close()
+                            self.output_port = None
+                        time.sleep(retry_delay)
+                        continue
                     except Exception as e:
                         if self.input_port:
                             self.input_port.close()
@@ -837,17 +892,26 @@ class LaunchpadMapper:
                         time.sleep(retry_delay)
                         continue
 
-                    if self.input_port is not None:
+                    # Allow connection if either input OR output port is available
+                    # Input is needed for receiving pad presses, output for LED feedback
+                    if self.input_port is not None or self.output_port is not None:
                         self.enter_programmer_mode()
                         if self.output_port:
                             self.update_pad_colors()
+                        # Warn if only one port is available
+                        if self.input_port is None:
+                            messages.append("(No input - pad presses won't be detected)")
+                            print("Warning: Connected without input port - pad presses won't be detected")
+                        if self.output_port is None:
+                            messages.append("(No output - LED feedback unavailable)")
+                            print("Warning: Connected without output port - LED feedback unavailable")
                         return {
                             "success": True,
                             "message": "Connected: " + ", ".join(messages),
                             "attempt": attempt,
                         }
 
-                    errors.append("Input port is required for MIDI input.")
+                    errors.append("No MIDI ports available for connection.")
                     time.sleep(retry_delay)
 
             return {
@@ -892,7 +956,16 @@ class LaunchpadMapper:
                 continue
             if self.input_port and self.output_port:
                 continue
-            self.connect(self.last_input_port, self.last_output_port, retries=1, retry_delay=0.2)
+            # Check if a connection attempt is already in progress (non-blocking)
+            if not self.connection_lock.acquire(blocking=False):
+                # Another connection attempt is in progress, skip this cycle
+                continue
+            # Release immediately - connect() will acquire its own lock
+            self.connection_lock.release()
+            try:
+                self.connect(self.last_input_port, self.last_output_port, retries=1, retry_delay=0.2)
+            except Exception as e:
+                print(f"Auto-reconnect error: {e}")
 
     def enter_programmer_mode(self):
         """Send SysEx to enter Programmer mode (Launchpad only)."""
@@ -916,7 +989,13 @@ class LaunchpadMapper:
         # Launchpad MK2 (RGB) requires different commands than MK3/X/Pro models
         # The command 0x0E 0x01 that puts MK3 into Programmer Mode causes MK2
         # to turn all LEDs to color 1 (white). MK2 needs Session Layout command instead.
-        if "mk2" in port_name and "mini" not in port_name:
+        # Broadened detection: check for "mk2" OR generic "launchpad" without mk3/x/pro indicators
+        is_mk2 = "mk2" in port_name
+        is_generic_launchpad = ("launchpad" in port_name and
+                                "mk3" not in port_name and
+                                "launchpadx" not in port_name.replace(" ", "") and
+                                "pro" not in port_name)
+        if (is_mk2 or is_generic_launchpad) and "mini" not in port_name:
             print("Detected Launchpad MK2 (RGB). Sending Session Layout command...")
             try:
                 # Switch to Session Layout (enables grid Notes for input)
