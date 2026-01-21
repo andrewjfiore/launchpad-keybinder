@@ -232,6 +232,110 @@ class TestProfileEndpoint:
         assert data['success'] is True
         assert data['profile']['name'] == 'Imported'
 
+    def test_import_profile_mapping_data_preserved(self, client, reset_mapper):
+        """Test that label and key_combo are preserved after importing profile.
+
+        This tests the bug fix where pad config form fields weren't showing
+        label/key_combo after loading a preset. The fix ensures the frontend
+        can retrieve complete mapping data after import.
+        """
+        # Import a profile with multiple mappings containing labels and key combos
+        profile_data = {
+            'name': 'Test Preset',
+            'description': 'Testing mapping data preservation',
+            'base_layer': 'Base',
+            'layers': {
+                'Base': {
+                    '60': {
+                        'note': 60,
+                        'key_combo': 'ctrl+c',
+                        'color': 'green',
+                        'label': 'Copy'
+                    },
+                    '61': {
+                        'note': 61,
+                        'key_combo': 'ctrl+v',
+                        'color': 'blue',
+                        'label': 'Paste'
+                    },
+                    '62': {
+                        'note': 62,
+                        'key_combo': 'ctrl+shift+s',
+                        'color': 'red',
+                        'label': 'Save As'
+                    }
+                }
+            }
+        }
+
+        # Import the profile
+        import_response = client.post('/api/profile/import',
+                                      json=profile_data,
+                                      content_type='application/json')
+        assert import_response.status_code == 200
+
+        # Fetch the profile - this is what the frontend does after loading preset
+        profile_response = client.get('/api/profile')
+        assert profile_response.status_code == 200
+        profile = json.loads(profile_response.data)
+
+        # Verify profile structure
+        assert profile['name'] == 'Test Preset'
+        assert 'layers' in profile
+        assert 'Base' in profile['layers']
+
+        # Verify each mapping has label and key_combo preserved
+        base_layer = profile['layers']['Base']
+        assert '60' in base_layer
+        assert base_layer['60']['label'] == 'Copy'
+        assert base_layer['60']['key_combo'] == 'ctrl+c'
+        assert base_layer['60']['color'] == 'green'
+
+        assert '61' in base_layer
+        assert base_layer['61']['label'] == 'Paste'
+        assert base_layer['61']['key_combo'] == 'ctrl+v'
+
+        assert '62' in base_layer
+        assert base_layer['62']['label'] == 'Save As'
+        assert base_layer['62']['key_combo'] == 'ctrl+shift+s'
+
+    def test_get_mapping_after_preset_load(self, client, reset_mapper):
+        """Test fetching individual mapping returns label/key_combo after preset load.
+
+        This verifies the /api/mapping/<note> endpoint returns complete data
+        that the pad config form needs to display.
+        """
+        # Import a profile
+        profile_data = {
+            'name': 'Preset',
+            'base_layer': 'Base',
+            'layers': {
+                'Base': {
+                    '60': {
+                        'note': 60,
+                        'key_combo': 'alt+tab',
+                        'color': 'yellow',
+                        'label': 'Switch Window'
+                    }
+                }
+            }
+        }
+        client.post('/api/profile/import',
+                   json=profile_data,
+                   content_type='application/json')
+
+        # Fetch the specific mapping - simulates what happens when pad is selected
+        response = client.get('/api/mapping/60')
+        assert response.status_code == 200
+        mapping = json.loads(response.data)
+
+        # Verify all fields needed for pad config form are present
+        assert mapping is not None
+        assert mapping['note'] == 60
+        assert mapping['label'] == 'Switch Window'
+        assert mapping['key_combo'] == 'alt+tab'
+        assert mapping['color'] == 'yellow'
+
     def test_import_empty_profile(self, client, reset_mapper):
         """Test importing empty profile data."""
         response = client.post('/api/profile/import',
