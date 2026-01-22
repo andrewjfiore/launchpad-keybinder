@@ -311,6 +311,7 @@ def connect():
     data = request.json or {}
     retries = data.get("retries", 3)
     retry_delay = data.get("retry_delay", 0.5)
+    auto_start = data.get("auto_start", True)
     try:
         retries = max(1, int(retries))
     except (TypeError, ValueError):
@@ -336,8 +337,13 @@ def connect():
     if result.get("success"):
         save_config_async()
 
+    started = False
+    if result.get("success") and result.get("input_connected") and auto_start:
+        started = mapper.start()
+
     return jsonify({
         "connected": result.get("success", False),
+        "started": started,
         "message": result.get("message", "Unknown error"),
         "error": result.get("error"),
         "errors": result.get("errors"),

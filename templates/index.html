@@ -1020,6 +1020,9 @@
                         <button class="btn-secondary" onclick="testKeyCombo()" style="width: 100%;">
                             <span>🧪</span> Test Key Combination
                         </button>
+                        <button class="btn-secondary" onclick="selfTestPad()" style="width: 100%; margin-top: 8px;">
+                            <span>🎛️</span> Self-Test Selected Pad
+                        </button>
                     </div>
                     
                     <div class="key-hints">
@@ -1621,11 +1624,21 @@
                 const response = await fetch('/api/connect', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({input_port: inputPort, output_port: outputPort, retries: 3, retry_delay: 0.5})
+                    body: JSON.stringify({
+                        input_port: inputPort,
+                        output_port: outputPort,
+                        retries: 3,
+                        retry_delay: 0.5,
+                        auto_start: true
+                    })
                 });
 
                 const data = await response.json();
                 isConnected = data.connected;
+                if (data.started) {
+                    isRunning = true;
+                    startEventStream();
+                }
                 updateStatus();
 
                 if (data.connected) {
@@ -1645,6 +1658,27 @@
             } catch (e) {
                 log('Failed to connect: ' + e.message, 'error');
                 return false;
+            }
+        }
+
+        async function selfTestPad() {
+            if (selectedPad === null) {
+                log('Select a pad to self-test', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/emulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({note: selectedPad, velocity: 127, skip_pulse: true})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Self-test failed');
+                }
+                log(`Self-test sent for pad ${selectedPad}`, 'success');
+            } catch (e) {
+                log('Self-test failed: ' + e.message, 'error');
             }
         }
         
