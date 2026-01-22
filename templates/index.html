@@ -1198,7 +1198,7 @@
                 const response = await fetch('/api/emulate', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({note})
+                    body: JSON.stringify({note, velocity: 127})
                 });
                 const data = await response.json();
                 if (!response.ok) {
@@ -1208,6 +1208,7 @@
                     currentLayer = data.current_layer || currentLayer;
                     document.getElementById('currentLayer').textContent = currentLayer;
                 }
+                flashPad(note);
                 log(`Emulated pad ${note}`, 'success');
             } catch (e) {
                 log('Failed to emulate pad: ' + e.message, 'error');
@@ -1438,22 +1439,37 @@
                 const note = parseInt(el.dataset.note);
                 if (!isNaN(note) && mappings[note]) {
                     const mapping = mappings[note];
-                    const label = mapping.label || (mapping.action === 'layer' ? `↧ ${mapping.target_layer || ''}` : '');
+                    const label = mapping.label
+                        || (mapping.action === 'layer' ? `↧ ${mapping.target_layer || ''}` : '')
+                        || (mapping.action === 'layer_up' ? '↥' : '');
                     const hexColor = mapping.color && mapping.color.startsWith('#')
                         ? mapping.color
                         : (COLOR_HEX[mapping.color] || '#333');
                     el.style.backgroundColor = hexColor;
-                    el.textContent = label;
+                    const labelEl = el.querySelector('.pad-label');
+                    if (labelEl) {
+                        labelEl.textContent = label;
+                    }
                     el.style.color = isLightColor(hexColor) ? '#000' : '#fff';
                 } else if (!isNaN(note)) {
                     el.style.backgroundColor = '#333';
-                    el.textContent = '';
+                    const labelEl = el.querySelector('.pad-label');
+                    if (labelEl) {
+                        labelEl.textContent = '';
+                    }
                     el.style.color = '#fff';
                 }
             });
             
             // Update mapping count
             document.getElementById('mappingCount').textContent = Object.keys(mappings).length;
+        }
+
+        function flashPad(note) {
+            const pad = document.querySelector(`.pad[data-note="${note}"]`);
+            if (!pad) return;
+            pad.classList.add('active');
+            setTimeout(() => pad.classList.remove('active'), 150);
         }
         
         function isLightColor(hex) {

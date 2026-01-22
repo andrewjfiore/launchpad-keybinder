@@ -1335,7 +1335,12 @@ class LaunchpadMapper:
         thread = threading.Thread(target=macro_worker, daemon=True)
         thread.start()
 
-    def emulate_pad_press(self, note: int, skip_pulse: bool = False) -> Dict[str, Any]:
+    def emulate_pad_press(
+        self,
+        note: int,
+        skip_pulse: bool = False,
+        velocity: int = 127,
+    ) -> Dict[str, Any]:
         mapping = self.profile.get_mapping(note, self.current_layer)
         if not mapping or not mapping.enabled:
             return {"success": False, "error": "No mapping for this pad."}
@@ -1356,7 +1361,7 @@ class LaunchpadMapper:
         if mapping.macro_steps:
             self.execute_macro(mapping)
             return {"success": True, "action": "macro", **mapping_info}
-        action = self.get_velocity_action(mapping, 127)
+        action = self.get_velocity_action(mapping, velocity)
         if action:
             self.execute_key_combo(action)
             if not skip_pulse:
