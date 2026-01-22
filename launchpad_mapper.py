@@ -3552,11 +3552,19 @@ def index():
 @app.route('/api/ports')
 def get_ports():
     ports = mapper.get_available_ports()
-    # Add helpful message if no ports found
-    has_ports = len(ports["inputs"]) > 0 or len(ports["outputs"]) > 0
+    has_ports = len(ports.get("inputs", [])) > 0 or len(ports.get("outputs", [])) > 0
+
     response = {
-        **ports,
-        "error": None if has_ports else "No MIDI ports detected. Please ensure:\n1. A MIDI device is connected\n2. MIDI drivers are installed\n3. The device is powered on"
+        "inputs": ports.get("inputs", []),
+        "outputs": ports.get("outputs", []),
+
+        # compatibility aliases for other frontends
+        "input_ports": ports.get("inputs", []),
+        "output_ports": ports.get("outputs", []),
+        "inports": ports.get("inputs", []),
+        "outports": ports.get("outputs", []),
+
+        "error": None if has_ports else "No MIDI ports detected"
     }
     return jsonify(response)
 
@@ -3564,7 +3572,10 @@ def get_ports():
 @app.route('/api/connect', methods=['POST'])
 def api_connect():
     data = request.json or {}
-    result = mapper.connect(data.get('input_port'), data.get('output_port'))
+    input_port = data.get("input_port") or data.get("inputPort") or data.get("input")
+    output_port = data.get("output_port") or data.get("outputPort") or data.get("output")
+
+    result = mapper.connect(input_port, output_port)
     return jsonify({
         "connected": result.get("success", False),
         "message": result.get("message", "Connection failed"),
