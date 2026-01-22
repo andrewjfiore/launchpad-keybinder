@@ -257,13 +257,14 @@ class PadMapping:
     @classmethod
     def from_dict(cls, data):
         # Handle older profiles without new settings
+        action = data.get('action', 'key')
         return cls(
             note=data['note'],
-            key_combo=data['key_combo'],
-            color=data['color'],
+            key_combo=data.get('key_combo', ''),
+            color=data.get('color', 'green'),
             label=data.get('label', ''),
             enabled=data.get('enabled', True),
-            action=data.get('action', 'key'),
+            action=action,
             target_layer=data.get('target_layer'),
             repeat_enabled=data.get('repeat_enabled', False),
             repeat_delay=data.get('repeat_delay', 0.5),
