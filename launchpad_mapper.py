@@ -465,10 +465,12 @@ class LaunchpadMapper:
         [21, 22, 23, 24, 25, 26, 27, 28],
         [11, 12, 13, 14, 15, 16, 17, 18],
     ]
-    # NOTE: Launchpad MK2 top row uses CC 104-111 in Session/User layouts.
+    # NOTE: Internal control row IDs are always 91-98.
+    # Launchpad MK2 top row uses CC 104-111 in Session/User layouts.
     # Launchpad Mini MK3 / X / Pro often use CC 91-98 for the top row in Programmer mode.
-    # We set model-specific control notes at runtime, see _detect_device_profile().
-    CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]  # default (non-MK2)
+    # We translate device control IDs at runtime, see _detect_device_profile().
+    CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]  # internal control row
+    MK2_CONTROL_NOTES = [104, 105, 106, 107, 108, 109, 110, 111]
     SCENE_NOTES = [89, 79, 69, 59, 49, 39, 29, 19]
     BACKEND_OPTIONS = []
     
@@ -478,6 +480,7 @@ class LaunchpadMapper:
         # Device-specific MIDI addressing (set in _detect_device_profile)
         self.device_profile = "generic"
         self.control_notes: List[int] = list(self.CONTROL_NOTES)
+        self.device_control_notes: List[int] = list(self.CONTROL_NOTES)
         self.scene_notes: List[int] = list(self.SCENE_NOTES)
         self.input_port = None
         self.output_port = None
@@ -1157,16 +1160,40 @@ class LaunchpadMapper:
         n = (name or "").lower()
         if "launchpad" in n and "mk2" in n:
             self.device_profile = "mk2"
-            self.control_notes = list(range(104, 112))  # 104-111
+            self.device_control_notes = list(self.MK2_CONTROL_NOTES)  # 104-111
             self.scene_notes = list(self.SCENE_NOTES)   # 89..19 (NOTE)
         elif any(x in n for x in ["mk3", "launchpad x", "lp x", "pro mk3", "mini mk3"]):
             self.device_profile = "mk3_family"
-            self.control_notes = list(self.CONTROL_NOTES)  # 91-98
+            self.device_control_notes = list(self.CONTROL_NOTES)  # 91-98
             self.scene_notes = list(self.SCENE_NOTES)
         else:
             self.device_profile = "generic"
-            self.control_notes = list(self.CONTROL_NOTES)
+            self.device_control_notes = list(self.CONTROL_NOTES)
             self.scene_notes = list(self.SCENE_NOTES)
+
+    def _maybe_set_mk2_control_profile(self, ctrl: int) -> None:
+        """Auto-detect MK2-style control row based on incoming CC values."""
+        if ctrl in self.MK2_CONTROL_NOTES and self.device_control_notes != self.MK2_CONTROL_NOTES:
+            self.device_profile = "mk2"
+            self.device_control_notes = list(self.MK2_CONTROL_NOTES)
+
+    def _normalize_control_note(self, ctrl: int) -> Optional[int]:
+        """Translate device control IDs into internal control note IDs."""
+        self._maybe_set_mk2_control_profile(ctrl)
+        if ctrl in self.control_notes and self.device_control_notes != self.control_notes:
+            self.device_profile = "mk3_family"
+            self.device_control_notes = list(self.control_notes)
+        if ctrl in self.device_control_notes:
+            index = self.device_control_notes.index(ctrl)
+            return self.control_notes[index]
+        return None
+
+    def _device_control_note(self, note: int) -> int:
+        """Translate internal control note IDs into device control IDs."""
+        if note in self.control_notes and self.device_control_notes != self.control_notes:
+            index = self.control_notes.index(note)
+            return self.device_control_notes[index]
+        return note
 
     def enter_programmer_mode(self):
         """Initialize device layout so pad presses arrive as NOTE messages."""
@@ -1225,8 +1252,9 @@ class LaunchpadMapper:
         - Top row: CC messages (controls 91-98)
         - Right column (scene buttons): NOTE messages (notes 89, 79, 69, 59, 49, 39, 29, 19)
 
-        Our UI uses the numeric IDs directly, so we route NOTE vs CC based on
-        known control lists.
+        Launchpad MK2 Session/User layouts use CC 104-111 for the top row.
+        Our UI uses internal control IDs (91-98) and we translate to hardware
+        control IDs when needed.
         """
         if not self.output_port:
             return
@@ -1244,10 +1272,11 @@ class LaunchpadMapper:
                 velocity = LAUNCHPAD_COLORS.get(str(color), 0)
 
         try:
-            # Route CC only for top row buttons (control_notes: 91-98)
+            # Route CC only for top row buttons (internal control_notes: 91-98)
             # Scene buttons (right column) and grid pads use NOTE messages
             if note in self.control_notes:
-                msg = Message('control_change', control=int(note), value=int(velocity))
+                device_note = self._device_control_note(note)
+                msg = Message('control_change', control=int(device_note), value=int(velocity))
             else:
                 # Grid pads and scene buttons all use NOTE messages
                 msg = Message('note_on', note=int(note), velocity=int(velocity))
@@ -1482,8 +1511,16 @@ class LaunchpadMapper:
 
         # Notify UI of any incoming MIDI for visual feedback (even if not running)
         if msg.type in ('note_on', 'note_off', 'control_change'):
-            note = getattr(msg, 'note', None) or getattr(msg, 'control', None)
-            velocity = getattr(msg, 'velocity', None) or getattr(msg, 'value', 0)
+            note = getattr(msg, 'note', None)
+            velocity = getattr(msg, 'velocity', None)
+            if msg.type == 'control_change':
+                ctrl = int(getattr(msg, 'control', -1))
+                normalized = self._normalize_control_note(ctrl)
+                note = normalized if normalized is not None else ctrl
+                velocity = getattr(msg, 'value', 0)
+            else:
+                note = note
+                velocity = velocity if velocity is not None else 0
             for callback in self.callbacks:
                 try:
                     callback({
@@ -1511,17 +1548,17 @@ class LaunchpadMapper:
                 pass
 
         
-        # Normalize Launchpad Mini MK3 CC buttons into NOTE-like events so the
+        # Normalize Launchpad control-row CC buttons into NOTE-like events so the
         # rest of the app can treat everything as a "note" id.
         if msg.type == 'control_change':
-            # Normalize only the Launchpad's top-row CC buttons into NOTE-like events.
             ctrl = int(getattr(msg, 'control', -1))
-            if ctrl in getattr(self, 'control_notes', []):
+            normalized = self._normalize_control_note(ctrl)
+            if normalized is not None:
                 val = int(getattr(msg, 'value', 0))
                 if val > 0:
-                    pseudo = Message('note_on', note=ctrl, velocity=val)
+                    pseudo = Message('note_on', note=normalized, velocity=val)
                     return self.handle_midi_message(pseudo)
-                pseudo = Message('note_off', note=ctrl, velocity=0)
+                pseudo = Message('note_off', note=normalized, velocity=0)
                 return self.handle_midi_message(pseudo)
             return
 
@@ -2638,7 +2675,7 @@ HTML_TEMPLATE = r'''
     <script>
         // Grid layout matching Launchpad Mini (Programmer mode)
         const GRID_NOTES = [
-            [104, 105, 106, 107, 108, 109, 110, 111, null],  // Top control row (MK2 CC)
+            [91, 92, 93, 94, 95, 96, 97, 98, null],  // Top control row (internal IDs)
             [81, 82, 83, 84, 85, 86, 87, 88, 89],
             [71, 72, 73, 74, 75, 76, 77, 78, 79],
             [61, 62, 63, 64, 65, 66, 67, 68, 69],
