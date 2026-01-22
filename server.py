@@ -287,8 +287,19 @@ def emulate_pad():
         return jsonify({"success": False, "error": "No note provided"}), 400
     # skip_pulse defaults to True to prevent MIDI sounds during emulation
     skip_pulse = data.get("skip_pulse", True)
-    result = mapper.emulate_pad_press(int(note), skip_pulse=skip_pulse)
-    append_log(f"Emulate pad: note={note}, success={result.get('success')}, label={result.get('label')}")
+    velocity = data.get("velocity", 127)
+    try:
+        velocity = max(0, min(127, int(velocity)))
+    except (TypeError, ValueError):
+        velocity = 127
+    result = mapper.emulate_pad_press(int(note), skip_pulse=skip_pulse, velocity=velocity)
+    append_log(
+        "Emulate pad: "
+        f"note={note}, velocity={velocity}, success={result.get('success')}, "
+        f"label={result.get('label')}"
+    )
+    if result.get("success"):
+        broadcast_event({"type": "pad_press", "note": int(note), "velocity": velocity, "source": "emulated"})
     if not result.get("success"):
         return jsonify(result), 400
     return jsonify(result)
