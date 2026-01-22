@@ -1020,6 +1020,9 @@
                         <button class="btn-secondary" onclick="testKeyCombo()" style="width: 100%;">
                             <span>🧪</span> Test Key Combination
                         </button>
+                        <button class="btn-secondary" onclick="selfTestPad()" style="width: 100%; margin-top: 8px;">
+                            <span>🎛️</span> Self-Test Selected Pad
+                        </button>
                     </div>
                     
                     <div class="key-hints">
@@ -1198,7 +1201,7 @@
                 const response = await fetch('/api/emulate', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({note})
+                    body: JSON.stringify({note, velocity: 127})
                 });
                 const data = await response.json();
                 if (!response.ok) {
@@ -1208,6 +1211,7 @@
                     currentLayer = data.current_layer || currentLayer;
                     document.getElementById('currentLayer').textContent = currentLayer;
                 }
+                flashPad(note);
                 log(`Emulated pad ${note}`, 'success');
             } catch (e) {
                 log('Failed to emulate pad: ' + e.message, 'error');
@@ -1438,7 +1442,9 @@
                 const note = parseInt(el.dataset.note);
                 if (!isNaN(note) && mappings[note]) {
                     const mapping = mappings[note];
-                    const label = mapping.label || (mapping.action === 'layer' ? `↧ ${mapping.target_layer || ''}` : '');
+                    const label = mapping.label
+                        || (mapping.action === 'layer' ? `↧ ${mapping.target_layer || ''}` : '')
+                        || (mapping.action === 'layer_up' ? '↥' : '');
                     const hexColor = mapping.color && mapping.color.startsWith('#')
                         ? mapping.color
                         : (COLOR_HEX[mapping.color] || '#333');
@@ -1454,6 +1460,13 @@
             
             // Update mapping count
             document.getElementById('mappingCount').textContent = Object.keys(mappings).length;
+        }
+
+        function flashPad(note) {
+            const pad = document.querySelector(`.pad[data-note="${note}"]`);
+            if (!pad) return;
+            pad.classList.add('active');
+            setTimeout(() => pad.classList.remove('active'), 150);
         }
         
         function isLightColor(hex) {
@@ -1605,11 +1618,21 @@
                 const response = await fetch('/api/connect', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({input_port: inputPort, output_port: outputPort, retries: 3, retry_delay: 0.5})
+                    body: JSON.stringify({
+                        input_port: inputPort,
+                        output_port: outputPort,
+                        retries: 3,
+                        retry_delay: 0.5,
+                        auto_start: true
+                    })
                 });
 
                 const data = await response.json();
                 isConnected = data.connected;
+                if (data.started) {
+                    isRunning = true;
+                    startEventStream();
+                }
                 updateStatus();
 
                 if (data.connected) {
@@ -1629,6 +1652,27 @@
             } catch (e) {
                 log('Failed to connect: ' + e.message, 'error');
                 return false;
+            }
+        }
+
+        async function selfTestPad() {
+            if (selectedPad === null) {
+                log('Select a pad to self-test', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/emulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({note: selectedPad, velocity: 127, skip_pulse: true})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Self-test failed');
+                }
+                log(`Self-test sent for pad ${selectedPad}`, 'success');
+            } catch (e) {
+                log('Self-test failed: ' + e.message, 'error');
             }
         }
         
