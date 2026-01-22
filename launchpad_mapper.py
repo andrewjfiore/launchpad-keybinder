@@ -24,7 +24,7 @@ from typing import Optional, Dict, List, Callable, Any
 os.environ["MIDO_BACKEND"] = "mido.backends.rtmidi"
 import mido
 from mido import Message
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, render_template_string
 from flask_cors import CORS
 
 # Use 'keyboard' library for better Windows support (sends to active window)
@@ -103,6 +103,99 @@ COLOR_HEX = {
 
 LIGHTROOM_SOCKET_HOST = os.getenv("LR_SOCKET_HOST", "127.0.0.1")
 LIGHTROOM_SOCKET_PORT = int(os.getenv("LR_SOCKET_PORT", "55555"))
+
+
+# =========================================================================
+# LIGHTROOM SOCKET (optional)
+# =========================================================================
+# This project supports optional Lightroom integration via a local TCP socket.
+# If you do not run a Lightroom companion process, these functions safely no-op.
+
+class _LightroomSocketManager:
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
+        self._sock: Optional[socket.socket] = None
+        self._q: "queue.Queue[str]" = queue.Queue(maxsize=1000)
+        self._stop = threading.Event()
+        self._worker: Optional[threading.Thread] = None
+        self._lock = threading.Lock()
+
+    def connect(self):
+        with self._lock:
+            if self._sock is not None:
+                return
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(1.0)
+                s.connect((self.host, self.port))
+                s.settimeout(None)
+                self._sock = s
+            except Exception:
+                self._sock = None
+
+    def disconnect(self):
+        with self._lock:
+            if self._sock is None:
+                return
+            try:
+                self._sock.close()
+            except Exception:
+                pass
+            self._sock = None
+
+    def start_worker(self):
+        if self._worker and self._worker.is_alive():
+            return
+        self._stop.clear()
+        self._worker = threading.Thread(target=self._run, daemon=True)
+        self._worker.start()
+
+    def stop_worker(self):
+        self._stop.set()
+        if self._worker and self._worker.is_alive():
+            self._worker.join(timeout=1.0)
+        self._worker = None
+
+    def send_async(self, payload: str):
+        try:
+            self._q.put_nowait(payload)
+        except queue.Full:
+            # Drop if overwhelmed
+            pass
+
+    def _run(self):
+        while not self._stop.is_set():
+            try:
+                payload = self._q.get(timeout=0.25)
+            except queue.Empty:
+                continue
+
+            try:
+                self.connect()
+                with self._lock:
+                    s = self._sock
+                if s is None:
+                    continue
+                s.sendall((payload + "\n").encode("utf-8", errors="ignore"))
+            except Exception:
+                # If send fails, disconnect and continue
+                self.disconnect()
+
+
+_LIGHTROOM_SOCKET = _LightroomSocketManager(LIGHTROOM_SOCKET_HOST, LIGHTROOM_SOCKET_PORT)
+
+
+def get_lightroom_socket() -> _LightroomSocketManager:
+    return _LIGHTROOM_SOCKET
+
+
+def send_slider_to_lightroom(slider_id: str, command: str):
+    # For now we just send the command, slider_id is reserved for future throttling.
+    sock = get_lightroom_socket()
+    sock.start_worker()
+    sock.send_async(command)
+
 
 # Map color names to closest Launchpad velocity by RGB distance
 @lru_cache(maxsize=128)
@@ -371,12 +464,20 @@ class LaunchpadMapper:
         [21, 22, 23, 24, 25, 26, 27, 28],
         [11, 12, 13, 14, 15, 16, 17, 18],
     ]
-    CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]
+    # NOTE: Launchpad MK2 top row uses CC 104-111 in Session/User layouts.
+    # Launchpad Mini MK3 / X / Pro often use CC 91-98 for the top row in Programmer mode.
+    # We set model-specific control notes at runtime, see _detect_device_profile().
+    CONTROL_NOTES = [91, 92, 93, 94, 95, 96, 97, 98]  # default (non-MK2)
     SCENE_NOTES = [89, 79, 69, 59, 49, 39, 29, 19]
     BACKEND_OPTIONS = []
     
     def __init__(self):
         self.profile = Profile()
+
+        # Device-specific MIDI addressing (set in _detect_device_profile)
+        self.device_profile = "generic"
+        self.control_notes: List[int] = list(self.CONTROL_NOTES)
+        self.scene_notes: List[int] = list(self.SCENE_NOTES)
         self.input_port = None
         self.output_port = None
         self.running = False
@@ -414,6 +515,9 @@ class LaunchpadMapper:
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
+
+        # Debug: print raw incoming MIDI
+        self.debug_midi = False
 
     def _grid_note(self, row: int, col: int) -> int:
         return self.GRID_NOTES[row][col]
@@ -780,6 +884,30 @@ class LaunchpadMapper:
             "output": pick_port(ports["outputs"]),
         }
     
+    def _open_with_timeout(self, opener, *args, timeout: float = 2.0, **kwargs):
+        """Open a MIDI port with a hard timeout.
+
+        On some Windows MIDI stacks, opening an input/output can hang indefinitely.
+        This wrapper prevents the Flask request thread from hanging forever.
+        """
+        result_q: "queue.Queue[Any]" = queue.Queue(maxsize=1)
+
+        def _worker():
+            try:
+                result_q.put((True, opener(*args, **kwargs)))
+            except Exception as e:
+                result_q.put((False, e))
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+        try:
+            ok, payload = result_q.get(timeout=timeout)
+        except queue.Empty:
+            raise TimeoutError("Timed out opening MIDI port")
+        if ok:
+            return payload
+        raise payload
+
     def connect(
         self,
         input_port: str = None,
@@ -812,11 +940,20 @@ class LaunchpadMapper:
                     messages = []
                     try:
                         if detected_input:
-                            self.input_port = mido.open_input(detected_input)
+                            self.input_port = self._open_with_timeout(
+                                mido.open_input,
+                                detected_input,
+                                callback=self._mido_callback,
+                                timeout=2.5,
+                            )
                             messages.append(f"Input: {detected_input}")
                             print(f"Connected to input: {detected_input}")
                         if detected_output:
-                            self.output_port = mido.open_output(detected_output)
+                            self.output_port = self._open_with_timeout(
+                                mido.open_output,
+                                detected_output,
+                                timeout=2.5,
+                            )
                             messages.append(f"Output: {detected_output}")
                             print(f"Connected to output: {detected_output}")
                     except OSError as e:
@@ -849,6 +986,8 @@ class LaunchpadMapper:
                     # Allow connection if either input OR output port is available
                     # Input is needed for receiving pad presses, output for LED feedback
                     if self.input_port is not None or self.output_port is not None:
+                        # Detect model-specific addressing once we have a port name
+                        self._detect_device_profile()
                         self.enter_programmer_mode()
                         if self.output_port:
                             self.update_pad_colors()
@@ -863,6 +1002,10 @@ class LaunchpadMapper:
                             "success": True,
                             "message": "Connected: " + ", ".join(messages),
                             "attempt": attempt,
+                            "input_connected": self.input_port is not None,
+                            "output_connected": self.output_port is not None,
+                            "input_port": detected_input,
+                            "output_port": detected_output,
                         }
 
                     errors.append("No MIDI ports available for connection.")
@@ -969,8 +1112,40 @@ class LaunchpadMapper:
             except Exception as e:
                 print(f"Auto-reconnect error: {e}")
 
+    def _detect_device_profile(self):
+        """Detect device model from MIDI port name and set addressing.
+
+        For Launchpad MK2 (classic square pads), the top row buttons transmit/receive
+        CC 104-111 (0x68-0x6F) in Session/User layouts. The right column (scene) buttons
+        transmit/receive NOTE 19,29,...,89.
+
+        Mini MK3/X/Pro (Programmer mode) commonly use CC 91-98 for the top row.
+        """
+        name = ""
+        try:
+            if self.output_port and getattr(self.output_port, "name", None):
+                name = self.output_port.name
+            elif self.input_port and getattr(self.input_port, "name", None):
+                name = self.input_port.name
+        except Exception:
+            name = ""
+
+        n = (name or "").lower()
+        if "launchpad" in n and "mk2" in n:
+            self.device_profile = "mk2"
+            self.control_notes = list(range(104, 112))  # 104-111
+            self.scene_notes = list(self.SCENE_NOTES)   # 89..19 (NOTE)
+        elif any(x in n for x in ["mk3", "launchpad x", "lp x", "pro mk3", "mini mk3"]):
+            self.device_profile = "mk3_family"
+            self.control_notes = list(self.CONTROL_NOTES)  # 91-98
+            self.scene_notes = list(self.SCENE_NOTES)
+        else:
+            self.device_profile = "generic"
+            self.control_notes = list(self.CONTROL_NOTES)
+            self.scene_notes = list(self.SCENE_NOTES)
+
     def enter_programmer_mode(self):
-        """Send SysEx to enter Programmer mode (Launchpad only)."""
+        """Initialize device layout so pad presses arrive as NOTE messages."""
         if not self.output_port:
             return
 
@@ -982,44 +1157,33 @@ class LaunchpadMapper:
             print("Generic MIDI device detected. Skipping Launchpad initialization.")
             return
 
-        try:
-            self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x22, 0x01]))
-            print("Sent Launchpad User 1 layout command")
-        except Exception as e:
-            print(f"Error sending User 1 layout command: {e}")
-
-        # Launchpad MK2 (RGB) requires different commands than MK3/X/Pro models
-        # The command 0x0E 0x01 that puts MK3 into Programmer Mode causes MK2
-        # to turn all LEDs to color 1 (white). MK2 needs Session Layout command instead.
-        # Broadened detection: check for "mk2" OR generic "launchpad" without mk3/x/pro indicators
-        is_mk2 = "mk2" in port_name
-        is_generic_launchpad = ("launchpad" in port_name and
-                                "mk3" not in port_name and
-                                "launchpadx" not in port_name.replace(" ", "") and
-                                "pro" not in port_name)
-        if (is_mk2 or is_generic_launchpad) and "mini" not in port_name:
-            print("Detected Launchpad MK2 (RGB). Sending Session Layout command...")
+        # Launchpad MK2: prefer User 1 layout so pads send NOTE messages.
+        # Many MK2 devices in Session layout will send CC for top/side buttons.
+        if "mk2" in port_name:
+            print("Detected Launchpad MK2. Sending User 1 layout command...")
             try:
-                # Switch to Session Layout (enables grid Notes for input)
+                # Session layout (matches our UI note grid: 11-88, right column 19-89)
                 # SysEx: F0 00 20 29 02 18 22 00 F7
                 self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x22, 0x00]))
-                # Turn off all LEDs (clears the "stuck white" state)
-                # SysEx: F0 00 20 29 02 18 0E 00 F7
+                # Clear LEDs
                 self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x0E, 0x00]))
-                print("Sent MK2 Session Layout and LED clear commands")
+                print("Sent MK2 User 1 layout and LED clear commands")
             except Exception as e:
                 print(f"Error sending MK2 init: {e}")
             return
 
-        # SysEx messages to enter Programmer mode for MK3/X/Pro models
-        # Launchpad Mini MK3: F0 00 20 29 02 0D 0E 01 F7
-        # Launchpad X: F0 00 20 29 02 0C 0E 01 F7
-        # Launchpad Pro MK3: F0 00 20 29 02 0E 0E 01 F7
+        # MK3/X/Pro models Programmer mode
         sysex_messages = [
             [0x00, 0x20, 0x29, 0x02, 0x0D, 0x0E, 0x01],  # Mini MK3
             [0x00, 0x20, 0x29, 0x02, 0x0C, 0x0E, 0x01],  # Launchpad X
             [0x00, 0x20, 0x29, 0x02, 0x0E, 0x0E, 0x01],  # Pro MK3
         ]
+
+        # Also set User 1 layout for devices that support it
+        try:
+            self.output_port.send(Message('sysex', data=[0x00, 0x20, 0x29, 0x02, 0x18, 0x22, 0x01]))
+        except Exception:
+            pass
 
         try:
             for sysex_data in sysex_messages:
@@ -1030,27 +1194,46 @@ class LaunchpadMapper:
             print(f"Error sending Programmer mode SysEx: {e}")
 
     def set_pad_color(self, note: int, color: str):
-        if self.output_port:
-            port_name = self.output_port.name.lower()
-            is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
-            velocity = 127 if color != "off" else 0
-            if is_launchpad:
-                if color.startswith('#'):
-                    closest = find_closest_launchpad_color(color)
-                    velocity = LAUNCHPAD_COLORS.get(closest, 0)
-                else:
-                    velocity = LAUNCHPAD_COLORS.get(color, 0)
-            try:
-                msg = Message('note_on', note=note, velocity=velocity)
-                self.output_port.send(msg)
-            except Exception as e:
-                print(f"Error setting LED: {e}")
+        """Set a pad LED.
+
+        Launchpad Mini MK3 programmer mode uses:
+        - Grid pads: NOTE messages (notes 11-88)
+        - Top row + right column: CC messages (controls 91-98 and 19..89)
+
+        Our UI uses the numeric IDs directly, so we route NOTE vs CC based on
+        known control lists.
+        """
+        if not self.output_port:
+            return
+
+        port_name = self.output_port.name.lower() if getattr(self.output_port, "name", None) else ""
+        is_launchpad = any(k in port_name for k in ["launchpad", "lpmini", "lpmk", "novation"])
+
+        # Resolve velocity/color index
+        velocity = 127 if color != "off" else 0
+        if is_launchpad:
+            if isinstance(color, str) and color.startswith('#'):
+                closest = find_closest_launchpad_color(color)
+                velocity = LAUNCHPAD_COLORS.get(closest, 0)
+            else:
+                velocity = LAUNCHPAD_COLORS.get(str(color), 0)
+
+        try:
+            # Route CC for top/scene buttons on Mini MK3, NOTE for grid.
+            if note in self.control_notes or note in self.scene_notes:
+                msg = Message('control_change', control=int(note), value=int(velocity))
+            else:
+                msg = Message('note_on', note=int(note), velocity=int(velocity))
+            self.output_port.send(msg)
+        except Exception as e:
+            print(f"Error setting LED: {e}")
+
     
     def clear_all_pads(self):
         if self.output_port:
             for note in chain.from_iterable(self.GRID_NOTES):
                 self.set_pad_color(note, "off")
-            for note in chain(self.CONTROL_NOTES, self.SCENE_NOTES):
+            for note in chain(self.control_notes, self.scene_notes):
                 self.set_pad_color(note, "off")
     
     def update_pad_colors(self):
@@ -1073,7 +1256,8 @@ class LaunchpadMapper:
         with self.profile_lock:
             self.profile.ensure_layer(layer)
             self.layer_stack.append(layer)
-            if self.running:
+            # Update LEDs whenever we have an output, even if not running
+            if self.output_port:
                 self.update_pad_colors()
             self.notify_layer_change()
 
@@ -1081,7 +1265,7 @@ class LaunchpadMapper:
         with self.profile_lock:
             if len(self.layer_stack) > 1:
                 self.layer_stack.pop()
-                if self.running:
+                if self.output_port:
                     self.update_pad_colors()
                 self.notify_layer_change()
 
@@ -1089,7 +1273,7 @@ class LaunchpadMapper:
         with self.profile_lock:
             self.profile.ensure_layer(layer)
             self.layer_stack = [layer]
-            if self.running:
+            if self.output_port:
                 self.update_pad_colors()
             self.notify_layer_change()
 
@@ -1097,7 +1281,7 @@ class LaunchpadMapper:
         with self.profile_lock:
             self.profile = profile
             self.layer_stack = [profile.base_layer]
-            if self.running:
+            if self.output_port:
                 self.update_pad_colors()
             self.notify_layer_change()
     
@@ -1255,7 +1439,45 @@ class LaunchpadMapper:
         for note in list(self.repeat_stop_events.keys()):
             self.stop_key_repeat(note)
     
+    def _mido_callback(self, msg):
+        """Callback from mido/rtmidi when a MIDI message arrives."""
+        # Always allow raw logging when debug is enabled.
+        if getattr(self, "debug_midi", False):
+            try:
+                print(f"MIDI IN: {msg}")
+            except Exception:
+                pass
+
+        # Gate mapping execution on running, so Connect does not trigger actions.
+        if not self.running:
+            return
+        try:
+            self.handle_midi_message(msg)
+        except Exception as e:
+            print(f"MIDI callback error: {e}")
+
     def handle_midi_message(self, msg):
+        if getattr(self, "debug_midi", False):
+            try:
+                print(f"MIDI IN: {msg}")
+            except Exception:
+                pass
+
+        
+        # Normalize Launchpad Mini MK3 CC buttons into NOTE-like events so the
+        # rest of the app can treat everything as a "note" id.
+        if msg.type == 'control_change':
+            # Normalize only the Launchpad's top-row CC buttons into NOTE-like events.
+            ctrl = int(getattr(msg, 'control', -1))
+            if ctrl in getattr(self, 'control_notes', []):
+                val = int(getattr(msg, 'value', 0))
+                if val > 0:
+                    pseudo = Message('note_on', note=ctrl, velocity=val)
+                    return self.handle_midi_message(pseudo)
+                pseudo = Message('note_off', note=ctrl, velocity=0)
+                return self.handle_midi_message(pseudo)
+            return
+
         if msg.type == 'note_on' and msg.velocity > 0:
             note = msg.note
             # Use profile lock for thread-safe access to mappings
@@ -1345,14 +1567,13 @@ class LaunchpadMapper:
             for callback in self.callbacks:
                 callback({"type": "pad_release", "note": note})
 
-        elif msg.type == 'control_change':
-            for callback in self.callbacks:
-                callback({"type": "control", "control": msg.control, "value": msg.value})
+        # control_change is normalized above
+        return
     
     def midi_loop(self):
+        """Legacy polling loop (kept for compatibility)."""
         while self.running:
             try:
-                # Check input_port inside try block to handle race condition
                 port = self.input_port
                 if port is None:
                     break
@@ -1361,12 +1582,10 @@ class LaunchpadMapper:
                 time.sleep(0.001)
             except Exception as e:
                 print(f"MIDI loop error: {e}")
-                # Brief pause before retrying to avoid tight error loop
                 time.sleep(0.1)
-                # If port was closed, exit the loop
                 if self.input_port is None:
                     break
-    
+
     def start(self):
         if self.running:
             return True
@@ -1375,8 +1594,16 @@ class LaunchpadMapper:
             return False
         self.running = True
         self.last_activity_time = time.time()  # Reset activity timer
-        self.midi_thread = threading.Thread(target=self.midi_loop, daemon=True)
-        self.midi_thread.start()
+        # Prefer callback-driven input (open_input(callback=...))
+        # If the backend does not support callbacks, fall back to polling.
+        try:
+            has_callback = getattr(self.input_port, "callback", None) is not None
+        except Exception:
+            has_callback = False
+
+        if not has_callback:
+            self.midi_thread = threading.Thread(target=self.midi_loop, daemon=True)
+            self.midi_thread.start()
         self._start_idle_timeout_tracking()
         self.update_pad_colors()
         print("Mapper started")
@@ -1712,6 +1939,12 @@ HTML_TEMPLATE = r'''
         .pad.drag-over {
             border-color: #00d4ff !important;
             box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+
+        .pad-label {
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
         }
 
         .pad-actions {
@@ -2358,7 +2591,7 @@ HTML_TEMPLATE = r'''
     <script>
         // Grid layout matching Launchpad Mini (Programmer mode)
         const GRID_NOTES = [
-            [91, 92, 93, 94, 95, 96, 97, 98, null],  // Top control row
+            [104, 105, 106, 107, 108, 109, 110, 111, null],  // Top control row (MK2 CC)
             [81, 82, 83, 84, 85, 86, 87, 88, 89],
             [71, 72, 73, 74, 75, 76, 77, 78, 79],
             [61, 62, 63, 64, 65, 66, 67, 68, 69],
@@ -2399,6 +2632,11 @@ HTML_TEMPLATE = r'''
                         if (colIndex === 8) pad.classList.add('scene');
                         pad.dataset.note = note;
                         pad.draggable = true;
+
+                        // Add label container (so we do not wipe action buttons when updating text)
+                        const labelSpan = document.createElement('span');
+                        labelSpan.className = 'pad-label';
+                        pad.appendChild(labelSpan);
 
                         // Add action buttons container
                         const actionsDiv = document.createElement('div');
@@ -2715,11 +2953,13 @@ HTML_TEMPLATE = r'''
                         ? mapping.color
                         : (COLOR_HEX[mapping.color] || '#333');
                     el.style.backgroundColor = hexColor;
-                    el.textContent = label;
+                    const labelEl = el.querySelector('.pad-label');
+                    if (labelEl) labelEl.textContent = label;
                     el.style.color = isLightColor(hexColor) ? '#000' : '#fff';
                 } else if (!isNaN(note)) {
                     el.style.backgroundColor = '#333';
-                    el.textContent = '';
+                    const labelEl = el.querySelector('.pad-label');
+                    if (labelEl) labelEl.textContent = '';
                     el.style.color = '#fff';
                 }
             });
@@ -2987,8 +3227,7 @@ HTML_TEMPLATE = r'''
                     mappings[m.note] = m;
                 });
                 document.getElementById('profileName').value = data.name || 'Default';
-                document.getElementById('profileDescription').value = data.description || '';
-                document.getElementById('currentProfile').textContent = data.name || 'Default';
+                                document.getElementById('currentProfile').textContent = data.name || 'Default';
                 currentLayer = activeLayer;
                 document.getElementById('currentLayer').textContent = currentLayer;
                 updatePadDisplay();
@@ -3358,17 +3597,18 @@ HTML_TEMPLATE = r'''
         function updateStatus() {
             const connectionDot = document.getElementById('connectionDot');
             const runningDot = document.getElementById('runningDot');
-            
+
             connectionDot.classList.toggle('connected', isConnected);
             document.getElementById('connectionStatus').textContent = isConnected ? 'Connected' : 'Disconnected';
-            
+
             runningDot.classList.toggle('running', isRunning);
             document.getElementById('runningStatus').textContent = isRunning ? 'Running' : 'Stopped';
-            
-            // Update button states
-            document.getElementById('startBtn').disabled = !isConnected || isRunning;
-            document.getElementById('stopBtn').disabled = !isRunning;
-            document.getElementById('disconnectBtn').disabled = !isConnected;
+
+            // Update button states (this UI uses Quick Start + Stop only)
+            const quickBtn = document.getElementById('quickStartBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            if (quickBtn) quickBtn.disabled = isRunning;
+            if (stopBtn) stopBtn.disabled = !isRunning;
         }
         
         function log(message, type = '') {
@@ -3530,6 +3770,9 @@ app = Flask(__name__)
 CORS(app)
 
 mapper = LaunchpadMapper()
+# Ensure cleanup on exit
+atexit.register(mapper._cleanup_on_exit)
+
 event_queues = []
 
 
@@ -3546,7 +3789,12 @@ mapper.add_callback(broadcast_event)
 
 @app.route('/')
 def index():
-    return HTML_TEMPLATE
+    # Render the embedded template with the color dictionaries.
+    return render_template_string(
+        HTML_TEMPLATE,
+        colors=json.dumps(list(COLOR_HEX.keys())),
+        color_hex=json.dumps(COLOR_HEX),
+    )
 
 
 @app.route('/api/ports')
@@ -3580,6 +3828,10 @@ def api_connect():
         "connected": result.get("success", False),
         "message": result.get("message", "Connection failed"),
         "error": result.get("error"),
+        "input_connected": result.get("input_connected"),
+        "output_connected": result.get("output_connected"),
+        "input_port": result.get("input_port"),
+        "output_port": result.get("output_port"),
     })
 
 
@@ -3603,29 +3855,49 @@ def api_stop():
 
 @app.route('/api/mapping', methods=['POST'])
 def save_mapping():
-    data = request.json
-    mapping = PadMapping(
-        note=data['note'],
-        key_combo=data['key_combo'],
-        color=data['color'],
-        label=data.get('label', ''),
-        enabled=data.get('enabled', True),
-        repeat_enabled=data.get('repeat_enabled', False),
-        repeat_delay=data.get('repeat_delay', 0.5),
-        repeat_interval=data.get('repeat_interval', 0.05)
-    )
-    mapper.profile.add_mapping(mapping)
+    data = request.get_json(silent=True) or {}
+
+    # Batch update support: {mappings: [...], layer: "LayerName"}
+    if isinstance(data, dict) and isinstance(data.get('mappings'), list):
+        layer = data.get('layer') or mapper.profile.base_layer
+        with mapper.profile_lock:
+            mapper.profile.ensure_layer(layer)
+            # Replace layer mappings
+            mapper.profile.layers[layer] = {}
+            for item in data['mappings']:
+                try:
+                    pm = PadMapping.from_dict(item)
+                    mapper.profile.add_mapping(pm, layer=layer)
+                except Exception as exc:
+                    return jsonify({"success": False, "error": f"Invalid mapping in batch: {exc}"}), 400
+        if mapper.running:
+            mapper.update_pad_colors()
+        return jsonify({"success": True, "layer": layer, "count": len(data['mappings'])})
+
+    # Single mapping update
+    try:
+        layer = data.get('layer') or mapper.profile.base_layer
+        mapping = PadMapping.from_dict(data)
+    except Exception as exc:
+        return jsonify({"success": False, "error": f"Invalid mapping: {exc}"}), 400
+
+    with mapper.profile_lock:
+        mapper.profile.add_mapping(mapping, layer=layer)
+
     if mapper.running:
         mapper.set_pad_color(mapping.note, mapping.color if mapping.enabled else 'off')
-    return jsonify({"success": True})
+
+    return jsonify({"success": True, "layer": layer})
 
 
 @app.route('/api/mapping/<int:note>', methods=['DELETE'])
 def delete_mapping(note):
-    mapper.profile.remove_mapping(note)
+    layer = request.args.get('layer') or mapper.profile.base_layer
+    with mapper.profile_lock:
+        mapper.profile.remove_mapping(note, layer=layer)
     if mapper.running:
         mapper.set_pad_color(note, 'off')
-    return jsonify({"success": True})
+    return jsonify({"success": True, "layer": layer})
 
 
 @app.route('/api/profile')
@@ -3698,6 +3970,14 @@ def set_layer():
         return jsonify({"success": False, "error": "No layer provided"}), 400
     mapper.set_layer(layer)
     return jsonify({"success": True, "current_layer": mapper.current_layer})
+
+
+@app.route('/api/debug/midi', methods=['POST'])
+def debug_midi():
+    data = request.get_json(silent=True) or {}
+    enabled = bool(data.get('enabled', True))
+    mapper.debug_midi = enabled
+    return jsonify({"success": True, "debug_midi": mapper.debug_midi})
 
 
 @app.route('/api/test-key', methods=['POST'])
