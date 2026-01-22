@@ -46,6 +46,25 @@ mapper.set_auto_reconnect(True, 2.0)
 persistence = get_persistence_manager()
 
 
+@app.route("/api/debug/midi", methods=["GET"])
+def get_debug_midi():
+    return jsonify({
+        "success": True,
+        "debug_midi": bool(getattr(mapper, "debug_midi", False))
+    })
+
+
+@app.route("/api/debug/midi", methods=["POST"])
+def debug_midi():
+    data = request.get_json(silent=True) or {}
+    enabled = bool(data.get("enabled", True))
+    mapper.debug_midi = enabled
+    return jsonify({
+        "success": True,
+        "debug_midi": mapper.debug_midi
+    })
+
+
 def load_persisted_state():
     """Load profiles and config from disk on startup."""
     global profiles, auto_switch_rules, auto_switch_enabled
@@ -55,7 +74,7 @@ def load_persisted_state():
     if profiles_data:
         with profile_lock:
             profiles.clear()
-            for name, profile_dict in profiles_data.get('profiles', {}).items():
+            for name, profile_dict in profiles_data.get("profiles", {}).items():
                 try:
                     profile = Profile.from_dict(profile_dict)
                     profiles[profile.name] = profile
@@ -63,7 +82,7 @@ def load_persisted_state():
                     print(f"Error loading profile '{name}': {e}")
 
             # Set active profile
-            active_name = profiles_data.get('active_profile')
+            active_name = profiles_data.get("active_profile")
             if active_name and active_name in profiles:
                 mapper.set_profile(profiles[active_name])
                 print(f"Restored active profile: {active_name}")
@@ -77,19 +96,21 @@ def load_persisted_state():
     if config:
         # Restore auto-switch settings
         with auto_switch_lock:
-            auto_switch_rules[:] = config.get('auto_switch_rules', [])
-            auto_switch_enabled = config.get('auto_switch_enabled', False)
+            auto_switch_rules[:] = config.get("auto_switch_rules", [])
+            auto_switch_enabled = config.get("auto_switch_enabled", False)
 
         # Restore last MIDI ports (will be used on auto-reconnect)
-        last_input = config.get('last_input_port')
-        last_output = config.get('last_output_port')
+        last_input = config.get("last_input_port")
+        last_output = config.get("last_output_port")
         if last_input:
             mapper.last_input_port = last_input
         if last_output:
             mapper.last_output_port = last_output
 
-        print(f"Config restored: auto_switch={auto_switch_enabled}, "
-              f"last_ports=({last_input}, {last_output})")
+        print(
+            f"Config restored: auto_switch={auto_switch_enabled}, "
+            f"last_ports=({last_input}, {last_output})"
+        )
 
 
 def save_profiles_async():
@@ -105,10 +126,10 @@ def save_config_async():
     """Save config to disk."""
     with auto_switch_lock:
         config = {
-            'last_input_port': mapper.last_input_port,
-            'last_output_port': mapper.last_output_port,
-            'auto_switch_rules': auto_switch_rules,
-            'auto_switch_enabled': auto_switch_enabled,
+            "last_input_port": mapper.last_input_port,
+            "last_output_port": mapper.last_output_port,
+            "auto_switch_rules": auto_switch_rules,
+            "auto_switch_enabled": auto_switch_enabled,
         }
     persistence.save_config(config)
 
@@ -123,12 +144,20 @@ event_queues_lock = threading.Lock()
 
 def append_log(message: str):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    with open(LOG_PATH, "a", encoding="utf-8") as handle:
-        handle.write(f"[{timestamp}] {message}\n")
+    try:
+        with open(LOG_PATH, "a", encoding="utf-8") as handle:
+            handle.write(f"[{timestamp}] {message}\n")
+    except Exception:
+        # Never let logging crash a request
+        pass
 
 
-with open(LOG_PATH, "a", encoding="utf-8") as _handle:
-    _handle.write("")
+try:
+    with open(LOG_PATH, "a", encoding="utf-8") as _handle:
+        _handle.write("")
+except Exception:
+    pass
+
 append_log("Server initialized")
 
 
@@ -152,14 +181,15 @@ mapper.add_callback(event_callback)
 
 
 def request_shutdown():
-    shutdown_fn = request.environ.get('werkzeug.server.shutdown')
+    shutdown_fn = request.environ.get("werkzeug.server.shutdown")
     if shutdown_fn:
         shutdown_fn()
 
 
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html',
+    return render_template(
+        "index.html",
         colors=json.dumps(LAUNCHPAD_COLORS),
         color_hex=json.dumps(COLOR_HEX)
     )
@@ -209,22 +239,37 @@ def auto_switch_worker():
                 last_profile = target_profile
 
 
-@app.route('/api/ports')
+@app.route("/api/ports")
 def get_ports():
     """Get available MIDI ports."""
-    return jsonify(mapper.get_available_ports())
+    ports = mapper.get_available_ports()
+    return jsonify({
+        "inputs": ports.get("inputs", []),
+        "outputs": ports.get("outputs", []),
+
+        # compatibility aliases for other frontends
+        "input_ports": ports.get("inputs", []),
+        "output_ports": ports.get("outputs", []),
+        "inports": ports.get("inputs", []),
+        "outports": ports.get("outputs", []),
+
+        "error": ports.get("error"),
+    })
 
 
-@app.route('/api/logs/download')
+@app.route("/api/logs/download")
 def download_logs():
     if not os.path.exists(LOG_PATH):
-        with open(LOG_PATH, "a", encoding="utf-8"):
+        try:
+            with open(LOG_PATH, "a", encoding="utf-8"):
+                pass
+        except Exception:
             pass
         append_log("Log download requested with no log file present")
     return send_file(LOG_PATH, as_attachment=True, download_name="launchpad_mapper.log")
 
 
-@app.route('/api/logs/click', methods=['POST'])
+@app.route("/api/logs/click", methods=["POST"])
 def log_click():
     data = request.json or {}
     label = data.get("label", "")
@@ -234,7 +279,7 @@ def log_click():
     return jsonify({"success": True})
 
 
-@app.route('/api/emulate', methods=['POST'])
+@app.route("/api/emulate", methods=["POST"])
 def emulate_pad():
     data = request.json or {}
     note = data.get("note")
@@ -249,12 +294,12 @@ def emulate_pad():
     return jsonify(result)
 
 
-@app.route('/api/connect', methods=['POST'])
+@app.route("/api/connect", methods=["POST"])
 def connect():
     """Connect to MIDI ports."""
     data = request.json or {}
-    retries = data.get('retries', 3)
-    retry_delay = data.get('retry_delay', 0.5)
+    retries = data.get("retries", 3)
+    retry_delay = data.get("retry_delay", 0.5)
     try:
         retries = max(1, int(retries))
     except (TypeError, ValueError):
@@ -264,8 +309,8 @@ def connect():
     except (TypeError, ValueError):
         retry_delay = 0.5
     result = mapper.connect(
-        data.get('input_port'),
-        data.get('output_port'),
+        data.get("input_port"),
+        data.get("output_port"),
         retries=retries,
         retry_delay=retry_delay,
     )
@@ -289,16 +334,16 @@ def connect():
     })
 
 
-@app.route('/api/auto-reconnect', methods=['GET', 'POST'])
+@app.route("/api/auto-reconnect", methods=["GET", "POST"])
 def auto_reconnect():
-    if request.method == 'GET':
+    if request.method == "GET":
         return jsonify({
             "enabled": mapper.auto_reconnect_enabled,
             "interval": mapper.auto_reconnect_interval,
         })
     data = request.json or {}
-    enabled = bool(data.get('enabled', True))
-    interval = data.get('interval', 2.0)
+    enabled = bool(data.get("enabled", True))
+    interval = data.get("interval", 2.0)
     try:
         interval = max(0.5, float(interval))
     except (TypeError, ValueError):
@@ -310,7 +355,7 @@ def auto_reconnect():
     })
 
 
-@app.route('/api/disconnect', methods=['POST'])
+@app.route("/api/disconnect", methods=["POST"])
 def disconnect():
     """Disconnect from MIDI ports."""
     mapper.disconnect()
@@ -318,7 +363,7 @@ def disconnect():
     return jsonify({"message": "Disconnected"})
 
 
-@app.route('/api/start', methods=['POST'])
+@app.route("/api/start", methods=["POST"])
 def start():
     """Start the mapper."""
     success = mapper.start()
@@ -329,7 +374,7 @@ def start():
     })
 
 
-@app.route('/api/stop', methods=['POST'])
+@app.route("/api/stop", methods=["POST"])
 def stop():
     """Stop the mapper."""
     mapper.stop()
@@ -337,7 +382,7 @@ def stop():
     return jsonify({"message": "Mapper stopped"})
 
 
-@app.route('/api/status')
+@app.route("/api/status")
 def status():
     """Get current mapper status."""
     return jsonify({
@@ -345,23 +390,23 @@ def status():
         "running": mapper.running,
         "profile_name": mapper.profile.name,
         "mapping_count": len(mapper.profile.get_layer_mappings(mapper.current_layer)),
-        "input": getattr(mapper.input_port, 'name', None) if mapper.input_port else None,
-        "output": getattr(mapper.output_port, 'name', None) if mapper.output_port else None,
+        "input": getattr(mapper.input_port, "name", None) if mapper.input_port else None,
+        "output": getattr(mapper.output_port, "name", None) if mapper.output_port else None,
     })
 
 
-@app.route('/api/midi-backend', methods=['GET', 'POST'])
+@app.route("/api/midi-backend", methods=["GET", "POST"])
 def midi_backend():
     """Get or set the current MIDI backend."""
     current_backend = os.environ.get("MIDO_BACKEND", mapper.get_midi_backend())
-    if request.method == 'GET':
+    if request.method == "GET":
         return jsonify({
             "current": current_backend,
             "options": mapper.get_midi_backends()
         })
 
     data = request.json or {}
-    backend = data.get('backend')
+    backend = data.get("backend")
     if not backend:
         return jsonify({"error": "No backend provided"}), 400
     result = mapper.set_midi_backend(backend)
@@ -375,7 +420,7 @@ def midi_backend():
     })
 
 
-@app.route('/api/midi-backend/refresh', methods=['POST'])
+@app.route("/api/midi-backend/refresh", methods=["POST"])
 def refresh_backend():
     """Reinitialize the MIDI backend and refresh ports."""
     result = mapper.refresh_midi_backend()
@@ -389,11 +434,11 @@ def refresh_backend():
     })
 
 
-@app.route('/api/set-backend', methods=['POST'])
+@app.route("/api/set-backend", methods=["POST"])
 def set_backend():
     """Set the MIDI backend (requires server restart to take effect)."""
     data = request.json or {}
-    backend = data.get('backend')
+    backend = data.get("backend")
     if not backend:
         return jsonify({"success": False, "error": "No backend provided"}), 400
     result = mapper.set_midi_backend(backend)
@@ -403,7 +448,7 @@ def set_backend():
     return jsonify(result)
 
 
-@app.route('/api/diagnostics')
+@app.route("/api/diagnostics")
 def diagnostics():
     """Get diagnostic information about MIDI state."""
     import mido
@@ -412,38 +457,78 @@ def diagnostics():
         "inputs": list(mido.get_input_names()),
         "outputs": list(mido.get_output_names()),
         "connected": mapper.input_port is not None,
-        "device": getattr(mapper, 'device_type', None),
-        "input_port": getattr(mapper.input_port, 'name', None) if mapper.input_port else None,
-        "output_port": getattr(mapper.output_port, 'name', None) if mapper.output_port else None,
+        "device": getattr(mapper, "device_type", None),
+        "input_port": getattr(mapper.input_port, "name", None) if mapper.input_port else None,
+        "output_port": getattr(mapper.output_port, "name", None) if mapper.output_port else None,
     })
 
 
-@app.route('/api/mapping', methods=['POST'])
+@app.route("/api/mapping", methods=["POST"])
 def save_mapping():
-    """Save or update a pad mapping."""
-    data = request.json or {}
+    """Save or update a pad mapping.
+
+    Supports:
+      - Single mapping payload
+      - Batch payload: {"mappings": [...], "layer": "LayerName"}
+    """
+    data = request.get_json(silent=True) or {}
+
+    # Batch update support
+    if isinstance(data, dict) and isinstance(data.get("mappings"), list):
+        layer = data.get("layer") or mapper.current_layer
+        mappings_list = data.get("mappings") or []
+
+        lock = getattr(mapper, "profile_lock", profile_lock)
+        with lock:
+            mapper.profile.ensure_layer(layer)
+            mapper.profile.layers[layer] = {}
+            for item in mappings_list:
+                try:
+                    pm = PadMapping.from_dict(item) if hasattr(PadMapping, "from_dict") else PadMapping(**item)
+                    mapper.profile.add_mapping(pm, layer=layer)
+                except Exception as exc:
+                    return jsonify({"success": False, "error": f"Invalid mapping in batch: {exc}"}), 400
+
+        if mapper.running and layer == mapper.current_layer:
+            mapper.update_pad_colors()
+
+        append_log(f"Batch saved mappings: layer={layer}, count={len(mappings_list)}")
+        save_profiles_async()
+        return jsonify({"success": True, "layer": layer, "count": len(mappings_list)})
+
+    # Single mapping update
     required = {"note", "key_combo", "color"}
-    if not required.issubset(data) and data.get("action") != "layer_up":
-        return jsonify({"success": False, "error": "Missing required fields"}), 400
-    layer = data.get("layer") or mapper.current_layer
     action = data.get("action", "key")
-    mapping = PadMapping(
-        note=data['note'],
-        key_combo=data.get('key_combo', ''),
-        color=data.get('color', 'green'),
-        label=data.get('label', ''),
-        enabled=data.get('enabled', True),
-        action=action,
-        target_layer=data.get('target_layer'),
-        repeat_enabled=data.get('repeat_enabled', False),
-        repeat_delay=data.get('repeat_delay', 0.5),
-        repeat_interval=data.get('repeat_interval', 0.05),
-        macro_steps=data.get('macro_steps'),
-        velocity_mappings=data.get('velocity_mappings'),
-        long_press_enabled=data.get('long_press_enabled', False),
-        long_press_action=data.get('long_press_action', ''),
-        long_press_threshold=data.get('long_press_threshold', 0.5)
-    )
+
+    if action != "layer_up" and not required.issubset(data):
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+
+    layer = data.get("layer") or mapper.current_layer
+
+    try:
+        if hasattr(PadMapping, "from_dict"):
+            mapping = PadMapping.from_dict(data)
+        else:
+            mapping = PadMapping(
+                note=data["note"],
+                key_combo=data.get("key_combo", ""),
+                color=data.get("color", "green"),
+                label=data.get("label", ""),
+                enabled=data.get("enabled", True),
+                action=action,
+                target_layer=data.get("target_layer"),
+                repeat_enabled=data.get("repeat_enabled", False),
+                repeat_delay=data.get("repeat_delay", 0.5),
+                repeat_interval=data.get("repeat_interval", 0.05),
+                macro_steps=data.get("macro_steps"),
+                velocity_mappings=data.get("velocity_mappings"),
+                long_press_enabled=data.get("long_press_enabled", False),
+                long_press_action=data.get("long_press_action", ""),
+                long_press_threshold=data.get("long_press_threshold", 0.5)
+            )
+    except Exception as exc:
+        return jsonify({"success": False, "error": f"Invalid mapping: {exc}"}), 400
+
     mapper.profile.add_mapping(mapping, layer=layer)
 
     # Update pad color if running
@@ -462,7 +547,7 @@ def save_mapping():
     return jsonify({"success": True, "mapping": mapping.to_dict()})
 
 
-@app.route('/api/mapping/<int:note>', methods=['GET'])
+@app.route("/api/mapping/<int:note>", methods=["GET"])
 def get_mapping(note):
     """Get a specific mapping."""
     layer = request.args.get("layer") or mapper.current_layer
@@ -472,7 +557,7 @@ def get_mapping(note):
     return jsonify(None)
 
 
-@app.route('/api/mapping/<int:note>', methods=['DELETE'])
+@app.route("/api/mapping/<int:note>", methods=["DELETE"])
 def delete_mapping(note):
     """Delete a pad mapping."""
     layer = request.args.get("layer") or mapper.current_layer
@@ -487,7 +572,7 @@ def delete_mapping(note):
     return jsonify({"success": True})
 
 
-@app.route('/api/profile')
+@app.route("/api/profile")
 def get_profile():
     """Get current profile."""
     data = mapper.profile.to_dict()
@@ -495,19 +580,19 @@ def get_profile():
     return jsonify(data)
 
 
-@app.route('/api/profile', methods=['PUT'])
+@app.route("/api/profile", methods=["PUT"])
 def update_profile():
     """Update profile metadata."""
     data = request.json or {}
-    if 'name' in data:
+    if "name" in data:
         with profile_lock:
             old_name = mapper.profile.name
-            mapper.profile.name = data['name']
+            mapper.profile.name = data["name"]
             profiles.pop(old_name, None)
             profiles[mapper.profile.name] = mapper.profile
             append_log(f"Profile renamed: {old_name} -> {mapper.profile.name}")
-    if 'description' in data:
-        mapper.profile.description = data['description']
+    if "description" in data:
+        mapper.profile.description = data["description"]
         append_log("Profile description updated")
 
     # Auto-save profiles to disk
@@ -516,10 +601,10 @@ def update_profile():
     return jsonify({"success": True})
 
 
-@app.route('/api/profile/export')
+@app.route("/api/profile/export")
 def export_profile():
     """Export current profile as JSON."""
-    name = request.args.get('name')
+    name = request.args.get("name")
     if name:
         with profile_lock:
             old_name = mapper.profile.name
@@ -531,7 +616,7 @@ def export_profile():
     return jsonify(mapper.profile.to_dict())
 
 
-@app.route('/api/profile/import', methods=['POST'])
+@app.route("/api/profile/import", methods=["POST"])
 def import_profile():
     """Import a profile from JSON with schema validation."""
     data = request.json or {}
@@ -568,7 +653,7 @@ def import_profile():
     return jsonify(response)
 
 
-@app.route('/api/clear', methods=['POST'])
+@app.route("/api/clear", methods=["POST"])
 def clear_mappings():
     """Clear all mappings."""
     current_name = mapper.profile.name
@@ -589,30 +674,30 @@ def clear_mappings():
     return jsonify({"success": True})
 
 
-@app.route('/api/test-key', methods=['POST'])
+@app.route("/api/test-key", methods=["POST"])
 def test_key():
     """Test a key combination."""
     data = request.json or {}
-    combo = data.get('combo', '')
+    combo = data.get("combo", "")
     if combo:
         mapper.execute_key_combo(combo)
         return jsonify({"success": True, "combo": combo})
     return jsonify({"success": False, "error": "No combo provided"})
 
 
-@app.route('/api/set-color', methods=['POST'])
+@app.route("/api/set-color", methods=["POST"])
 def set_color():
     """Set a pad color directly."""
     data = request.json or {}
-    note = data.get('note')
-    color = data.get('color', 'off')
+    note = data.get("note")
+    color = data.get("color", "off")
     if note is not None:
         mapper.set_pad_color(note, color)
         return jsonify({"success": True})
     return jsonify({"success": False, "error": "No note provided"})
 
 
-@app.route('/api/layers')
+@app.route("/api/layers")
 def get_layers():
     return jsonify({
         "layers": sorted(mapper.profile.layers.keys()),
@@ -620,7 +705,7 @@ def get_layers():
     })
 
 
-@app.route('/api/layer/push', methods=['POST'])
+@app.route("/api/layer/push", methods=["POST"])
 def push_layer():
     data = request.json or {}
     layer = data.get("layer")
@@ -630,13 +715,13 @@ def push_layer():
     return jsonify({"success": True, "current_layer": mapper.current_layer})
 
 
-@app.route('/api/layer/pop', methods=['POST'])
+@app.route("/api/layer/pop", methods=["POST"])
 def pop_layer():
     mapper.pop_layer()
     return jsonify({"success": True, "current_layer": mapper.current_layer})
 
 
-@app.route('/api/layer/set', methods=['POST'])
+@app.route("/api/layer/set", methods=["POST"])
 def set_layer():
     data = request.json or {}
     layer = data.get("layer")
@@ -646,7 +731,7 @@ def set_layer():
     return jsonify({"success": True, "current_layer": mapper.current_layer})
 
 
-@app.route('/api/profiles')
+@app.route("/api/profiles")
 def list_profiles():
     with profile_lock:
         names = sorted(profiles.keys())
@@ -656,7 +741,7 @@ def list_profiles():
     })
 
 
-@app.route('/api/profile/switch', methods=['POST'])
+@app.route("/api/profile/switch", methods=["POST"])
 def switch_profile_endpoint():
     data = request.json or {}
     name = data.get("name")
@@ -671,10 +756,10 @@ def switch_profile_endpoint():
     return jsonify({"success": True, "profile": mapper.profile.to_dict()})
 
 
-@app.route('/api/profile/auto', methods=['GET', 'POST'])
+@app.route("/api/profile/auto", methods=["GET", "POST"])
 def profile_auto_switch():
     global auto_switch_enabled
-    if request.method == 'GET':
+    if request.method == "GET":
         with auto_switch_lock:
             return jsonify({
                 "enabled": auto_switch_enabled,
@@ -700,7 +785,7 @@ def profile_auto_switch():
     return jsonify({"success": True, "enabled": auto_switch_enabled, "rules": auto_switch_rules})
 
 
-@app.route('/api/events')
+@app.route("/api/events")
 def events():
     """Server-sent events for real-time updates."""
     def generate():
@@ -714,16 +799,19 @@ def events():
                     yield f"data: {json.dumps(data)}\n\n"
                 except queue.Empty:
                     # Send keepalive
-                    yield f": keepalive\n\n"
+                    yield ": keepalive\n\n"
         finally:
             with event_queues_lock:
                 event_queues.remove(q)
 
-    return Response(generate(), mimetype='text/event-stream',
-                   headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+    )
 
 
-@app.route('/api/shutdown', methods=['POST'])
+@app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Shutdown the server (used for one-click close)."""
     mapper.stop()
@@ -732,26 +820,26 @@ def shutdown():
     return jsonify({"success": True})
 
 
-@app.route('/api/animation/pulse', methods=['POST'])
+@app.route("/api/animation/pulse", methods=["POST"])
 def animate_pulse():
     """Trigger a pulse animation on a pad."""
     data = request.json or {}
-    note = data.get('note')
-    color = data.get('color', 'green')
-    duration = data.get('duration', 0.5)
+    note = data.get("note")
+    color = data.get("color", "green")
+    duration = data.get("duration", 0.5)
     if note is not None:
         mapper.pulse(note, color, duration)
         return jsonify({"success": True})
     return jsonify({"success": False, "error": "No note provided"}), 400
 
 
-@app.route('/api/animation/progress', methods=['POST'])
+@app.route("/api/animation/progress", methods=["POST"])
 def animate_progress():
     """Show a progress bar animation."""
     data = request.json or {}
-    row = data.get('row', 0)  # Row index 0-7
-    percentage = data.get('percentage', 0)
-    color = data.get('color', 'green')
+    row = data.get("row", 0)  # Row index 0-7
+    percentage = data.get("percentage", 0)
+    color = data.get("color", "green")
     if 0 <= row < len(mapper.GRID_NOTES):
         row_notes = mapper.GRID_NOTES[row]
         anim = ProgressBarAnimation(mapper, row_notes, percentage, color)
@@ -760,17 +848,17 @@ def animate_progress():
     return jsonify({"success": False, "error": "Invalid row"}), 400
 
 
-@app.route('/api/animation/rainbow', methods=['POST'])
+@app.route("/api/animation/rainbow", methods=["POST"])
 def animate_rainbow():
     """Start rainbow cycle animation."""
     data = request.json or {}
-    speed = data.get('speed', 0.5)
+    speed = data.get("speed", 0.5)
     anim = RainbowCycleAnimation(mapper, speed)
     mapper.start_animation(anim)
     return jsonify({"success": True})
 
 
-@app.route('/api/animation/stop', methods=['POST'])
+@app.route("/api/animation/stop", methods=["POST"])
 def stop_animations():
     """Stop all active animations."""
     mapper.stop_all_animations()
@@ -779,18 +867,18 @@ def stop_animations():
     return jsonify({"success": True})
 
 
-@app.route('/api/animation/smiley', methods=['GET', 'POST'])
+@app.route("/api/animation/smiley", methods=["GET", "POST"])
 def animate_smiley():
     """Play smiley face animation or get available faces."""
-    if request.method == 'GET':
+    if request.method == "GET":
         return jsonify({
             "faces": mapper.get_available_smiley_faces(),
             "description": "Use POST to play animation or show a specific face"
         })
 
     data = request.json or {}
-    face = data.get('face')
-    duration = data.get('duration', 15.0)
+    face = data.get("face")
+    duration = data.get("duration", 15.0)
 
     # If a specific face is requested, show it
     if face:
@@ -808,18 +896,17 @@ def animate_smiley():
     return jsonify(result)
 
 
-@app.route('/api/presets')
+@app.route("/api/presets")
 def list_presets():
     """List available preset profiles."""
-    import os
-    preset_dir = os.path.join(os.path.dirname(__file__), 'presets')
+    preset_dir = os.path.join(os.path.dirname(__file__), "presets")
     if not os.path.exists(preset_dir):
         return jsonify({"presets": []})
 
     presets = []
     for filename in os.listdir(preset_dir):
-        if filename.endswith('.json'):
-            preset_name = filename[:-5].replace('_', ' ').title()
+        if filename.endswith(".json"):
+            preset_name = filename[:-5].replace("_", " ").title()
             presets.append({
                 "filename": filename,
                 "name": preset_name
@@ -827,22 +914,21 @@ def list_presets():
     return jsonify({"presets": presets})
 
 
-@app.route('/api/presets/<filename>')
+@app.route("/api/presets/<filename>")
 def get_preset(filename):
     """Load a specific preset profile."""
-    import os
-    preset_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), 'presets'))
+    preset_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), "presets"))
     filepath = os.path.realpath(os.path.join(preset_dir, filename))
 
     # Prevent path traversal attacks
     if not filepath.startswith(preset_dir + os.sep):
         return jsonify({"error": "Invalid preset path"}), 400
 
-    if not os.path.exists(filepath) or not filename.endswith('.json'):
+    if not os.path.exists(filepath) or not filename.endswith(".json"):
         return jsonify({"error": "Preset not found"}), 404
 
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             preset_data = json.load(f)
         return jsonify(preset_data)
     except Exception as e:
@@ -865,10 +951,10 @@ def cleanup_on_exit():
 
     with auto_switch_lock:
         persistence.save_config({
-            'last_input_port': mapper.last_input_port,
-            'last_output_port': mapper.last_output_port,
-            'auto_switch_rules': auto_switch_rules,
-            'auto_switch_enabled': auto_switch_enabled,
+            "last_input_port": mapper.last_input_port,
+            "last_output_port": mapper.last_output_port,
+            "auto_switch_rules": auto_switch_rules,
+            "auto_switch_enabled": auto_switch_enabled,
         })
 
     # Disconnect mapper
@@ -881,9 +967,9 @@ atexit.register(cleanup_on_exit)
 
 
 def main():
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("  Launchpad Mapper")
-    print("="*50)
+    print("=" * 50)
     print("\nStarting web interface at http://localhost:5000")
     print(f"Config stored at: {persistence.persistence_dir}")
     print("Press Ctrl+C to quit\n")
@@ -901,11 +987,11 @@ def main():
     thread.start()
 
     try:
-        app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+        app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
     except KeyboardInterrupt:
         print("\nShutting down...")
         # atexit handler will handle cleanup
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
