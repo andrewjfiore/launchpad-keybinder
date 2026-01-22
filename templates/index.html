@@ -291,6 +291,14 @@
             visibility: hidden;
         }
 
+        .pad-label {
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+
         .pad.dragging {
             opacity: 0.5;
             transform: scale(1.1);
@@ -762,18 +770,10 @@
                         <option value="">MIDI Output Port...</option>
                     </select>
                 </div>
-                <div class="form-group" style="margin-bottom: 0; flex: 0.9; min-width: 180px;">
-                    <select id="midiBackend" style="padding: 8px 12px;" onchange="setMidiBackend()">
-                        <option value="">MIDI Backend...</option>
-                    </select>
-                </div>
                 <label class="status-badge" style="gap: 8px;">
                     <input type="checkbox" id="emulationMode" style="margin: 0;">
                     <span>Emulation</span>
                 </label>
-                <button class="btn-secondary" onclick="forceRefreshBackend()" style="padding: 8px 16px;" title="Reinitialize the current backend and rescan ports">
-                    <span>🔌</span> Force Refresh Backend
-                </button>
                 <button class="btn-success" onclick="quickStart()" id="quickStartBtn" style="padding: 8px 16px;">
                     <span>⚡</span> Connect & Start
                 </button>
@@ -910,13 +910,13 @@
                     </div>
                 </div>
 
-                <!-- Event Log (Collapsible) -->
+                <!-- Event Log (Expanded by default for MIDI feedback) -->
                 <div class="card" style="margin-top: 20px;">
                     <div class="collapsible-header" onclick="toggleSection('eventLog')">
                         <h2 style="margin: 0;">📋 Event Log</h2>
-                        <span class="collapse-icon collapsed" id="eventLogIcon">▼</span>
+                        <span class="collapse-icon" id="eventLogIcon">▼</span>
                     </div>
-                    <div class="collapsible-content collapsed" id="eventLogContent">
+                    <div class="collapsible-content" id="eventLogContent">
                         <div class="log" id="eventLog"></div>
                     </div>
                 </div>
@@ -1101,6 +1101,11 @@
                         if (colIndex === 8) pad.classList.add('scene');
                         pad.dataset.note = note;
                         pad.draggable = true;
+
+                        // Add label element for pad text
+                        const labelSpan = document.createElement('span');
+                        labelSpan.className = 'pad-label';
+                        pad.appendChild(labelSpan);
 
                         // Add action buttons container
                         const actionsDiv = document.createElement('div');
@@ -1819,73 +1824,6 @@
             }
         }
 
-        function formatBackendName(backend) {
-            if (!backend) return '';
-            if (backend.endsWith('.rtmidi')) return 'python-rtmidi';
-            if (backend.endsWith('.pygame')) return 'pygame.midi';
-            return backend;
-        }
-
-        async function loadMidiBackend() {
-            try {
-                const response = await fetch('/api/midi-backend');
-                const data = await response.json();
-                const backendSelect = document.getElementById('midiBackend');
-                backendSelect.innerHTML = '<option value="">MIDI Backend...</option>';
-                const preferred = data.options.find(option => option.endsWith('.rtmidi')) || data.options[0];
-                data.options.forEach(option => {
-                    const optionEl = document.createElement('option');
-                    optionEl.value = option;
-                    optionEl.textContent = formatBackendName(option);
-                    if (option === data.current) {
-                        optionEl.selected = true;
-                    }
-                    backendSelect.appendChild(optionEl);
-                });
-                if (!backendSelect.value && preferred) {
-                    backendSelect.value = preferred;
-                }
-            } catch (e) {
-                log('Failed to load MIDI backends: ' + e.message, 'error');
-            }
-        }
-
-        async function setMidiBackend() {
-            const backend = document.getElementById('midiBackend').value;
-            if (!backend) {
-                return;
-            }
-            try {
-                const response = await fetch('/api/midi-backend', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({backend})
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to set MIDI backend');
-                }
-                log(`MIDI backend set to ${formatBackendName(data.current)}`, 'success');
-                refreshPorts();
-            } catch (e) {
-                log('Failed to set MIDI backend: ' + e.message, 'error');
-            }
-        }
-
-        async function forceRefreshBackend() {
-            try {
-                const response = await fetch('/api/midi-backend/refresh', {method: 'POST'});
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to refresh MIDI backend');
-                }
-                log(`MIDI backend refreshed: ${formatBackendName(data.current)}`, 'success');
-                loadMidiBackend();
-                refreshPorts();
-            } catch (e) {
-                log('Failed to refresh MIDI backend: ' + e.message, 'error');
-            }
-        }
 
         async function logClick(label, target) {
             try {
@@ -2367,19 +2305,29 @@
             
             eventSource.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
-                
+
                 if (data.type === 'pad_press') {
                     const pad = document.querySelector(`.pad[data-note="${data.note}"]`);
                     if (pad) {
                         pad.classList.add('active');
                         setTimeout(() => pad.classList.remove('active'), 150);
                     }
-                    
+
                     const mapping = mappings[data.note];
                     if (mapping) {
                         log(`Pad ${data.note} → ${mapping.key_combo}`, 'press');
                     } else {
                         log(`Pad ${data.note} pressed (no mapping)`, 'press');
+                    }
+                } else if (data.type === 'midi_raw') {
+                    // Visual feedback for raw MIDI input (even when not running)
+                    if (data.note && data.velocity > 0) {
+                        const pad = document.querySelector(`.pad[data-note="${data.note}"]`);
+                        if (pad) {
+                            pad.classList.add('active');
+                            setTimeout(() => pad.classList.remove('active'), 100);
+                        }
+                        log(`MIDI: ${data.msg_type} note=${data.note} vel=${data.velocity}`, 'info');
                     }
                 } else if (data.type === 'layer_change') {
                     currentLayer = data.current_layer || currentLayer;
@@ -2570,7 +2518,6 @@
             initGrid();
             initColorPicker();
             initDragAndDrop();
-            loadMidiBackend();
             const emulationToggle = document.getElementById('emulationMode');
             if (emulationToggle) {
                 emulationToggle.addEventListener('change', event => {
@@ -2585,6 +2532,8 @@
             loadAutoSwitch();
             loadPresetList();
             updateStatus();
+            // Start event stream immediately to receive MIDI feedback
+            startEventStream();
             log('Launchpad Mapper initialized');
             setInterval(heartbeat, 5000);
         });
