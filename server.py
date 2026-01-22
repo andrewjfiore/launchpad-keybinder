@@ -974,6 +974,18 @@ def cleanup_on_exit():
             "auto_switch_enabled": auto_switch_enabled,
         })
 
+    # Stop mapper and clear all LEDs before disconnecting
+    mapper.stop()
+
+    # Clear all pads to prevent lingering LEDs
+    if mapper.output_port:
+        try:
+            mapper.clear_all_pads()
+            import time
+            time.sleep(0.1)  # Small delay to ensure MIDI messages are sent
+        except Exception as e:
+            print(f"Error clearing pads: {e}")
+
     # Disconnect mapper
     mapper.disconnect()
     print("Server cleanup complete")

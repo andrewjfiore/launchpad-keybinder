@@ -1030,11 +1030,25 @@ class LaunchpadMapper:
     def disconnect(self):
         with self.connection_lock:
             self.stop()
+            # Clear all pads before closing to prevent lingering LEDs
+            if self.output_port:
+                try:
+                    self.clear_all_pads()
+                    # Small delay to ensure MIDI messages are sent
+                    time.sleep(0.05)
+                except Exception as e:
+                    print(f"Error clearing pads during disconnect: {e}")
             if self.input_port:
-                self.input_port.close()
+                try:
+                    self.input_port.close()
+                except Exception as e:
+                    print(f"Error closing input port: {e}")
                 self.input_port = None
             if self.output_port:
-                self.output_port.close()
+                try:
+                    self.output_port.close()
+                except Exception as e:
+                    print(f"Error closing output port: {e}")
                 self.output_port = None
 
     def _cleanup_on_exit(self):
@@ -1059,6 +1073,15 @@ class LaunchpadMapper:
         # Wait for MIDI thread
         if self.midi_thread and self.midi_thread.is_alive():
             self.midi_thread.join(timeout=1.0)
+
+        # Clear all pads before closing to prevent lingering LEDs
+        try:
+            if self.output_port:
+                self.clear_all_pads()
+                # Small delay to ensure MIDI messages are sent
+                time.sleep(0.1)
+        except Exception as e:
+            print(f"Error clearing pads during cleanup: {e}")
 
         # Close MIDI ports
         try:
@@ -1197,9 +1220,10 @@ class LaunchpadMapper:
     def set_pad_color(self, note: int, color: str):
         """Set a pad LED.
 
-        Launchpad Mini MK3 programmer mode uses:
+        Launchpad Mini MK3 Programmer mode uses:
         - Grid pads: NOTE messages (notes 11-88)
-        - Top row + right column: CC messages (controls 91-98 and 19..89)
+        - Top row: CC messages (controls 91-98)
+        - Right column (scene buttons): NOTE messages (notes 89, 79, 69, 59, 49, 39, 29, 19)
 
         Our UI uses the numeric IDs directly, so we route NOTE vs CC based on
         known control lists.
@@ -1220,10 +1244,12 @@ class LaunchpadMapper:
                 velocity = LAUNCHPAD_COLORS.get(str(color), 0)
 
         try:
-            # Route CC for top/scene buttons on Mini MK3, NOTE for grid.
-            if note in self.control_notes or note in self.scene_notes:
+            # Route CC only for top row buttons (control_notes: 91-98)
+            # Scene buttons (right column) and grid pads use NOTE messages
+            if note in self.control_notes:
                 msg = Message('control_change', control=int(note), value=int(velocity))
             else:
+                # Grid pads and scene buttons all use NOTE messages
                 msg = Message('note_on', note=int(note), velocity=int(velocity))
             self.output_port.send(msg)
         except Exception as e:
@@ -1450,9 +1476,24 @@ class LaunchpadMapper:
         # Always allow raw logging when debug is enabled.
         if getattr(self, "debug_midi", False):
             try:
-                print(f"MIDI IN: {msg}")
+                print(f"MIDI IN (raw): {msg}")
             except Exception:
                 pass
+
+        # Notify UI of any incoming MIDI for visual feedback (even if not running)
+        if msg.type in ('note_on', 'note_off', 'control_change'):
+            note = getattr(msg, 'note', None) or getattr(msg, 'control', None)
+            velocity = getattr(msg, 'velocity', None) or getattr(msg, 'value', 0)
+            for callback in self.callbacks:
+                try:
+                    callback({
+                        "type": "midi_raw",
+                        "msg_type": msg.type,
+                        "note": note,
+                        "velocity": velocity
+                    })
+                except Exception:
+                    pass
 
         # Gate mapping execution on running, so Connect does not trigger actions.
         if not self.running:
