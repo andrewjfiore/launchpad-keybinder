@@ -1062,6 +1062,36 @@ def main():
     thread = threading.Thread(target=auto_switch_worker, daemon=True)
     thread.start()
 
+    # Initialize MIDI ports on startup (last-known or auto-detect), start mapper, play smiley
+    try:
+        r = mapper.connect(
+            mapper.last_input_port,
+            mapper.last_output_port,
+            retries=1,
+            retry_delay=0.5,
+        )
+        if r.get("success") or mapper.input_port or mapper.output_port:
+            in_name = getattr(mapper.input_port, "name", None) if mapper.input_port else None
+            out_name = getattr(mapper.output_port, "name", None) if mapper.output_port else None
+            print(f"MIDI connected: in={in_name!r} out={out_name!r}")
+            save_config_async()
+            # Start mapper so pad presses are processed (MIDI responds)
+            if mapper.input_port and mapper.start():
+                print("Mapper started.")
+                # Play smiley "opening" animation on Launchpad (like run_mapper_only)
+                if mapper.output_port:
+                    try:
+                        mapper.play_smiley_animation(duration=5.0)
+                        print("Smiley animation started.")
+                    except Exception as se:
+                        print(f"Smiley animation: {se}")
+            else:
+                print("Mapper not started (no input?). Use http://localhost:5000 to Connect & Start.")
+        else:
+            print("MIDI: no device yet. Plug in Launchpad and use http://localhost:5000 to connect.")
+    except Exception as e:
+        print(f"MIDI startup connect: {e}")
+
     try:
         app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
     except KeyboardInterrupt:
