@@ -1,0 +1,68 @@
+---
+description: Launchpad Mapper — problems we solve, goals, and constraints. Preserve these when editing.
+alwaysApply: true
+---
+
+# Project Problems and Goals
+
+Use this as intent and constraints when editing the Launchpad Keybinder codebase.
+
+## 1. Windows keystroke reliability
+
+**Goal:** Pad presses reliably send shortcuts to the active window on Windows.  
+**Approach:** `keyboard` library; warn about Administrator if keys do not fire.  
+**Constraint:** Avoid keystroke libs that need admin, target wrong window, or are flaky on Windows.
+
+## 2. MIDI device detection (“won’t connect”)
+
+**Goal:** Auto-detect Launchpad without users understanding MIDI ports.  
+**Approach:** Heuristics for likely Launchpad ports (including generic USB MIDI fallback), retries, clear errors, single-client exclusivity handling (busy/denied).  
+**Constraint:** Windows MIDI port names vary; Launchpad can appear as multiple ports (e.g. primary vs MIDIIN2) or be locked by another app.
+
+## 3. No hangs when opening MIDI ports
+
+**Goal:** UI never freezes during port open.  
+**Approach:** Open ports in a worker thread with a hard timeout (`_open_with_timeout`).  
+**Constraint:** Some Windows MIDI stacks can block indefinitely on port open; never open ports on the main/UI thread.
+
+## 4. Cross-model Launchpad compatibility (MK2 vs MK3/X/Pro)
+
+**Goal:** Grid, top row, and scene buttons behave consistently across models.  
+**Approach:** Detect device from port name; normalize control-change messages to internal IDs (91–98); translate back to device-specific CCs for LED lighting.  
+**Constraint:** MK2 uses CC 104–111; MK3 often uses CC 91–98 in Programmer mode.
+
+## 5. Mapping beyond “one pad = one shortcut”
+
+**Goal:** Support layers, macros, long-press, velocity, repeats.  
+**Approach:** Layers (push/pop/set) with LED updates; macro steps with delays; long-press vs tap; repeat with delay/interval; velocity-based action selection.  
+**Constraint:** Preserve these behaviors when changing mapping or execution logic.
+
+## 6. Low-friction UI/UX for mapping
+
+**Goal:** Fast, low-friction pad configuration.  
+**Approach:** One-page web UI; quick connect/start; click-to-edit; drag-and-drop swap; one-click duplicate to first empty pad; inline delete; collapsible sections; event log; visual pad labels and colors.  
+**Constraint:** Don’t add steps or modals that slow down mapping iteration.
+
+## 7. Lightroom integration without spam or blocking
+
+**Goal:** Optional Lightroom control via local TCP; app must not break if Lightroom is off.  
+**Approach:** Background sender thread with queue (UI never blocks on socket sends); multi-target hosts/ports (`LR_SOCKET_HOSTS`, `LR_SOCKET_PORTS`); throttled error logging; rate limiting for numeric slider commands.  
+**Constraint:** No connection-refused spam; no blocking socket calls on UI thread.
+
+## 8. Thread safety and “weird state” bugs
+
+**Goal:** No races between MIDI callback, UI, and profile/layer mutations.  
+**Approach:** `connection_lock` for connect/disconnect; `profile_lock` (RLock) for mapping and layer access; gate mapping execution with `self.running` so connect events don’t trigger actions.  
+**Constraint:** Missing mappings, wrong layer LEDs, or unexpected actions often indicate race conditions—respect existing locks and `running` gating.
+
+## 9. Persistence and portability
+
+**Goal:** Predictable save locations; import/export for reuse and sharing.  
+**Approach:** Profiles under `~/.launchpad_mapper/profiles`; configurable presets dir via env; export/import JSON.  
+**Constraint:** Keep paths and schema stable for backups and sharing.
+
+## 10. Auto-switch profiles by active window (not fully implemented)
+
+**Goal:** Switch profile when active app (window title) changes.  
+**State:** UI and persistence exist; backend marks it unavailable; **window monitoring not yet implemented**.  
+**Constraint:** When implementing, use same locking and profile access patterns as above; avoid blocking UI or MIDI thread.

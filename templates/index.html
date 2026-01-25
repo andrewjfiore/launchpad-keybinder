@@ -1,0 +1,2575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launchpad Mapper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff 0%, #ff00ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+        
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #000;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: #fff;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffaa00 0%, #cc8800 100%);
+            color: #000;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        
+        .status-dot.connected {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+        
+        .status-dot.running {
+            background: #00d4ff;
+            box-shadow: 0 0 10px #00d4ff;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .port-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #aaa;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        
+        .form-group input::placeholder {
+            color: #666;
+        }
+        
+        /* Launchpad Grid */
+        .launchpad-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .launchpad-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 6px;
+            max-width: 550px;
+            padding: 25px;
+            background: linear-gradient(145deg, #2a2a3e 0%, #1a1a2e 100%);
+            border-radius: 20px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .pad {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            text-align: center;
+            padding: 3px;
+            word-break: break-word;
+            background: #333;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pad::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+            border-radius: 4px 4px 0 0;
+            pointer-events: none;
+        }
+        
+        .pad:hover {
+            transform: scale(1.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            z-index: 1;
+        }
+        
+        .pad.active {
+            animation: padPress 0.15s ease;
+        }
+        
+        .pad.selected {
+            border-color: #00d4ff !important;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .pad.scene {
+            border-radius: 50%;
+            width: 50px;
+        }
+        
+        .pad.control {
+            border-radius: 4px;
+            height: 30px;
+        }
+        
+        .pad.spacer {
+            visibility: hidden;
+        }
+
+        .pad-label {
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+
+        .pad.dragging {
+            opacity: 0.5;
+            transform: scale(1.1);
+        }
+
+        .pad.drag-over {
+            border-color: #00d4ff !important;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+
+        .pad-actions {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: none;
+            gap: 2px;
+            z-index: 10;
+        }
+
+        .pad:hover .pad-actions {
+            display: flex;
+        }
+
+        .pad-action-btn {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .pad-action-btn.delete {
+            background: rgba(255, 59, 48, 0.9);
+            color: white;
+        }
+
+        .pad-action-btn.delete:hover {
+            background: rgb(255, 59, 48);
+            transform: scale(1.1);
+        }
+
+        .pad-action-btn.duplicate {
+            background: rgba(0, 212, 255, 0.9);
+            color: white;
+        }
+
+        .pad-action-btn.duplicate:hover {
+            background: rgb(0, 212, 255);
+            transform: scale(1.1);
+        }
+
+        @keyframes padPress {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Color Picker */
+        .color-picker {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+        
+        .color-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        
+        .color-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+            border-radius: 4px 4px 0 0;
+            pointer-events: none;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.15);
+            z-index: 1;
+        }
+        
+        .color-option.selected {
+            border-color: #fff;
+            box-shadow: 0 0 15px currentColor;
+        }
+        
+        /* Editor Panel */
+        .editor-panel {
+            position: sticky;
+            top: 20px;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .pad-note {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .editor-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* Profile Section */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        /* Log */
+        .log {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+        
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .log-time {
+            color: #666;
+        }
+        
+        .log-message {
+            color: #aaa;
+        }
+        
+        .log-entry.press .log-message {
+            color: #00ff88;
+        }
+        
+        .log-entry.release .log-message {
+            color: #ffaa00;
+        }
+        
+        .log-entry.error .log-message {
+            color: #ff4444;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 4px solid #00d4ff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            min-width: 220px;
+            max-width: 320px;
+            font-size: 12px;
+            color: #e0e0e0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            border-left-color: #00ff99;
+        }
+
+        .toast.error {
+            border-left-color: #ff4d4f;
+        }
+
+        .toast.warn {
+            border-left-color: #ffaa00;
+        }
+
+        .toast.info {
+            border-left-color: #00d4ff;
+        }
+        
+        /* Key Hints */
+        .key-hints {
+            margin-top: 20px;
+        }
+        
+        .key-hints h3 {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        .hints-grid {
+            display: grid;
+            gap: 8px;
+            font-size: 12px;
+        }
+        
+        .hint-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .hint-label {
+            color: #666;
+            min-width: 80px;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: #00d4ff;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Collapsible Sections */
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .collapsible-header:hover {
+            color: #00d4ff;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            font-size: 18px;
+        }
+
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        /* Compact Status Bar */
+        .compact-status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        /* Compact Form Row */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Drag and Drop Overlay */
+        .drop-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 212, 255, 0.15);
+            border: 4px dashed #00d4ff;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .drop-overlay.active {
+            display: flex;
+        }
+
+        .drop-overlay-content {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .drop-overlay-content h2 {
+            color: #00d4ff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .drop-overlay-content p {
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Drag and Drop Overlay -->
+    <div class="drop-overlay" id="dropOverlay">
+        <div class="drop-overlay-content">
+            <h2>Drop Profile JSON</h2>
+            <p>Release to load profile</p>
+        </div>
+    </div>
+    <div class="container">
+        <header>
+            <h1>🎹 Launchpad Mapper</h1>
+            <p class="subtitle">Map your Launchpad Mini to keyboard shortcuts</p>
+        </header>
+
+        <!-- Compact Connection & Status -->
+        <div class="compact-status">
+            <div class="status-row">
+                <div class="status-badge">
+                    <div class="status-dot" id="connectionDot"></div>
+                    <span id="connectionStatus">Disconnected</span>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot" id="runningDot"></div>
+                    <span id="runningStatus">Stopped</span>
+                </div>
+                <div class="status-badge">
+                    <span>Mappings: <strong id="mappingCount">0</strong></span>
+                </div>
+                <div class="status-badge">
+                    <span>Profile: <strong id="currentProfile">Default</strong></span>
+                </div>
+                <div class="status-badge" title="Lightroom plugin connection (for slider commands)">
+                    <span>LR: <strong id="lightroomStatus">—</strong></span>
+                </div>
+            </div>
+
+            <div class="status-row">
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <select id="inputPort" style="padding: 8px 12px;">
+                        <option value="">MIDI Input Port...</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <select id="outputPort" style="padding: 8px 12px;">
+                        <option value="">MIDI Output Port...</option>
+                    </select>
+                </div>
+                <label class="status-badge" style="gap: 8px;">
+                    <input type="checkbox" id="emulationMode" style="margin: 0;">
+                    <span>Emulation</span>
+                </label>
+                <button class="btn-success" onclick="quickStart()" id="quickStartBtn" style="padding: 8px 16px;">
+                    <span>⚡</span> Connect & Start
+                </button>
+                <button class="btn-warning" onclick="stopMapper()" id="stopBtn" style="padding: 8px 16px;">
+                    <span>⏹</span> Stop
+                </button>
+                <button class="btn-secondary" onclick="refreshPorts()" style="padding: 8px 16px;" title="Refresh port list with the current backend">
+                    <span>↻</span> Refresh Ports
+                </button>
+                <button class="btn-secondary" onclick="downloadLogs()" style="padding: 8px 16px;">
+                    <span>⬇️</span> Log
+                </button>
+                <button class="btn-secondary" onclick="playSmiley()" style="padding: 8px 16px;" title="Play smiley animation on Launchpad">
+                    <span>😊</span> Smiley
+                </button>
+                <button class="btn-secondary" onclick="testLightroom()" style="padding: 8px 16px;" title="Test connection to Lightroom plugin (slider commands)">
+                    <span>📷</span> Test Lightroom
+                </button>
+            </div>
+        </div>
+        
+        <div class="main-grid">
+            <div class="left-panel">
+                <div class="card">
+                    <h2>🎮 Launchpad Grid</h2>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 13px;">Click a pad to configure its mapping. Colors and labels will appear on your physical Launchpad.</p>
+                    
+                    <div class="launchpad-container">
+                        <div class="launchpad-grid" id="launchpadGrid">
+                            <!-- Grid will be generated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Combined Preset & Profile Management -->
+                <div class="card" style="margin-top: 20px;">
+                    <h2>💾 Presets & Profiles</h2>
+
+                    <!-- Quick Load Preset -->
+                    <div class="form-row">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <select id="presetSelect">
+                                <option value="">Load a preset...</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-success" onclick="loadPreset()" style="flex: 1;">
+                                <span>📥</span> Load
+                            </button>
+                            <button class="btn-secondary" onclick="loadPresetList()">
+                                <span>↻</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Profile Actions -->
+                    <div class="form-row">
+                        <input type="text" id="profileName" value="Default" placeholder="Profile name" style="padding: 10px 12px;">
+                        <select id="profileSelect" style="padding: 10px 12px;">
+                            <option value="">Switch profile...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row-3">
+                        <button class="btn-primary" onclick="exportProfile()">
+                            <span>📤</span> Export
+                        </button>
+                        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">
+                            <span>📥</span> Import
+                        </button>
+                        <button class="btn-secondary" onclick="switchProfile()">
+                            <span>🔀</span> Switch
+                        </button>
+                        <input type="file" id="importFile" accept=".json" onchange="importProfile(event)">
+                    </div>
+
+                    <!-- Advanced Options (Collapsible) -->
+                    <div class="collapsible-header" onclick="toggleSection('advancedOptions')">
+                        <span style="font-size: 0.95em; color: #888;">⚙️ Advanced Options</span>
+                        <span class="collapse-icon collapsed" id="advancedOptionsIcon">▼</span>
+                    </div>
+                    <div class="collapsible-content collapsed" id="advancedOptionsContent">
+                        <!-- Layers -->
+                        <div style="margin-bottom: 15px;">
+                            <label style="color: #888; font-size: 13px; display: block; margin-bottom: 8px;">Layer: <strong id="currentLayer">Base</strong></label>
+                            <div class="form-row">
+                                <select id="layerSelect" style="padding: 8px 12px;">
+                                    <option value="">Select layer...</option>
+                                </select>
+                                <input type="text" id="newLayerName" placeholder="New layer name" style="padding: 8px 12px;">
+                            </div>
+                            <div class="form-row-3">
+                                <button class="btn-secondary" onclick="setLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Switch
+                                </button>
+                                <button class="btn-secondary" onclick="pushLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Push Layer
+                                </button>
+                                <button class="btn-secondary" onclick="popLayer()" style="padding: 6px 10px; font-size: 13px;">
+                                    Pop Layer
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- Auto Switch -->
+                        <div>
+                            <label class="checkbox-group" style="padding: 8px 0;">
+                                <input type="checkbox" id="autoSwitchEnabled">
+                                <span style="font-size: 13px;">Auto-switch by window title</span>
+                            </label>
+                            <div class="form-row" style="margin-top: 10px;">
+                                <input type="text" id="autoMatch" placeholder="Window title contains..." style="padding: 8px 12px;">
+                                <select id="autoProfileSelect" style="padding: 8px 12px;">
+                                    <option value="">Select profile...</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <button class="btn-success" onclick="addAutoRule()" style="padding: 6px 10px; font-size: 13px;">
+                                    <span>➕</span> Add Rule
+                                </button>
+                                <button class="btn-secondary" onclick="saveAutoSwitchRules()" style="padding: 6px 10px; font-size: 13px;">
+                                    <span>💾</span> Save Rules
+                                </button>
+                            </div>
+                            <div class="log" id="autoRulesLog" style="height: 100px; margin-top: 10px;"></div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <button class="btn-danger" onclick="clearAllMappings()" style="width: 100%; padding: 8px;">
+                            <span>🗑</span> Clear All Mappings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Event Log (Expanded by default for MIDI feedback) -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="collapsible-header" onclick="toggleSection('eventLog')">
+                        <h2 style="margin: 0;">📋 Event Log</h2>
+                        <span class="collapse-icon" id="eventLogIcon">▼</span>
+                    </div>
+                    <div class="collapsible-content" id="eventLogContent">
+                        <div class="log" id="eventLog"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="card editor-panel">
+                    <div class="editor-header">
+                        <h2>⚙️ Pad Configuration</h2>
+                        <span class="pad-note" id="selectedPadNote">Select a pad</span>
+                    </div>
+                    
+                    <div id="editorContent">
+                        <div class="form-group">
+                            <label>Label (shown on pad)</label>
+                            <input type="text" id="padLabel" placeholder="e.g., Copy, Play, F5" maxlength="10">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Key Combination</label>
+                            <input type="text" id="keyCombo" placeholder="e.g., ctrl+c, space, shift+alt+f1">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Action Type</label>
+                            <select id="actionType" onchange="updateActionFields()">
+                                <option value="key">Key Combination</option>
+                                <option value="macro">Macro Sequence</option>
+                                <option value="layer">Go to Layer</option>
+                                <option value="layer_up">Go Up One Layer</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="targetLayerGroup" style="display: none;">
+                            <label>Target Layer</label>
+                            <input type="text" id="targetLayer" placeholder="e.g., Editing">
+                        </div>
+
+                        <!-- Macro Builder -->
+                        <div id="macroBuilderGroup" style="display: none;">
+                            <div class="form-group">
+                                <label>Macro Steps</label>
+                                <div id="macroSteps" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                                    <div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">
+                                        No macro steps yet. Add steps below.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Add Step</label>
+                                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                                    <input type="text" id="macroStepKey" placeholder="Key combo or 'wait'">
+                                    <input type="number" id="macroStepDelay" placeholder="Delay (ms)" value="100" min="0" step="50">
+                                </div>
+                                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                                    <button class="btn-success" onclick="addMacroStep()" style="flex: 1; padding: 6px;">
+                                        <span>➕</span> Add Step
+                                    </button>
+                                    <button class="btn-secondary" onclick="clearMacroSteps()" style="padding: 6px;">
+                                        <span>🗑</span> Clear All
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(0,212,255,0.1); padding: 10px; border-radius: 6px; margin-top: 10px;">
+                                <div style="font-size: 12px; color: #00d4ff; margin-bottom: 6px;"><strong>💡 Macro Tips:</strong></div>
+                                <ul style="font-size: 11px; color: #aaa; margin: 0; padding-left: 20px;">
+                                    <li>Enter "wait" as key combo to add a pure delay</li>
+                                    <li>Delay is time to wait AFTER the action (in milliseconds)</li>
+                                    <li>Example: "ctrl+c" with 500ms delay, then "wait" with 1000ms</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Pad Color</label>
+                            <div class="color-picker" id="colorPicker">
+                                <!-- Colors will be generated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" id="padEnabled" checked>
+                                <span>Enabled</span>
+                            </label>
+                        </div>
+                        
+                        <div class="editor-actions">
+                            <button class="btn-primary" onclick="saveMapping()">
+                                <span>💾</span> Save Mapping
+                            </button>
+                            <button class="btn-danger" onclick="deleteMapping()">
+                                <span>🗑</span> Delete
+                            </button>
+                        </div>
+                        
+                        <div class="divider"></div>
+                        
+                        <button class="btn-secondary" onclick="testKeyCombo()" style="width: 100%;">
+                            <span>🧪</span> Test Key Combination
+                        </button>
+                        <button class="btn-secondary" onclick="selfTestPad()" style="width: 100%; margin-top: 8px;">
+                            <span>🎛️</span> Self-Test Selected Pad
+                        </button>
+                    </div>
+                    
+                    <div class="key-hints">
+                        <h3>Key Combination Examples</h3>
+                        <div class="hints-grid">
+                            <div class="hint-row">
+                                <span class="hint-label">Single:</span>
+                                <code>a</code> <code>space</code> <code>enter</code> <code>f1</code>
+                            </div>
+                            <div class="hint-row">
+                                <span class="hint-label">Modifier:</span>
+                                <code>ctrl+c</code> <code>shift+a</code> <code>alt+tab</code>
+                            </div>
+                            <div class="hint-row">
+                                <span class="hint-label">Multi:</span>
+                                <code>ctrl+shift+s</code> <code>ctrl+alt+del</code>
+                            </div>
+                            <div class="hint-row">
+                                <span class="hint-label">Arrows:</span>
+                                <code>up</code> <code>down</code> <code>left</code> <code>right</code>
+                            </div>
+                            <div class="hint-row">
+                                <span class="hint-label">Media:</span>
+                                <code>playpause</code> <code>next</code> <code>mute</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script>
+        // Grid layout matching Launchpad Mini (Programmer mode)
+        const GRID_NOTES = [
+            [91, 92, 93, 94, 95, 96, 97, 98, null],  // Top control row
+            [81, 82, 83, 84, 85, 86, 87, 88, 89],
+            [71, 72, 73, 74, 75, 76, 77, 78, 79],
+            [61, 62, 63, 64, 65, 66, 67, 68, 69],
+            [51, 52, 53, 54, 55, 56, 57, 58, 59],
+            [41, 42, 43, 44, 45, 46, 47, 48, 49],
+            [31, 32, 33, 34, 35, 36, 37, 38, 39],
+            [21, 22, 23, 24, 25, 26, 27, 28, 29],
+            [11, 12, 13, 14, 15, 16, 17, 18, 19],
+        ];
+        
+        const COLORS = {{ colors | safe }};
+        const COLOR_HEX = {{ color_hex | safe }};
+        
+        let selectedPad = null;
+        let mappings = {};
+        let selectedColor = 'green';
+        let eventSource = null;
+        let isConnected = false;
+        let isRunning = false;
+        let isLightroomConnected = false;
+        let currentLayer = 'Base';
+        let availableLayers = [];
+        let autoRules = [];
+        let autoSwitchAvailable = false;
+        let emulationEnabled = false;
+        
+        // Initialize the grid
+        function initGrid() {
+            const grid = document.getElementById('launchpadGrid');
+            grid.innerHTML = '';
+
+            GRID_NOTES.forEach((row, rowIndex) => {
+                row.forEach((note, colIndex) => {
+                    const pad = document.createElement('div');
+                    if (note === null) {
+                        pad.className = 'pad spacer';
+                    } else {
+                        pad.className = 'pad';
+                        if (rowIndex === 0) pad.classList.add('control');
+                        if (colIndex === 8) pad.classList.add('scene');
+                        pad.dataset.note = note;
+                        pad.draggable = true;
+
+                        // Add label element for pad text
+                        const labelSpan = document.createElement('span');
+                        labelSpan.className = 'pad-label';
+                        pad.appendChild(labelSpan);
+
+                        // Add action buttons container
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'pad-actions';
+
+                        // Delete button
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'pad-action-btn delete';
+                        deleteBtn.innerHTML = '×';
+                        deleteBtn.title = 'Delete mapping';
+                        deleteBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            deletePadMapping(note);
+                        };
+
+                        // Duplicate button
+                        const duplicateBtn = document.createElement('button');
+                        duplicateBtn.className = 'pad-action-btn duplicate';
+                        duplicateBtn.innerHTML = '⧉';
+                        duplicateBtn.title = 'Duplicate mapping';
+                        duplicateBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            duplicatePadMapping(note);
+                        };
+
+                        actionsDiv.appendChild(deleteBtn);
+                        actionsDiv.appendChild(duplicateBtn);
+                        pad.appendChild(actionsDiv);
+
+                        // Click handler
+                        pad.onclick = () => handlePadClick(note);
+
+                        // Double-click handler for layer actions
+                        pad.addEventListener('dblclick', () => handlePadDoubleClick(note));
+
+                        // Drag and drop handlers
+                        pad.addEventListener('dragstart', handleDragStart);
+                        pad.addEventListener('dragover', handleDragOver);
+                        pad.addEventListener('dragleave', handleDragLeave);
+                        pad.addEventListener('drop', handleDrop);
+                        pad.addEventListener('dragend', handleDragEnd);
+                    }
+                    grid.appendChild(pad);
+                });
+            });
+        }
+
+        // Drag and drop variables
+        let draggedNote = null;
+
+        function handleDragStart(e) {
+            draggedNote = parseInt(e.target.dataset.note);
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', draggedNote);
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            e.target.closest('.pad')?.classList.add('drag-over');
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            e.target.closest('.pad')?.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            e.preventDefault();
+
+            const targetPad = e.target.closest('.pad');
+            targetPad?.classList.remove('drag-over');
+
+            const targetNote = parseInt(targetPad?.dataset.note);
+            if (draggedNote !== null && targetNote && draggedNote !== targetNote) {
+                swapMappings(draggedNote, targetNote);
+            }
+
+            return false;
+        }
+
+        async function handlePadClick(note) {
+            if (emulationEnabled) {
+                await emulatePad(note);
+                return;
+            }
+            selectPad(note);
+        }
+
+        async function emulatePad(note) {
+            try {
+                const response = await fetch('/api/emulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({note, velocity: 127})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to emulate pad');
+                }
+                if (data.action === 'layer' || data.action === 'layer_up') {
+                    currentLayer = data.current_layer || currentLayer;
+                    document.getElementById('currentLayer').textContent = currentLayer;
+                }
+                flashPad(note);
+                log(`Emulated pad ${note}`, 'success');
+            } catch (e) {
+                log('Failed to emulate pad: ' + e.message, 'error');
+            }
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.pad').forEach(pad => {
+                pad.classList.remove('drag-over');
+            });
+            draggedNote = null;
+        }
+
+        async function swapMappings(note1, note2) {
+            const mapping1 = mappings[note1];
+            const mapping2 = mappings[note2];
+
+            if (mapping1) {
+                mapping1.note = note2;
+                mappings[note2] = mapping1;
+            } else {
+                delete mappings[note2];
+            }
+
+            if (mapping2) {
+                mapping2.note = note1;
+                mappings[note1] = mapping2;
+            } else {
+                delete mappings[note1];
+            }
+
+            updatePadDisplay();
+
+            try {
+                await fetch('/api/mapping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mappings: Object.values(mappings), layer: currentLayer })
+                });
+                log(`Swapped mappings between ${note1} and ${note2}`);
+            } catch (err) {
+                log('Failed to save swapped mappings', 'error');
+            }
+        }
+
+        function deletePadMapping(note) {
+            if (!mappings[note]) {
+                log('No mapping to delete', 'warn');
+                return;
+            }
+
+            if (!confirm(`Delete mapping for pad ${note}?`)) {
+                return;
+            }
+
+            delete mappings[note];
+            updatePadDisplay();
+
+            fetch('/api/mapping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mappings: Object.values(mappings), layer: currentLayer })
+            }).then(() => {
+                log(`Deleted mapping for pad ${note}`);
+            }).catch(() => {
+                log('Failed to save after delete', 'error');
+            });
+        }
+
+        function duplicatePadMapping(note) {
+            const sourceMapping = mappings[note];
+            if (!sourceMapping) {
+                log('No mapping to duplicate', 'warn');
+                return;
+            }
+
+            // Find first empty pad
+            let targetNote = null;
+            for (let row of GRID_NOTES) {
+                for (let n of row) {
+                    if (n !== null && !mappings[n]) {
+                        targetNote = n;
+                        break;
+                    }
+                }
+                if (targetNote) break;
+            }
+
+            if (!targetNote) {
+                log('No empty pad available for duplication', 'warn');
+                return;
+            }
+
+            // Create duplicate
+            mappings[targetNote] = {
+                ...sourceMapping,
+                note: targetNote
+            };
+
+            updatePadDisplay();
+            selectPad(targetNote);
+
+            fetch('/api/mapping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({...mappings[targetNote], layer: currentLayer})
+            }).then(() => {
+                log(`Duplicated pad ${note} to ${targetNote}`);
+            }).catch(() => {
+                log('Failed to save duplicated mapping', 'error');
+            });
+        }
+
+        // Handle double-click on pads to execute layer actions
+        async function handlePadDoubleClick(note) {
+            const mapping = mappings[note];
+            if (!mapping) return;
+
+            // Only handle layer-related actions
+            if (mapping.action === 'layer' && mapping.target_layer) {
+                log(`Double-click: Switching to layer "${mapping.target_layer}"`);
+                try {
+                    const response = await fetch('/api/layer/set', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ layer: mapping.target_layer })
+                    });
+                    if (response.ok) {
+                        currentLayer = mapping.target_layer;
+                        document.getElementById('currentLayer').textContent = currentLayer;
+                        await loadMappings();
+                        log(`Switched to layer: ${currentLayer}`);
+                    }
+                } catch (err) {
+                    log('Failed to switch layer', 'error');
+                }
+            } else if (mapping.action === 'layer_up') {
+                log('Double-click: Going up one layer');
+                try {
+                    const response = await fetch('/api/layer/pop', {
+                        method: 'POST'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentLayer = data.current_layer || 'Base';
+                        document.getElementById('currentLayer').textContent = currentLayer;
+                        await loadMappings();
+                        log(`Layer popped, now on: ${currentLayer}`);
+                    }
+                } catch (err) {
+                    log('Failed to pop layer', 'error');
+                }
+            }
+        }
+
+        // Initialize color picker
+        function initColorPicker() {
+            const picker = document.getElementById('colorPicker');
+            picker.innerHTML = '';
+            
+            // Only show main colors (not dim variants)
+            const mainColors = Object.keys(COLOR_HEX).filter(c => !c.includes('dim'));
+            
+            mainColors.forEach(name => {
+                const hex = COLOR_HEX[name];
+                const option = document.createElement('div');
+                option.className = 'color-option';
+                option.style.backgroundColor = hex;
+                option.style.color = hex;
+                option.title = name;
+                option.onclick = () => selectColor(name);
+                if (name === selectedColor) option.classList.add('selected');
+                picker.appendChild(option);
+            });
+        }
+        
+        function selectColor(color) {
+            selectedColor = color;
+            document.querySelectorAll('.color-option').forEach(el => {
+                el.classList.toggle('selected', el.title === color);
+            });
+        }
+        
+        function selectPad(note) {
+            selectedPad = note;
+            document.querySelectorAll('.pad').forEach(el => {
+                el.classList.toggle('selected', el.dataset.note == note);
+            });
+
+            document.getElementById('selectedPadNote').textContent = `Note: ${note}`;
+
+            // Load existing mapping
+            const mapping = mappings[note];
+            if (mapping) {
+                document.getElementById('padLabel').value = mapping.label || '';
+                document.getElementById('keyCombo').value = mapping.key_combo || '';
+                document.getElementById('padEnabled').checked = mapping.enabled !== false;
+                selectColor(mapping.color || 'green');
+                document.getElementById('actionType').value = mapping.action || 'key';
+                document.getElementById('targetLayer').value = mapping.target_layer || '';
+
+                // Load macro steps if this is a macro action
+                if (mapping.action === 'macro' && mapping.macro_steps) {
+                    currentMacroSteps = mapping.macro_steps.map(step => ({
+                        key_combo: step.key_combo || '',
+                        delay_after: step.delay_after || 0
+                    }));
+                } else {
+                    currentMacroSteps = [];
+                }
+                updateMacroStepsDisplay();
+            } else {
+                document.getElementById('padLabel').value = '';
+                document.getElementById('keyCombo').value = '';
+                document.getElementById('padEnabled').checked = true;
+                selectColor('green');
+                document.getElementById('actionType').value = 'key';
+                document.getElementById('targetLayer').value = '';
+                currentMacroSteps = [];
+                updateMacroStepsDisplay();
+            }
+            updateActionFields();
+        }
+        
+        function updatePadDisplay() {
+            document.querySelectorAll('.pad').forEach(el => {
+                const note = parseInt(el.dataset.note);
+                if (!isNaN(note) && mappings[note]) {
+                    const mapping = mappings[note];
+                    const label = mapping.label
+                        || (mapping.action === 'layer' ? `↧ ${mapping.target_layer || ''}` : '')
+                        || (mapping.action === 'layer_up' ? '↥' : '');
+                    const hexColor = mapping.color && mapping.color.startsWith('#')
+                        ? mapping.color
+                        : (COLOR_HEX[mapping.color] || '#333');
+                    el.style.backgroundColor = hexColor;
+                    const labelEl = el.querySelector('.pad-label');
+                    if (labelEl) {
+                        labelEl.textContent = label;
+                    }
+                    el.style.color = isLightColor(hexColor) ? '#000' : '#fff';
+                } else if (!isNaN(note)) {
+                    el.style.backgroundColor = '#333';
+                    const labelEl = el.querySelector('.pad-label');
+                    if (labelEl) {
+                        labelEl.textContent = '';
+                    }
+                    el.style.color = '#fff';
+                }
+            });
+            
+            // Update mapping count
+            document.getElementById('mappingCount').textContent = Object.keys(mappings).length;
+        }
+
+        function flashPad(note) {
+            const pad = document.querySelector(`.pad[data-note="${note}"]`);
+            if (!pad) return;
+            pad.classList.add('active');
+            setTimeout(() => pad.classList.remove('active'), 150);
+        }
+        
+        function isLightColor(hex) {
+            if (!hex) return false;
+            const c = hex.substring(1);
+            const rgb = parseInt(c, 16);
+            const r = (rgb >> 16) & 0xff;
+            const g = (rgb >> 8) & 0xff;
+            const b = (rgb >> 0) & 0xff;
+            const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            return luma > 128;
+        }
+        
+        async function saveMapping() {
+            if (selectedPad === null) {
+                log('Please select a pad first', 'error');
+                return;
+            }
+
+            const keyCombo = document.getElementById('keyCombo').value.trim();
+            const actionType = document.getElementById('actionType').value;
+            const targetLayer = document.getElementById('targetLayer').value.trim();
+
+            if (actionType === 'key' && !keyCombo) {
+                log('Please enter a key combination', 'error');
+                return;
+            }
+            if (actionType === 'layer' && !targetLayer) {
+                log('Please enter a target layer', 'error');
+                return;
+            }
+            if (actionType === 'macro' && currentMacroSteps.length === 0) {
+                log('Please add at least one macro step', 'error');
+                return;
+            }
+
+            const mapping = {
+                note: selectedPad,
+                label: document.getElementById('padLabel').value,
+                key_combo: keyCombo,
+                color: selectedColor,
+                enabled: document.getElementById('padEnabled').checked,
+                action: actionType,
+                target_layer: targetLayer,
+                layer: currentLayer
+            };
+
+            // Add macro steps if action is macro
+            if (actionType === 'macro') {
+                mapping.macro_steps = currentMacroSteps;
+            }
+            
+            try {
+                const response = await fetch('/api/mapping', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(mapping)
+                });
+                
+                if (response.ok) {
+                    mappings[selectedPad] = mapping;
+                    updatePadDisplay();
+                    log(`Saved: Pad ${selectedPad} → ${keyCombo}`, 'success');
+                }
+            } catch (e) {
+                log('Failed to save mapping', 'error');
+            }
+        }
+        
+        async function deleteMapping() {
+            if (selectedPad === null) {
+                log('Please select a pad first', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/mapping/${selectedPad}?layer=${encodeURIComponent(currentLayer)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    delete mappings[selectedPad];
+                    updatePadDisplay();
+                    document.getElementById('padLabel').value = '';
+                    document.getElementById('keyCombo').value = '';
+                    log(`Deleted mapping for pad ${selectedPad}`);
+                }
+            } catch (e) {
+                log('Failed to delete mapping', 'error');
+            }
+        }
+        
+        async function testKeyCombo() {
+            const combo = document.getElementById('keyCombo').value.trim();
+            if (!combo) {
+                log('Enter a key combination to test', 'error');
+                return;
+            }
+            
+            try {
+                await fetch('/api/test-key', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({combo})
+                });
+                log(`Tested: ${combo}`);
+            } catch (e) {
+                log('Failed to test key', 'error');
+            }
+        }
+        
+        // Toggle collapsible sections
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId + 'Content');
+            const icon = document.getElementById(sectionId + 'Icon');
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                icon.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                icon.classList.add('collapsed');
+            }
+        }
+
+        // Quick start: connect and start in one click
+        async function quickStart() {
+            const connected = await connect();
+            if (!connected) {
+                // connect() already logged the error
+                return;
+            }
+            // Wait a moment for connection to establish
+            setTimeout(async () => {
+                await startMapper();
+            }, 300);
+        }
+
+        async function connect() {
+            const inputPort = document.getElementById('inputPort').value;
+            const outputPort = document.getElementById('outputPort').value;
+
+            if (!inputPort) {
+                log('Please select a MIDI input port. Click Refresh if no ports appear.', 'error');
+                return false;
+            }
+
+            try {
+                const response = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        input_port: inputPort,
+                        output_port: outputPort,
+                        retries: 3,
+                        retry_delay: 0.5,
+                        auto_start: true
+                    })
+                });
+
+                const data = await response.json();
+                isConnected = data.connected;
+                if (data.started) {
+                    isRunning = true;
+                    startEventStream();
+                }
+                updateStatus();
+
+                if (data.connected) {
+                    log(data.message, 'success');
+                    fetch('/api/auto-reconnect', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({enabled: true, interval: 2.0})
+                    }).catch(() => {});
+                } else {
+                    // Show detailed error if available
+                    const errorMsg = data.error || data.message || 'Connection failed';
+                    log(errorMsg, 'error');
+                    alert(errorMsg);
+                }
+                return data.connected;
+            } catch (e) {
+                log('Failed to connect: ' + e.message, 'error');
+                return false;
+            }
+        }
+
+        async function selfTestPad() {
+            if (selectedPad === null) {
+                log('Select a pad to self-test', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/emulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({note: selectedPad, velocity: 127, skip_pulse: true})
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Self-test failed');
+                }
+                log(`Self-test sent for pad ${selectedPad}`, 'success');
+            } catch (e) {
+                log('Self-test failed: ' + e.message, 'error');
+            }
+        }
+        
+        async function disconnect() {
+            try {
+                const response = await fetch('/api/disconnect', {method: 'POST'});
+                const data = await response.json();
+                isConnected = false;
+                isRunning = false;
+                updateStatus();
+                log(data.message);
+            } catch (e) {
+                log('Failed to disconnect', 'error');
+            }
+        }
+        
+        async function startMapper() {
+            try {
+                const response = await fetch('/api/start', {method: 'POST'});
+                const data = await response.json();
+                isRunning = data.started;
+                updateStatus();
+                log(data.message, data.started ? 'success' : 'error');
+                if (data.started) {
+                    startEventStream();
+                }
+            } catch (e) {
+                log('Failed to start', 'error');
+            }
+        }
+        
+        async function stopMapper() {
+            try {
+                const response = await fetch('/api/stop', {method: 'POST'});
+                const data = await response.json();
+                isRunning = false;
+                updateStatus();
+                log(data.message);
+                stopEventStream();
+            } catch (e) {
+                log('Failed to stop', 'error');
+            }
+        }
+        
+        function isLaunchpadPort(port) {
+            const normalized = port.toLowerCase().replace(/\s+/g, '');
+            const keywords = [
+                'launchpad',
+                'lpmini',
+                'lpminimk',
+                'lpmk',
+                'lppro',
+                'launchpadx',
+                'novation'
+            ];
+            return keywords.some(keyword => normalized.includes(keyword));
+        }
+
+        async function refreshPorts() {
+            try {
+                const response = await fetch('/api/ports');
+                const data = await response.json();
+
+                const inputSelect = document.getElementById('inputPort');
+                const outputSelect = document.getElementById('outputPort');
+
+                inputSelect.innerHTML = '<option value="">Select input port...</option>';
+                outputSelect.innerHTML = '<option value="">Select output port...</option>';
+
+                data.inputs.forEach(port => {
+                    const option = document.createElement('option');
+                    option.value = port;
+                    option.textContent = port;
+                    if (isLaunchpadPort(port)) option.selected = true;
+                    inputSelect.appendChild(option);
+                });
+
+                data.outputs.forEach(port => {
+                    const option = document.createElement('option');
+                    option.value = port;
+                    option.textContent = port;
+                    if (isLaunchpadPort(port)) option.selected = true;
+                    outputSelect.appendChild(option);
+                });
+
+                if (data.inputs.length && !inputSelect.value) {
+                    inputSelect.value = data.inputs[0];
+                }
+                if (data.outputs.length && !outputSelect.value) {
+                    outputSelect.value = data.outputs[0];
+                }
+
+                if (data.inputs.length === 0 && data.outputs.length === 0 && data.error) {
+                    log(data.error, 'error');
+                } else {
+                    log(`Found ${data.inputs.length} input(s), ${data.outputs.length} output(s)`);
+                }
+            } catch (e) {
+                log('Failed to refresh ports: ' + e.message, 'error');
+            }
+        }
+
+        async function downloadLogs() {
+            try {
+                const response = await fetch('/api/logs/download');
+                if (!response.ok) {
+                    throw new Error('Failed to download logs');
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'launchpad_mapper.log';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                log('Failed to download logs: ' + e.message, 'error');
+            }
+        }
+
+        async function testLightroom() {
+            try {
+                log('Testing Lightroom connection...', 'info');
+                const response = await fetch('/api/lightroom/test', { method: 'POST' });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    log('Lightroom: ' + (data.message || 'reachable'), 'success');
+                } else {
+                    const err = data.error || 'connection failed';
+                    const hint = data.hint ? ' ' + data.hint : '';
+                    log('Lightroom: ' + err + hint, 'error');
+                }
+            } catch (e) {
+                log('Lightroom test failed: ' + (e.message || String(e)), 'error');
+            }
+        }
+
+        async function playSmiley() {
+            try {
+                const response = await fetch('/api/animation/smiley', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({duration: 5.0})
+                });
+                const data = await response.json();
+                if (data.success) {
+                    log('Playing smiley animation', 'success');
+                } else {
+                    log(data.error || 'Failed to play smiley', 'error');
+                }
+            } catch (e) {
+                log('Failed to play smiley: ' + e.message, 'error');
+            }
+        }
+
+
+        async function logClick(label, target) {
+            try {
+                const payload = JSON.stringify({
+                    label,
+                    id: target.id || '',
+                    tag: target.tagName || ''
+                });
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([payload], {type: 'application/json'});
+                    navigator.sendBeacon('/api/logs/click', blob);
+                } else {
+                    await fetch('/api/logs/click', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: payload
+                    });
+                }
+            } catch (e) {
+            }
+        }
+
+        document.addEventListener('click', event => {
+            const target = event.target.closest('button') || event.target;
+            const label = target.innerText ? target.innerText.trim() : '';
+            logClick(label, target);
+            if (target.tagName === 'BUTTON' && label) {
+                showToast(`Clicked ${label}`, 'info');
+            }
+        });
+        
+        async function loadMappings() {
+            try {
+                const response = await fetch('/api/profile');
+                const data = await response.json();
+                mappings = {};
+                const activeLayer = data.active_layer || currentLayer || data.base_layer || 'Base';
+                const layerMappings = data.layers ? data.layers[activeLayer] : data.mappings;
+                Object.values(layerMappings || {}).forEach(m => {
+                    mappings[m.note] = m;
+                });
+                const profileNameEl = document.getElementById('profileName');
+                if (profileNameEl) profileNameEl.value = data.name || 'Default';
+                document.getElementById('currentProfile').textContent = data.name || 'Default';
+                currentLayer = activeLayer;
+                document.getElementById('currentLayer').textContent = currentLayer;
+                updatePadDisplay();
+                // Refresh selected pad's form fields with updated mapping data
+                if (selectedPad !== null) {
+                    selectPad(selectedPad);
+                }
+            } catch (e) {
+                log('Failed to load profile', 'error');
+            }
+        }
+        
+        async function exportProfile() {
+            const name = document.getElementById('profileName').value || 'Default';
+            
+            try {
+                const response = await fetch(`/api/profile/export?name=${encodeURIComponent(name)}`);
+                const data = await response.json();
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `launchpad-profile-${name.replace(/[^a-z0-9]/gi, '_')}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                log(`Exported profile: ${name}`, 'success');
+            } catch (e) {
+                log('Failed to export profile', 'error');
+            }
+        }
+        
+        async function importProfile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                
+                const response = await fetch('/api/profile/import', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: text
+                });
+                
+                if (response.ok) {
+                    await loadMappings();
+                    await loadProfiles();
+                    log(`Imported profile: ${data.name || 'Unknown'}`, 'success');
+                }
+            } catch (e) {
+                log('Failed to import profile', 'error');
+            }
+            
+            event.target.value = '';
+        }
+        
+        async function clearAllMappings() {
+            if (!confirm('Clear all mappings? This cannot be undone.')) return;
+            
+            try {
+                const response = await fetch('/api/clear', {method: 'POST'});
+                if (response.ok) {
+                    mappings = {};
+                    updatePadDisplay();
+                    log('All mappings cleared');
+                }
+            } catch (e) {
+                log('Failed to clear mappings', 'error');
+            }
+        }
+
+        // Macro steps storage
+        let currentMacroSteps = [];
+
+        function updateActionFields() {
+            const actionType = document.getElementById('actionType').value;
+            const targetGroup = document.getElementById('targetLayerGroup');
+            const macroGroup = document.getElementById('macroBuilderGroup');
+            const keyCombo = document.getElementById('keyCombo');
+
+            if (actionType === 'layer') {
+                targetGroup.style.display = 'block';
+                macroGroup.style.display = 'none';
+                keyCombo.placeholder = 'Optional';
+            } else if (actionType === 'macro') {
+                targetGroup.style.display = 'none';
+                macroGroup.style.display = 'block';
+                keyCombo.placeholder = 'Not used for macros';
+                keyCombo.value = '';
+            } else {
+                targetGroup.style.display = 'none';
+                macroGroup.style.display = 'none';
+                keyCombo.placeholder = 'e.g., ctrl+c, space, shift+alt+f1';
+            }
+        }
+
+        function addMacroStep() {
+            const keyCombo = document.getElementById('macroStepKey').value.trim();
+            const delay = parseInt(document.getElementById('macroStepDelay').value) || 0;
+
+            if (!keyCombo) {
+                log('Please enter a key combo or "wait"', 'warn');
+                return;
+            }
+
+            currentMacroSteps.push({
+                key_combo: keyCombo,
+                delay_after: delay / 1000 // Convert ms to seconds
+            });
+
+            updateMacroStepsDisplay();
+
+            // Clear inputs
+            document.getElementById('macroStepKey').value = '';
+            document.getElementById('macroStepDelay').value = '100';
+            log(`Added macro step: ${keyCombo} (${delay}ms delay)`);
+        }
+
+        function removeMacroStep(index) {
+            currentMacroSteps.splice(index, 1);
+            updateMacroStepsDisplay();
+            log('Removed macro step');
+        }
+
+        function clearMacroSteps() {
+            if (currentMacroSteps.length === 0) return;
+            if (confirm('Clear all macro steps?')) {
+                currentMacroSteps = [];
+                updateMacroStepsDisplay();
+                log('Cleared all macro steps');
+            }
+        }
+
+        function updateMacroStepsDisplay() {
+            const container = document.getElementById('macroSteps');
+
+            if (currentMacroSteps.length === 0) {
+                container.innerHTML = '<div style="color: #666; font-size: 12px; text-align: center; padding: 20px;">No macro steps yet. Add steps below.</div>';
+                return;
+            }
+
+            container.innerHTML = currentMacroSteps.map((step, index) => {
+                const isWait = step.key_combo.toLowerCase() === 'wait';
+                const icon = isWait ? '⏱️' : '⌨️';
+                const label = isWait ? 'Wait' : step.key_combo;
+                const delayMs = Math.round(step.delay_after * 1000);
+
+                return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; margin-bottom: 4px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                            <span style="font-size: 14px;">${icon}</span>
+                            <span style="color: #00d4ff; font-family: monospace;">${index + 1}.</span>
+                            <code style="color: ${isWait ? '#ffaa00' : '#00ff88'};">${label}</code>
+                            ${delayMs > 0 ? `<span style="color: #666;">→ ${delayMs}ms</span>` : ''}
+                        </div>
+                        <button onclick="removeMacroStep(${index})" style="background: rgba(255,59,48,0.8); color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 11px;">×</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadLayers() {
+            try {
+                const response = await fetch('/api/layers');
+                const data = await response.json();
+                availableLayers = data.layers || [];
+                currentLayer = data.current_layer || currentLayer;
+                document.getElementById('currentLayer').textContent = currentLayer;
+                const select = document.getElementById('layerSelect');
+                select.innerHTML = '';
+                availableLayers.forEach(layer => {
+                    const option = document.createElement('option');
+                    option.value = layer;
+                    option.textContent = layer;
+                    if (layer === currentLayer) option.selected = true;
+                    select.appendChild(option);
+                });
+            } catch (e) {
+                log('Failed to load layers', 'error');
+            }
+        }
+
+        async function pushLayer() {
+            const newLayer = document.getElementById('newLayerName').value.trim();
+            const selected = document.getElementById('layerSelect').value;
+            const layer = newLayer || selected;
+            if (!layer) {
+                log('Provide a layer name', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/layer/push', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({layer})
+                });
+                if (response.ok) {
+                    await loadLayers();
+                    await loadMappings();
+                    log(`Entered layer: ${layer}`, 'success');
+                }
+            } catch (e) {
+                log('Failed to enter layer', 'error');
+            }
+        }
+
+        async function popLayer() {
+            try {
+                const response = await fetch('/api/layer/pop', {method: 'POST'});
+                if (response.ok) {
+                    await loadLayers();
+                    await loadMappings();
+                    log('Returned to previous layer', 'success');
+                }
+            } catch (e) {
+                log('Failed to go up a layer', 'error');
+            }
+        }
+
+        async function setLayer() {
+            const selected = document.getElementById('layerSelect').value;
+            if (!selected) {
+                log('Select a layer', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/layer/set', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({layer: selected})
+                });
+                if (response.ok) {
+                    await loadLayers();
+                    await loadMappings();
+                    log(`Switched to layer: ${selected}`, 'success');
+                }
+            } catch (e) {
+                log('Failed to switch layer', 'error');
+            }
+        }
+
+        async function loadProfiles() {
+            try {
+                const response = await fetch('/api/profiles');
+                const data = await response.json();
+                const profileSelect = document.getElementById('profileSelect');
+                const autoSelect = document.getElementById('autoProfileSelect');
+                profileSelect.innerHTML = '';
+                autoSelect.innerHTML = '';
+                (data.profiles || []).forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    if (name === data.active_profile) option.selected = true;
+                    profileSelect.appendChild(option);
+                    const autoOption = option.cloneNode(true);
+                    autoSelect.appendChild(autoOption);
+                });
+            } catch (e) {
+                log('Failed to load profiles', 'error');
+            }
+        }
+
+        async function switchProfile() {
+            const name = document.getElementById('profileSelect').value;
+            if (!name) {
+                log('Select a profile', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/api/profile/switch', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name})
+                });
+                if (response.ok) {
+                    await loadMappings();
+                    await loadLayers();
+                    log(`Switched to profile: ${name}`, 'success');
+                } else {
+                    const data = await response.json();
+                    log(data.error || 'Failed to switch profile', 'error');
+                }
+            } catch (e) {
+                log('Failed to switch profile', 'error');
+            }
+        }
+
+        async function loadAutoSwitch() {
+            try {
+                const response = await fetch('/api/profile/auto');
+                const data = await response.json();
+                autoRules = data.rules || [];
+                autoSwitchAvailable = data.available;
+                const checkbox = document.getElementById('autoSwitchEnabled');
+                checkbox.disabled = !autoSwitchAvailable;
+                checkbox.checked = data.enabled && autoSwitchAvailable;
+                renderAutoRules();
+            } catch (e) {
+                log('Failed to load auto-switch settings', 'error');
+            }
+        }
+
+        function renderAutoRules() {
+            const logEl = document.getElementById('autoRulesLog');
+            logEl.innerHTML = '';
+            if (!autoRules.length) {
+                logEl.textContent = 'No auto-switch rules added.';
+                return;
+            }
+            autoRules.forEach((rule, index) => {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                const msg = document.createElement('span');
+                msg.className = 'log-message';
+                msg.textContent = `${rule.match} → ${rule.profile}`;
+                const remove = document.createElement('button');
+                remove.className = 'btn-danger';
+                remove.textContent = 'Remove';
+                remove.style.marginLeft = 'auto';
+                remove.onclick = () => removeAutoRule(index);
+                entry.appendChild(msg);
+                entry.appendChild(remove);
+                logEl.appendChild(entry);
+            });
+        }
+
+        function addAutoRule() {
+            const match = document.getElementById('autoMatch').value.trim();
+            const profile = document.getElementById('autoProfileSelect').value;
+            if (!match || !profile) {
+                log('Provide a match text and profile', 'error');
+                return;
+            }
+            autoRules.push({match, profile});
+            document.getElementById('autoMatch').value = '';
+            renderAutoRules();
+        }
+
+        function removeAutoRule(index) {
+            autoRules.splice(index, 1);
+            renderAutoRules();
+        }
+
+        async function saveAutoSwitchRules() {
+            if (!autoSwitchAvailable) {
+                log('Auto-switch not available on this platform', 'error');
+                return;
+            }
+            const enabled = document.getElementById('autoSwitchEnabled').checked;
+            try {
+                const response = await fetch('/api/profile/auto', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({enabled, rules: autoRules})
+                });
+                if (response.ok) {
+                    log('Auto-switch rules saved', 'success');
+                } else {
+                    const data = await response.json();
+                    log(data.error || 'Failed to save auto-switch rules', 'error');
+                }
+            } catch (e) {
+                log('Failed to save auto-switch rules', 'error');
+            }
+        }
+        
+        function updateStatus() {
+            const connectionDot = document.getElementById('connectionDot');
+            const runningDot = document.getElementById('runningDot');
+
+            connectionDot.classList.toggle('connected', isConnected);
+            document.getElementById('connectionStatus').textContent = isConnected ? 'Connected' : 'Disconnected';
+
+            runningDot.classList.toggle('running', isRunning);
+            document.getElementById('runningStatus').textContent = isRunning ? 'Running' : 'Stopped';
+
+            const lrEl = document.getElementById('lightroomStatus');
+            if (lrEl) lrEl.textContent = isLightroomConnected ? '✓' : '✗';
+
+            // Update button states (use correct button IDs)
+            const quickStartBtn = document.getElementById('quickStartBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            if (quickStartBtn) quickStartBtn.disabled = isRunning;
+            if (stopBtn) stopBtn.disabled = !isRunning;
+        }
+        
+        function log(message, type = '') {
+            const logEl = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            
+            const time = document.createElement('span');
+            time.className = 'log-time';
+            time.textContent = new Date().toLocaleTimeString();
+            
+            const msg = document.createElement('span');
+            msg.className = 'log-message';
+            msg.textContent = message;
+            
+            entry.appendChild(time);
+            entry.appendChild(msg);
+            logEl.insertBefore(entry, logEl.firstChild);
+            
+            // Keep only last 100 entries
+            while (logEl.children.length > 100) {
+                logEl.removeChild(logEl.lastChild);
+            }
+
+            if (['error', 'warn', 'success'].includes(type)) {
+                showToast(message, type);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 200);
+            }, 3000);
+        }
+        
+        function startEventStream() {
+            if (eventSource) eventSource.close();
+            
+            eventSource = new EventSource('/api/events');
+            
+            eventSource.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'pad_press') {
+                    const pad = document.querySelector(`.pad[data-note="${data.note}"]`);
+                    if (pad) {
+                        pad.classList.add('active');
+                        setTimeout(() => pad.classList.remove('active'), 150);
+                    }
+
+                    const mapping = mappings[data.note];
+                    if (mapping) {
+                        log(`Pad ${data.note} → ${mapping.key_combo}`, 'press');
+                    } else {
+                        log(`Pad ${data.note} pressed (no mapping)`, 'press');
+                    }
+                } else if (data.type === 'midi_raw') {
+                    // Visual feedback for raw MIDI input (even when not running)
+                    if (data.note && data.velocity > 0) {
+                        const pad = document.querySelector(`.pad[data-note="${data.note}"]`);
+                        if (pad) {
+                            pad.classList.add('active');
+                            setTimeout(() => pad.classList.remove('active'), 100);
+                        }
+                        log(`MIDI: ${data.msg_type} note=${data.note} vel=${data.velocity}`, 'info');
+                    }
+                } else if (data.type === 'layer_change') {
+                    currentLayer = data.current_layer || currentLayer;
+                    document.getElementById('currentLayer').textContent = currentLayer;
+                    await loadLayers();
+                    await loadMappings();
+                    log(`Active layer: ${currentLayer}`, 'success');
+                } else if (data.type === 'pad_release') {
+                    // Optional: handle release events
+                }
+            };
+            
+            eventSource.onerror = () => {
+                log('Event stream disconnected', 'error');
+            };
+        }
+        
+        function stopEventStream() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        }
+
+        let shutdownRequested = false;
+        async function heartbeat() {
+            try {
+                const response = await fetch('/api/status', {cache: 'no-store'});
+                if (!response.ok) {
+                    throw new Error('status failed');
+                }
+                const data = await response.json();
+                const wasConnected = isConnected;
+                const wasRunning = isRunning;
+                const wasLR = isLightroomConnected;
+                isConnected = data.connected;
+                isRunning = data.running;
+                isLightroomConnected = !!data.lightroom_connected;
+                if (wasConnected !== isConnected || wasRunning !== isRunning || wasLR !== isLightroomConnected) {
+                    updateStatus();
+                }
+            } catch (e) {
+                if (!shutdownRequested) {
+                    shutdownRequested = true;
+                    log('Server closed. Attempting to close window...', 'warning');
+                    window.close();
+                }
+            }
+        }
+
+        function requestShutdown() {
+            if (shutdownRequested) return;
+            shutdownRequested = true;
+            try {
+                navigator.sendBeacon('/api/shutdown');
+            } catch (e) {
+                fetch('/api/shutdown', {method: 'POST', keepalive: true}).catch(() => {});
+            }
+        }
+        
+        // Keyboard shortcut to save (Ctrl+S)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (selectedPad !== null) {
+                    saveMapping();
+                }
+            }
+        });
+        
+        async function loadPresetList() {
+            try {
+                const response = await fetch('/api/presets');
+                const data = await response.json();
+                const select = document.getElementById('presetSelect');
+                select.innerHTML = '<option value="">Select a preset...</option>';
+                (data.presets || []).forEach(preset => {
+                    const option = document.createElement('option');
+                    option.value = preset.filename;
+                    option.textContent = preset.name;
+                    select.appendChild(option);
+                });
+                log(`Found ${data.presets.length} preset(s)`);
+            } catch (e) {
+                log('Failed to load presets', 'error');
+            }
+        }
+
+        async function loadPreset() {
+            const filename = document.getElementById('presetSelect').value;
+            if (!filename) {
+                log('Select a preset first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/presets/${filename}`);
+                const presetData = await response.json();
+
+                if (presetData.error) {
+                    log(presetData.error, 'error');
+                    return;
+                }
+
+                // Import the preset as current profile
+                const importResponse = await fetch('/api/profile/import', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(presetData)
+                });
+
+                if (importResponse.ok) {
+                    await loadMappings();
+                    await loadLayers();
+                    await loadProfiles();
+                    log(`Loaded preset: ${presetData.name}`, 'success');
+                } else {
+                    log('Failed to load preset', 'error');
+                }
+            } catch (e) {
+                log('Failed to load preset', 'error');
+            }
+        }
+
+        // Drag and Drop Profile Loading
+        function initDragAndDrop() {
+            const dropOverlay = document.getElementById('dropOverlay');
+            let dragCounter = 0;
+
+            document.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                dragCounter++;
+                if (e.dataTransfer.types.includes('Files')) {
+                    dropOverlay.classList.add('active');
+                }
+            });
+
+            document.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dragCounter--;
+                if (dragCounter === 0) {
+                    dropOverlay.classList.remove('active');
+                }
+            });
+
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            document.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                dragCounter = 0;
+                dropOverlay.classList.remove('active');
+
+                const files = e.dataTransfer.files;
+                if (files.length === 0) return;
+
+                const file = files[0];
+                if (!file.name.endsWith('.json')) {
+                    log('Please drop a JSON profile file', 'error');
+                    return;
+                }
+
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+
+                    const response = await fetch('/api/profile/import', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: text
+                    });
+
+                    if (response.ok) {
+                        await loadMappings();
+                        await loadLayers();
+                        await loadProfiles();
+                        log(`Loaded profile: ${data.name || file.name}`, 'success');
+                    } else {
+                        log('Failed to import profile', 'error');
+                    }
+                } catch (err) {
+                    log('Invalid JSON file: ' + err.message, 'error');
+                }
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            initGrid();
+            initColorPicker();
+            initDragAndDrop();
+            const emulationToggle = document.getElementById('emulationMode');
+            if (emulationToggle) {
+                emulationToggle.addEventListener('change', event => {
+                    emulationEnabled = event.target.checked;
+                    log(`Emulation mode ${emulationEnabled ? 'enabled' : 'disabled'}`);
+                });
+            }
+            refreshPorts();
+            loadMappings();
+            loadLayers();
+            loadProfiles();
+            loadAutoSwitch();
+            loadPresetList();
+            updateStatus();
+            // Start event stream immediately to receive MIDI feedback
+            startEventStream();
+            log('Launchpad Mapper initialized');
+            setInterval(heartbeat, 5000);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            requestShutdown();
+        });
+    </script>
+</body>
+</html>
