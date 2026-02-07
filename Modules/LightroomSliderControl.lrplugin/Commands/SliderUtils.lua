@@ -24,9 +24,9 @@ function SliderUtils.withDevelopModule(action)
     end)
 end
 
-function SliderUtils.adjustSlider(param, delta, minVal, maxVal)
+function SliderUtils.adjustSlider(param, delta, minVal, maxVal, defaultVal)
     SliderUtils.withDevelopModule(function()
-        local current = LrDevelopController.getValue(param) or 0
+        local current = LrDevelopController.getValue(param) or (defaultVal or 0)
         local newVal = math.max(minVal, math.min(maxVal, current + delta))
         LrDevelopController.setValue(param, newVal)
     end)

@@ -80,6 +80,11 @@ local SLIDER_MAP = {
     dehaze = "Dehaze",
     vibrance = "Vibrance",
     saturation = "Saturation",
+    straightenangle = "StraightenAngle",
+    post_crop_vignette_amount = "PostCropVignetteAmount",
+    grain_amount = "GrainAmount",
+    grain_size = "GrainSize",
+    grain_frequency = "GrainFrequency",
 }
 
 local function trim(value)
@@ -96,6 +101,9 @@ local function handle_command(message)
         local lr_key = SLIDER_MAP[slider_key:lower()]
         local value = tonumber(slider_value)
         if lr_key and value then
+            -- setValue must run inside an async task context; the command
+            -- files already start their own task so we only wrap bare SDK
+            -- calls here.
             LrTasks.startAsyncTask(function()
                 LrDevelopController.setValue(lr_key, value)
             end)
@@ -104,9 +112,10 @@ local function handle_command(message)
     end
     local command_file = COMMAND_MAP[payload]
     if command_file then
-        LrTasks.startAsyncTask(function()
-            dofile(_PLUGIN.path .. "/" .. command_file)
-        end)
+        -- Each command file starts its own LrTasks.startAsyncTask
+        -- internally, so we call dofile directly to avoid unnecessary
+        -- double-nesting of async tasks.
+        dofile(_PLUGIN.path .. "/" .. command_file)
     end
 end
 
