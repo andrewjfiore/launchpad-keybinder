@@ -9,7 +9,6 @@ import json
 import os
 import platform
 import queue
-import socket
 import threading
 import time
 import tempfile
@@ -101,100 +100,16 @@ COLOR_HEX = {
     "amber_dim": "#806000",
 }
 
-LIGHTROOM_SOCKET_HOST = os.getenv("LR_SOCKET_HOST", "127.0.0.1")
-LIGHTROOM_SOCKET_PORT = int(os.getenv("LR_SOCKET_PORT", "55555"))
-
-
 # =========================================================================
 # LIGHTROOM SOCKET (optional)
 # =========================================================================
 # This project supports optional Lightroom integration via a local TCP socket.
 # If you do not run a Lightroom companion process, these functions safely no-op.
-
-class _LightroomSocketManager:
-    def __init__(self, host: str, port: int):
-        self.host = host
-        self.port = port
-        self._sock: Optional[socket.socket] = None
-        self._q: "queue.Queue[str]" = queue.Queue(maxsize=1000)
-        self._stop = threading.Event()
-        self._worker: Optional[threading.Thread] = None
-        self._lock = threading.Lock()
-
-    def connect(self):
-        with self._lock:
-            if self._sock is not None:
-                return
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(1.0)
-                s.connect((self.host, self.port))
-                s.settimeout(None)
-                self._sock = s
-            except Exception:
-                self._sock = None
-
-    def disconnect(self):
-        with self._lock:
-            if self._sock is None:
-                return
-            try:
-                self._sock.close()
-            except Exception:
-                pass
-            self._sock = None
-
-    def start_worker(self):
-        if self._worker and self._worker.is_alive():
-            return
-        self._stop.clear()
-        self._worker = threading.Thread(target=self._run, daemon=True)
-        self._worker.start()
-
-    def stop_worker(self):
-        self._stop.set()
-        if self._worker and self._worker.is_alive():
-            self._worker.join(timeout=1.0)
-        self._worker = None
-
-    def send_async(self, payload: str):
-        try:
-            self._q.put_nowait(payload)
-        except queue.Full:
-            # Drop if overwhelmed
-            pass
-
-    def _run(self):
-        while not self._stop.is_set():
-            try:
-                payload = self._q.get(timeout=0.25)
-            except queue.Empty:
-                continue
-
-            try:
-                self.connect()
-                with self._lock:
-                    s = self._sock
-                if s is None:
-                    continue
-                s.sendall((payload + "\n").encode("utf-8", errors="ignore"))
-            except Exception:
-                # If send fails, disconnect and continue
-                self.disconnect()
-
-
-_LIGHTROOM_SOCKET = _LightroomSocketManager(LIGHTROOM_SOCKET_HOST, LIGHTROOM_SOCKET_PORT)
-
-
-def get_lightroom_socket() -> _LightroomSocketManager:
-    return _LIGHTROOM_SOCKET
-
-
-def send_slider_to_lightroom(slider_id: str, command: str):
-    # For now we just send the command, slider_id is reserved for future throttling.
-    sock = get_lightroom_socket()
-    sock.start_worker()
-    sock.send_async(command)
+from lightroom_socket import (
+    get_lightroom_socket,
+    send_slider_to_lightroom,
+    send_to_lightroom as _send_to_lr,
+)
 
 
 # Map color names to closest Launchpad velocity by RGB distance
@@ -1356,21 +1271,23 @@ class LaunchpadMapper:
             print(f"Error sending key combo '{combo}': {e}")
 
     def send_to_lightroom(self, command: str):
-        """Send a command to Lightroom using persistent socket connection."""
-        # Parse command to determine if it's a slider operation
-        # Slider commands typically have format: slider_move:ParameterName:value
-        if command.startswith("slider_move:") or command.startswith("slider:"):
-            # Extract slider ID for throttling
-            parts = command.split(":", 2)
-            if len(parts) >= 2:
-                slider_id = parts[1]  # e.g., "Exposure", "Contrast"
+        """Send a command to Lightroom using persistent socket connection.
+
+        Supports two command formats understood by the Lua plugin:
+        - Numeric IDs (e.g. "1", "57") mapped via COMMAND_MAP to dofile actions
+        - Absolute slider values: "set_<param>:<value>" (e.g. "set_exposure:1.5")
+          routed through SliderThrottler for rate-limited delivery
+        """
+        if command.startswith("set_"):
+            # Absolute slider value -- throttle via SliderThrottler
+            parts = command.split(":", 1)
+            if len(parts) == 2:
+                slider_id = parts[0]  # e.g. "set_exposure"
                 send_slider_to_lightroom(slider_id, command)
                 return
 
-        # Non-slider commands: use async queue without throttling
-        socket_manager = get_lightroom_socket()
-        socket_manager.start_worker()  # Ensure worker is running
-        socket_manager.send_async(command)
+        # Discrete commands (numeric IDs, etc.): send via async queue
+        _send_to_lr(command)
 
     def execute_macro(self, mapping: PadMapping):
         """Execute a macro sequence."""

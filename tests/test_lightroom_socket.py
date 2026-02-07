@@ -147,8 +147,28 @@ class TestMockConnection:
 
         result = manager.send("test_command")
         assert result is True
-        mock_socket.sendall.assert_called_once_with(b"test_command")
+        mock_socket.sendall.assert_called_once_with(b"test_command\n")
         assert manager._messages_sent == 1
+
+    def test_send_appends_newline_delimiter(self):
+        """Test that send() appends newline for LrSocket line framing."""
+        manager = LightroomSocketManager()
+        mock_socket = MagicMock()
+        manager._socket = mock_socket
+        manager._connected = True
+
+        manager.send("cmd_without_newline")
+        mock_socket.sendall.assert_called_with(b"cmd_without_newline\n")
+
+    def test_send_does_not_double_newline(self):
+        """Test that send() does not add a second newline if one exists."""
+        manager = LightroomSocketManager()
+        mock_socket = MagicMock()
+        manager._socket = mock_socket
+        manager._connected = True
+
+        manager.send("cmd_with_newline\n")
+        mock_socket.sendall.assert_called_with(b"cmd_with_newline\n")
 
     def test_send_broken_pipe_reconnects(self):
         """Test that broken pipe triggers reconnect."""
@@ -180,7 +200,7 @@ class TestMockConnection:
         # Should be called once with combined data
         assert mock_socket.sendall.call_count == 1
         call_data = mock_socket.sendall.call_args[0][0]
-        assert b"cmd1\ncmd2\ncmd3" == call_data
+        assert b"cmd1\ncmd2\ncmd3\n" == call_data
 
 
 class TestSliderThrottler:
@@ -201,13 +221,13 @@ class TestSliderThrottler:
             send_func=lambda cmd: sent_commands.append(cmd)
         )
 
-        result = throttler.update("Exposure", "slider_move:Exposure:+0.1")
+        result = throttler.update("set_exposure", "set_exposure:0.1")
         assert result is True
 
         # Give a tiny bit of time for the send
         time.sleep(0.01)
         assert len(sent_commands) == 1
-        assert sent_commands[0] == "slider_move:Exposure:+0.1"
+        assert sent_commands[0] == "set_exposure:0.1"
 
     def test_rapid_updates_are_throttled(self):
         """Test rapid updates are throttled and only final value sent."""
@@ -219,11 +239,11 @@ class TestSliderThrottler:
         )
 
         # Send first (immediate)
-        throttler.update("Exposure", "slider_move:Exposure:+0.1")
+        throttler.update("set_exposure", "set_exposure:0.1")
 
         # Rapid updates within throttle window
         for i in range(10):
-            throttler.update("Exposure", f"slider_move:Exposure:+0.{i+2}")
+            throttler.update("set_exposure", f"set_exposure:0.{i+2}")
 
         # Should have sent first one immediately
         assert len(sent_commands) >= 1
@@ -232,7 +252,7 @@ class TestSliderThrottler:
         time.sleep(0.2)
 
         # Should have sent final value
-        assert sent_commands[-1] == "slider_move:Exposure:+0.11"
+        assert sent_commands[-1] == "set_exposure:0.11"
 
     def test_different_sliders_tracked_independently(self):
         """Test different sliders are throttled independently."""
@@ -244,8 +264,8 @@ class TestSliderThrottler:
         )
 
         # First update for each slider should send immediately
-        throttler.update("Exposure", "slider_move:Exposure:+0.1")
-        throttler.update("Contrast", "slider_move:Contrast:+0.2")
+        throttler.update("set_exposure", "set_exposure:0.1")
+        throttler.update("set_contrast", "set_contrast:0.2")
 
         time.sleep(0.01)
         assert len(sent_commands) == 2

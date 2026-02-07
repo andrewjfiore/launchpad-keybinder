@@ -346,7 +346,10 @@ class LightroomSocketManager:
                     return False
 
             try:
-                self._socket.sendall(command.encode("utf-8"))
+                # LrSocket uses newline-delimited framing; every message
+                # must end with '\n' or it will buffer indefinitely.
+                data = command if command.endswith("\n") else command + "\n"
+                self._socket.sendall(data.encode("utf-8"))
                 self._messages_sent += 1
                 return True
 
@@ -355,7 +358,8 @@ class LightroomSocketManager:
                 if self.reconnect():
                     # Retry once after reconnect
                     try:
-                        self._socket.sendall(command.encode("utf-8"))
+                        data = command if command.endswith("\n") else command + "\n"
+                        self._socket.sendall(data.encode("utf-8"))
                         self._messages_sent += 1
                         return True
                     except OSError:
@@ -410,8 +414,9 @@ class LightroomSocketManager:
                 if not self.connect():
                     return 0
 
-            # Combine commands for efficient sending
-            batch_data = "\n".join(commands).encode("utf-8")
+            # Combine commands for efficient sending; each must be
+            # newline-terminated for LrSocket's line-based framing.
+            batch_data = ("\n".join(commands) + "\n").encode("utf-8")
 
             try:
                 self._socket.sendall(batch_data)
