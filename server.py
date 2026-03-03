@@ -520,6 +520,20 @@ def save_mapping():
     if action != "layer_up" and not required.issubset(data):
         return jsonify({"success": False, "error": "Missing required fields"}), 400
 
+    # K3: Validate note type and range
+    note = data.get("note")
+    if action != "layer_up":
+        if not isinstance(note, int) or note < 0 or note > 127:
+            return jsonify({"success": False, "error": "note must be an integer between 0 and 127"}), 400
+        key_combo = data.get("key_combo", "")
+        if not isinstance(key_combo, str):
+            return jsonify({"success": False, "error": "key_combo must be a string"}), 400
+
+    # K8: Enforce label length limit
+    label = data.get("label", "")
+    if len(str(label)) > 512:
+        return jsonify({"success": False, "error": "label must be 512 characters or fewer"}), 400
+
     layer = data.get("layer") or mapper.current_layer
 
     try:

@@ -312,7 +312,8 @@ class PulseAnimation(LEDAnimation):
             dim_color = "off"
 
         steps = 5
-        step_duration = self.duration / (steps * 2)
+        # K2: Clamp step_duration to avoid ValueError in time.sleep with negative values
+        step_duration = max(0.001, self.duration / (steps * 2))
 
         for _ in range(steps):
             if self.stop_event.is_set():
