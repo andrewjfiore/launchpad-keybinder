@@ -165,7 +165,8 @@ class PadMapping:
     long_press_enabled: bool = False
     long_press_action: str = ""  # Different action for long press
     long_press_threshold: float = 0.5  # Seconds to trigger long press
-    
+    debounce_ms: float = 0.0  # Minimum ms between consecutive triggers (0 = disabled)
+
     def to_dict(self):
         return asdict(self)
     
@@ -188,7 +189,8 @@ class PadMapping:
             velocity_mappings=data.get('velocity_mappings'),
             long_press_enabled=data.get('long_press_enabled', False),
             long_press_action=data.get('long_press_action', ''),
-            long_press_threshold=data.get('long_press_threshold', 0.5)
+            long_press_threshold=data.get('long_press_threshold', 0.5),
+            debounce_ms=data.get('debounce_ms', 0.0),
         )
     
     def get_launchpad_color(self):
@@ -310,7 +312,8 @@ class PulseAnimation(LEDAnimation):
             dim_color = "off"
 
         steps = 5
-        step_duration = self.duration / (steps * 2)
+        # K2: Clamp step_duration to avoid ValueError in time.sleep with negative values
+        step_duration = max(0.001, self.duration / (steps * 2))
 
         for _ in range(steps):
             if self.stop_event.is_set():
@@ -431,6 +434,9 @@ class LaunchpadMapper:
         # Long press handling
         self.press_times: Dict[int, float] = {}  # note -> press timestamp
         self.long_press_triggered: Dict[int, bool] = {}  # note -> whether long press fired
+
+        # Per-pad debounce: tracks last trigger time to suppress rapid double-fires
+        self._last_trigger_time: Dict[int, float] = {}  # note -> last trigger timestamp
 
         # Active animations
         self.active_animations: List[LEDAnimation] = []
@@ -1496,6 +1502,14 @@ class LaunchpadMapper:
                 callback({"type": "pad_press", "note": note, "velocity": msg.velocity})
 
             if mapping and mapping.enabled:
+                # Debounce: skip if triggered too recently
+                if mapping.debounce_ms > 0:
+                    now = time.time()
+                    last = self._last_trigger_time.get(note, 0.0)
+                    if (now - last) * 1000.0 < mapping.debounce_ms:
+                        return  # Suppress duplicate trigger within debounce window
+                    self._last_trigger_time[note] = now
+
                 # Handle layer actions
                 if mapping.action == "layer_up":
                     self.pop_layer()
@@ -3798,6 +3812,23 @@ def index():
     )
 
 
+@app.route('/api/health')
+def api_health():
+    """Health check endpoint. Returns mapper status and uptime info.
+
+    Added by agent-enhancements: provides a simple liveness probe for
+    monitoring/scripting without parsing the full /api/ports response.
+    """
+    return jsonify({
+        "status": "ok",
+        "running": mapper.running,
+        "connected": mapper.input_port is not None,
+        "current_layer": mapper.current_layer,
+        "profile_name": mapper.profile.name,
+        "version": "1.0",
+    })
+
+
 @app.route('/api/ports')
 def get_ports():
     ports = mapper.get_available_ports()
@@ -4008,6 +4039,23 @@ def events():
 
 
 def main():
+    import argparse as _argparse
+
+    parser = _argparse.ArgumentParser(description="Launchpad Mapper")
+    parser.add_argument(
+        "--startup-profile", metavar="FILE",
+        help="Path to a profile JSON file to load at startup"
+    )
+    parser.add_argument(
+        "--port", type=int, default=5000,
+        help="HTTP port for the web UI (default: 5000)"
+    )
+    parser.add_argument(
+        "--host", default="0.0.0.0",
+        help="Host to bind the web UI (default: 0.0.0.0)"
+    )
+    args, _ = parser.parse_known_args()
+
     print("\n" + "=" * 60)
     print("  Launchpad Mapper (Windows Enhanced)")
     print("=" * 60)
@@ -4015,15 +4063,30 @@ def main():
     print("  - Sends keystrokes to active window (Windows compatible)")
     print("  - Hex color picker + preset palette")
     print("  - Key repeat (hold pad to repeat)")
-    print("\n  Open http://localhost:5000 in your browser")
+    print(f"\n  Open http://localhost:{args.port} in your browser")
     print("  Press Ctrl+C to quit\n")
-    
+
+    # Load startup profile if provided
+    if args.startup_profile:
+        profile_path = Path(args.startup_profile)
+        if profile_path.is_file():
+            try:
+                with open(profile_path, "r") as f:
+                    profile_data = json.load(f)
+                mapper.profile = Profile.from_dict(profile_data)
+                mapper.layer_stack = [mapper.profile.base_layer]
+                print(f"  [STARTUP] Loaded profile: {profile_path.name}")
+            except Exception as e:
+                print(f"  [STARTUP] Failed to load profile '{profile_path}': {e}")
+        else:
+            print(f"  [STARTUP] Profile file not found: {profile_path}")
+
     # Note about running as admin on Windows
     if platform.system() == 'Windows':
         print("  Note: If keys aren't working, try running as Administrator")
         print()
-    
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+
+    app.run(host=args.host, port=args.port, debug=False, threaded=True)
 
 
 if __name__ == '__main__':

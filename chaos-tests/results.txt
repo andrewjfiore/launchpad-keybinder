@@ -1,0 +1,203 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /home/andrew/repos/launchpad-keybinder
+configfile: pytest.ini
+plugins: hypothesis-6.151.9, anyio-4.12.1, mock-3.15.1, cov-7.0.0, langsmith-0.7.1
+collecting ... collected 57 items
+
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_missing_required_fields PASSED [  1%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_wrong_types FAILED [  3%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_huge_payload PASSED [  5%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_null_fields FAILED [  7%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_negative_note PASSED [  8%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_out_of_range_note PASSED [ 10%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_connect_malformed_body PASSED [ 12%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_connect_retries_negative PASSED [ 14%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_emulate_pad_no_note PASSED [ 15%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_emulate_pad_extreme_velocity PASSED [ 17%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_set_color_invalid_color PASSED [ 19%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_layer_set_empty_name PASSED [ 21%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_layer_set_very_long_name PASSED [ 22%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_batch_mapping_empty_list PASSED [ 24%]
+chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_batch_mapping_malformed_items PASSED [ 26%]
+chaos-tests/test_keybinder_chaos.py::TestXSSInjection::test_xss_in_label PASSED [ 28%]
+chaos-tests/test_keybinder_chaos.py::TestXSSInjection::test_xss_in_profile_name PASSED [ 29%]
+chaos-tests/test_keybinder_chaos.py::TestXSSInjection::test_path_traversal_preset PASSED [ 31%]
+chaos-tests/test_keybinder_chaos.py::TestXSSInjection::test_path_traversal_preset_encoded PASSED [ 33%]
+chaos-tests/test_keybinder_chaos.py::TestProfileImport::test_import_empty_profile PASSED [ 35%]
+chaos-tests/test_keybinder_chaos.py::TestProfileImport::test_import_wrong_version PASSED [ 36%]
+chaos-tests/test_keybinder_chaos.py::TestProfileImport::test_import_deeply_nested PASSED [ 38%]
+chaos-tests/test_keybinder_chaos.py::TestProfileImport::test_import_huge_mappings PASSED [ 40%]
+chaos-tests/test_keybinder_chaos.py::TestProfileImport::test_import_unicode_bomb PASSED [ 42%]
+chaos-tests/test_keybinder_chaos.py::TestProfileImport::test_import_not_json PASSED [ 43%]
+chaos-tests/test_keybinder_chaos.py::TestProfileImport::test_import_circular_reference_json PASSED [ 45%]
+chaos-tests/test_keybinder_chaos.py::TestConcurrency::test_concurrent_api_requests FAILED [ 47%]
+chaos-tests/test_keybinder_chaos.py::TestConcurrency::test_concurrent_mapping_saves FAILED [ 49%]
+chaos-tests/test_keybinder_chaos.py::TestConcurrency::test_concurrent_profile_switch FAILED [ 50%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_emulate_out_of_range PASSED [ 52%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_emulate_negative_note PASSED [ 54%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_set_pad_color_invalid PASSED [ 56%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_set_pad_color_none PASSED [ 57%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_execute_key_combo_empty PASSED [ 59%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_execute_key_combo_special_chars PASSED [ 61%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_set_profile_none PASSED [ 63%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_mapper_push_pop_layers_stress PASSED [ 64%]
+chaos-tests/test_keybinder_chaos.py::TestMIDIFuzzing::test_binary_midi_message_fuzzing PASSED [ 66%]
+chaos-tests/test_keybinder_chaos.py::TestSchemaValidation::test_validate_profile_none PASSED [ 68%]
+chaos-tests/test_keybinder_chaos.py::TestSchemaValidation::test_validate_profile_random_fields PASSED [ 70%]
+chaos-tests/test_keybinder_chaos.py::TestSchemaValidation::test_validate_profile_huge_size PASSED [ 71%]
+chaos-tests/test_keybinder_chaos.py::TestSchemaValidation::test_validate_profile_sql_injection PASSED [ 73%]
+chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_load_corrupt_profile_file FAILED [ 75%]
+chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_load_truncated_profile_file FAILED [ 77%]
+chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_load_empty_profile_file FAILED [ 78%]
+chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_save_profiles_readonly_dir FAILED [ 80%]
+chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_save_config_extreme_values FAILED [ 82%]
+chaos-tests/test_keybinder_chaos.py::TestConnectDisconnect::test_disconnect_without_connect PASSED [ 84%]
+chaos-tests/test_keybinder_chaos.py::TestConnectDisconnect::test_stop_without_start PASSED [ 85%]
+chaos-tests/test_keybinder_chaos.py::TestConnectDisconnect::test_start_without_connect PASSED [ 87%]
+chaos-tests/test_keybinder_chaos.py::TestConnectDisconnect::test_rapid_set_auto_reconnect PASSED [ 89%]
+chaos-tests/test_keybinder_chaos.py::TestConnectDisconnect::test_get_available_ports_no_midi PASSED [ 91%]
+chaos-tests/test_keybinder_chaos.py::TestAnimations::test_pulse_invalid_note PASSED [ 92%]
+chaos-tests/test_keybinder_chaos.py::TestAnimations::test_pulse_negative_duration PASSED [ 94%]
+chaos-tests/test_keybinder_chaos.py::TestAnimations::test_stop_all_animations_none_running PASSED [ 96%]
+chaos-tests/test_keybinder_chaos.py::TestHypothesisKeybinder::test_emulate_pad_arbitrary_values PASSED [ 98%]
+chaos-tests/test_keybinder_chaos.py::TestHypothesisKeybinder::test_execute_key_combo_arbitrary_string PASSED [100%]
+chaos-tests/test_keybinder_chaos.py::TestHypothesisKeybinder::test_execute_key_combo_arbitrary_string ERROR [100%]
+
+==================================== ERRORS ====================================
+_ ERROR at teardown of TestHypothesisKeybinder.test_execute_key_combo_arbitrary_string _
+chaos-tests/test_keybinder_chaos.py:45: in flask_client
+    with app.test_client() as client:
+../../.local/lib/python3.12/site-packages/flask/testing.py:262: in __exit__
+    self._context_stack.close()
+/usr/lib/python3.12/contextlib.py:618: in close
+    self.__exit__(None, None, None)
+/usr/lib/python3.12/contextlib.py:610: in __exit__
+    raise exc_details[1]
+/usr/lib/python3.12/contextlib.py:595: in __exit__
+    if cb(*exc_details):
+       ^^^^^^^^^^^^^^^^
+../../.local/lib/python3.12/site-packages/flask/ctx.py:284: in __exit__
+    self.pop(exc_value)
+../../.local/lib/python3.12/site-packages/flask/ctx.py:265: in pop
+    _cv_app.reset(self._cv_tokens.pop())
+E   ValueError: <Token var=<ContextVar name='flask.app_ctx' at 0x79652a92c6d0> at 0x796528ff5ac0> was created in a different Context
+----------------------------- Captured stdout call -----------------------------
+Profiles saved to /home/andrew/.config/launchpad-mapper/profiles.json
+=================================== FAILURES ===================================
+___________________ TestAPIFuzzing.test_mapping_wrong_types ____________________
+chaos-tests/test_keybinder_chaos.py:81: in test_mapping_wrong_types
+    assert resp.status_code in (400, 422, 500), "Should fail gracefully"
+E   AssertionError: Should fail gracefully
+E   assert 200 in (400, 422, 500)
+E    +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+___________________ TestAPIFuzzing.test_mapping_null_fields ____________________
+chaos-tests/test_keybinder_chaos.py:106: in test_mapping_null_fields
+    assert resp.status_code in (400, 422)
+E   assert 200 in (400, 422)
+E    +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+_________________ TestConcurrency.test_concurrent_api_requests _________________
+chaos-tests/test_keybinder_chaos.py:339: in test_concurrent_api_requests
+    assert not errors, f"Errors in concurrent requests: {errors}"
+E   AssertionError: Errors in concurrent requests: ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+E   assert not ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+________________ TestConcurrency.test_concurrent_mapping_saves _________________
+chaos-tests/test_keybinder_chaos.py:363: in test_concurrent_mapping_saves
+    assert not errors, f"Errors: {errors}"
+E   AssertionError: Errors: ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+E   assert not ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+________________ TestConcurrency.test_concurrent_profile_switch ________________
+chaos-tests/test_keybinder_chaos.py:385: in test_concurrent_profile_switch
+    assert not errors, f"Errors: {errors}"
+E   AssertionError: Errors: ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+E   assert not ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+_____________ TestPersistenceLayer.test_load_corrupt_profile_file ______________
+chaos-tests/test_keybinder_chaos.py:558: in test_load_corrupt_profile_file
+    pm = PersistenceManager(persistence_dir=str(tmp_path))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+persistence.py:41: in __init__
+    self.profiles_path = self.persistence_dir / PROFILES_FILE
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: unsupported operand type(s) for /: 'str' and 'str'
+____________ TestPersistenceLayer.test_load_truncated_profile_file _____________
+chaos-tests/test_keybinder_chaos.py:570: in test_load_truncated_profile_file
+    pm = PersistenceManager(persistence_dir=str(tmp_path))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+persistence.py:41: in __init__
+    self.profiles_path = self.persistence_dir / PROFILES_FILE
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: unsupported operand type(s) for /: 'str' and 'str'
+______________ TestPersistenceLayer.test_load_empty_profile_file _______________
+chaos-tests/test_keybinder_chaos.py:582: in test_load_empty_profile_file
+    pm = PersistenceManager(persistence_dir=str(tmp_path))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+persistence.py:41: in __init__
+    self.profiles_path = self.persistence_dir / PROFILES_FILE
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: unsupported operand type(s) for /: 'str' and 'str'
+_____________ TestPersistenceLayer.test_save_profiles_readonly_dir _____________
+chaos-tests/test_keybinder_chaos.py:597: in test_save_profiles_readonly_dir
+    pm = PersistenceManager(persistence_dir=str(ro_dir))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+persistence.py:41: in __init__
+    self.profiles_path = self.persistence_dir / PROFILES_FILE
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: unsupported operand type(s) for /: 'str' and 'str'
+_____________ TestPersistenceLayer.test_save_config_extreme_values _____________
+chaos-tests/test_keybinder_chaos.py:611: in test_save_config_extreme_values
+    pm = PersistenceManager(persistence_dir=str(tmp_path))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+persistence.py:41: in __init__
+    self.profiles_path = self.persistence_dir / PROFILES_FILE
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: unsupported operand type(s) for /: 'str' and 'str'
+=============================== warnings summary ===============================
+chaos-tests/test_keybinder_chaos.py::TestAnimations::test_stop_all_animations_none_running
+  /home/andrew/.local/lib/python3.12/site-packages/_pytest/threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-133 (run)
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.12/threading.py", line 1010, in run
+      self._target(*self._args, **self._kwargs)
+    File "/home/andrew/repos/launchpad-keybinder/launchpad_mapper.py", line 321, in run
+      time.sleep(step_duration)
+  ValueError: sleep length must be non-negative
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_wrong_types - AssertionError: Should fail gracefully
+assert 200 in (400, 422, 500)
+ +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+FAILED chaos-tests/test_keybinder_chaos.py::TestAPIFuzzing::test_mapping_null_fields - assert 200 in (400, 422)
+ +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+FAILED chaos-tests/test_keybinder_chaos.py::TestConcurrency::test_concurrent_api_requests - AssertionError: Errors in concurrent requests: ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+assert not ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+FAILED chaos-tests/test_keybinder_chaos.py::TestConcurrency::test_concurrent_mapping_saves - AssertionError: Errors: ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+assert not ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+FAILED chaos-tests/test_keybinder_chaos.py::TestConcurrency::test_concurrent_profile_switch - AssertionError: Errors: ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+assert not ["<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>", "<ContextVar name='flask.app_ctx' at 0x79652a92c6d0>"]
+FAILED chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_load_corrupt_profile_file - TypeError: unsupported operand type(s) for /: 'str' and 'str'
+FAILED chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_load_truncated_profile_file - TypeError: unsupported operand type(s) for /: 'str' and 'str'
+FAILED chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_load_empty_profile_file - TypeError: unsupported operand type(s) for /: 'str' and 'str'
+FAILED chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_save_profiles_readonly_dir - TypeError: unsupported operand type(s) for /: 'str' and 'str'
+FAILED chaos-tests/test_keybinder_chaos.py::TestPersistenceLayer::test_save_config_extreme_values - TypeError: unsupported operand type(s) for /: 'str' and 'str'
+ERROR chaos-tests/test_keybinder_chaos.py::TestHypothesisKeybinder::test_execute_key_combo_arbitrary_string - ValueError: <Token var=<ContextVar name='flask.app_ctx' at 0x79652a92c6d0> at 0x796528ff5ac0> was created in a different Context
+============== 10 failed, 47 passed, 1 warning, 1 error in 4.96s ===============
+
+Cleaning up server resources...
+Profiles saved to /home/andrew/.config/launchpad-mapper/profiles.json
+Config saved to /home/andrew/.config/launchpad-mapper/config.json
+Mapper stopped
+Mapper stopped
+Server cleanup complete
+Cleaning up Launchpad Mapper resources...
+Lightroom socket worker stopped
+Disconnected from Lightroom
+Cleanup complete

@@ -37,7 +37,8 @@ class PersistenceManager:
     """Manages persistence of profiles and configuration."""
 
     def __init__(self, persistence_dir: Optional[Path] = None):
-        self.persistence_dir = persistence_dir or get_persistence_dir()
+        # K1: Accept str or Path, always store as Path
+        self.persistence_dir = Path(persistence_dir) if persistence_dir is not None else get_persistence_dir()
         self.profiles_path = self.persistence_dir / PROFILES_FILE
         self.config_path = self.persistence_dir / CONFIG_FILE
 
@@ -132,6 +133,13 @@ class PersistenceManager:
         """
         with self._lock:
             if not self.profiles_path.exists():
+                return None
+
+            # K5: Guard against loading huge files that could exhaust memory
+            MAX_PROFILE_SIZE = 10 * 1024 * 1024  # 10 MB
+            file_size = self.profiles_path.stat().st_size
+            if file_size > MAX_PROFILE_SIZE:
+                print(f"[WARN] profiles.json too large ({file_size} bytes), skipping load")
                 return None
 
             try:
