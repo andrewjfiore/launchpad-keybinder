@@ -1084,6 +1084,7 @@
         let autoRules = [];
         let autoSwitchAvailable = false;
         let emulationEnabled = false;
+        let sseErrorShown = false;
         
         // Initialize the grid
         function initGrid() {
@@ -1850,9 +1851,6 @@
             const target = event.target.closest('button') || event.target;
             const label = target.innerText ? target.innerText.trim() : '';
             logClick(label, target);
-            if (target.tagName === 'BUTTON' && label) {
-                showToast(`Clicked ${label}`, 'info');
-            }
         });
         
         async function loadMappings() {
@@ -2303,6 +2301,13 @@
             
             eventSource = new EventSource('/api/events');
             
+            eventSource.onopen = () => {
+                if (sseErrorShown) {
+                    sseErrorShown = false;
+                    log('Event stream reconnected', 'success');
+                }
+            };
+
             eventSource.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
 
@@ -2341,7 +2346,10 @@
             };
             
             eventSource.onerror = () => {
-                log('Event stream disconnected', 'error');
+                if (!sseErrorShown) {
+                    sseErrorShown = true;
+                    log('Event stream disconnected', 'error');
+                }
             };
         }
         
@@ -2538,9 +2546,8 @@
             setInterval(heartbeat, 5000);
         });
 
-        window.addEventListener('beforeunload', () => {
-            requestShutdown();
-        });
+        // Note: beforeunload shutdown removed — refreshing the page should not kill the server.
+        // The server cleans up via atexit when killed with Ctrl+C.
     </script>
 </body>
 </html>
