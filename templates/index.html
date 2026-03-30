@@ -2348,7 +2348,16 @@
             eventSource.onerror = () => {
                 if (!sseErrorShown) {
                     sseErrorShown = true;
-                    log('Event stream disconnected', 'error');
+                    log('Event stream disconnected', 'warn');
+                }
+                // If the EventSource reaches CLOSED state, it won't auto-reconnect —
+                // manually restart the stream after a short delay
+                if (eventSource && eventSource.readyState === EventSource.CLOSED) {
+                    setTimeout(() => {
+                        if (eventSource) {
+                            startEventStream();
+                        }
+                    }, 3000);
                 }
             };
         }
@@ -2378,7 +2387,7 @@
             } catch (e) {
                 if (!shutdownRequested) {
                     shutdownRequested = true;
-                    log('Server closed. Attempting to close window...', 'warning');
+                    log('Server closed. Attempting to close window...', 'warn');
                     window.close();
                 }
             }

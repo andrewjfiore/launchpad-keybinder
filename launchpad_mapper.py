@@ -846,7 +846,7 @@ class LaunchpadMapper:
             with self.connection_lock:
                 for attempt in range(1, retries + 1):
                     if self.input_port or self.output_port:
-                        self.disconnect()
+                        self._disconnect_locked()
 
                     detected_input = input_port
                     detected_output = output_port
@@ -951,29 +951,33 @@ class LaunchpadMapper:
                 "errors": errors + [str(e)],
             }
     
+    def _disconnect_locked(self):
+        """Internal disconnect that must be called while holding connection_lock."""
+        self.stop()
+        # Clear all pads before closing to prevent lingering LEDs
+        if self.output_port:
+            try:
+                self.clear_all_pads()
+                # Small delay to ensure MIDI messages are sent
+                time.sleep(0.05)
+            except Exception as e:
+                print(f"Error clearing pads during disconnect: {e}")
+        if self.input_port:
+            try:
+                self.input_port.close()
+            except Exception as e:
+                print(f"Error closing input port: {e}")
+            self.input_port = None
+        if self.output_port:
+            try:
+                self.output_port.close()
+            except Exception as e:
+                print(f"Error closing output port: {e}")
+            self.output_port = None
+
     def disconnect(self):
         with self.connection_lock:
-            self.stop()
-            # Clear all pads before closing to prevent lingering LEDs
-            if self.output_port:
-                try:
-                    self.clear_all_pads()
-                    # Small delay to ensure MIDI messages are sent
-                    time.sleep(0.05)
-                except Exception as e:
-                    print(f"Error clearing pads during disconnect: {e}")
-            if self.input_port:
-                try:
-                    self.input_port.close()
-                except Exception as e:
-                    print(f"Error closing input port: {e}")
-                self.input_port = None
-            if self.output_port:
-                try:
-                    self.output_port.close()
-                except Exception as e:
-                    print(f"Error closing output port: {e}")
-                self.output_port = None
+            self._disconnect_locked()
 
     def _cleanup_on_exit(self):
         """
